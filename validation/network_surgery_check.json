@@ -1,0 +1,23 @@
+{
+ "note": "synthetic planted ideal chains; justifies dropping spring-network surgery (TUNING.md section 7)",
+ "rows": [
+  {
+   "n": 40,
+   "seed": 11,
+   "median_abs_backbone": 7.927979750991804,
+   "median_abs_beyond_5": 6.9527873019900035,
+   "p95_abs_beyond_5": 32.423336483102695,
+   "max_abs_beyond_5": 82.53694203521695,
+   "ratio_p95_to_backbone": 4.089735027268009
+  },
+  {
+   "n": 60,
+   "seed": 3,
+   "median_abs_backbone": 4.182279616067105,
+   "median_abs_beyond_5": 2.0883789751060426,
+   "p95_abs_beyond_5": 6.985889224865153,
+   "max_abs_beyond_5": 14.19890163897449,
+   "ratio_p95_to_backbone": 1.6703544158136614
+  }
+ ]
+}
