@@ -241,3 +241,26 @@ Held-out trend-removed Spearman, leave-one-dataset-out over the four untreated p
 log d = 2.720 + 0.610 log₁₀ s (d in nm). The largest standardised coefficients are CTCF sites
 between the loci (+0.084, falling with separation: −0.071 × log₁₀ s) and GC similarity (−0.034).
 The orientation terms are small (|β| ≤ 0.024).
+
+## 12. Per-pair reliability (Gate 2c), practice
+
+Gate 2's per-bead score did not rank held-out error (section 9). Three per-pair scores, computed from the
+input and the fitted model only, were compared on the practice datasets (`validation/reliability.py --practice`
+→ `results_reliability_practice.json`, split 0). Pair level: Spearman of the score vs minus the pair's
+scale-free error within 10 separation strata, averaged; bead level: median pair score vs median pair error.
+
+| Practice dataset | Input | input_se: pair / bead | misfit: pair / bead | combined: pair / bead |
+|---|---|---|---|---|
+| bintu_k562_28_30 | imaging | +0.191 / +0.331 | +0.124 / +0.253 | +0.178 / +0.348 |
+| bintu_hct116_28_30 | imaging | +0.087 / +0.216 | +0.063 / +0.035 | +0.083 / +0.219 |
+| bintu_hct116_28_30_auxin | imaging | +0.266 / +0.534 | +0.175 / +0.307 | +0.245 / +0.430 |
+| bintu_hct116_34_37 | imaging | +0.009 / -0.281 | +0.067 / -0.147 | +0.066 / -0.208 |
+| su_chr2 | imaging | -0.031 / -0.108 | +0.057 / +0.262 | +0.049 / +0.159 |
+| su_chr2_parm_rep | imaging | +0.077 / +0.152 | +0.099 / +0.241 | +0.099 / +0.263 |
+| bintu_k562_28_30 | hic | -0.079 / -0.040 | -0.080 / +0.194 | -0.095 / -0.015 |
+| su_chr2 | hic | -0.048 / +0.002 | -0.020 / +0.019 | -0.024 / +0.009 |
+| su_chr2_parm_rep | hic | -0.104 / -0.160 | -0.014 / +0.072 | -0.026 / +0.042 |
+
+**Frozen** (`frozen.RELIABILITY`): the misfit score, which has the best worst case: on imaging input its pair-level minimum is +0.057 (combined +0.049, input_se −0.031) and its bead-level minimum −0.147 (combined −0.208, input_se −0.281), and on Hi-C practice it is the least negative on Su chr2 and its replicate (on K562, −0.080 against −0.079 for input_se). No candidate is positive on practice Hi-C input; the misfit score is tested there unchanged. Pass bar: ρ ≥ 0.20 on every test set with its 95 % interval above 0 (the usability bar report.py already applied to Gate 2's per-bead score), per input type and level.
+
+**Reading.** Even the chosen score reaches the bar on none of the practice sets at pair level. A weak positive ranking on imaging-derived input is the best case the test can confirm.
