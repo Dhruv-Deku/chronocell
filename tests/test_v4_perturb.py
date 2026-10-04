@@ -77,6 +77,24 @@ def test_deletion_is_concatenation_for_an_ideal_chain_and_leaves_pieces_unchange
     assert Sd[ref[2], ref[8]] == pytest.approx(S[2, 8]) and Sd[ref[27], ref[35]] == pytest.approx(S[27, 35])
 
 
+def test_several_deletions_at_once_concatenate_the_kept_runs():
+    S = _ideal()
+    pieces, desc = PT.pieces_for("deletion", 40, {"segments": [(5, 10), (15, 18)]})
+    assert [p.beads.tolist()[:1] + p.beads.tolist()[-1:] for p in pieces] == [[0, 4], [10, 14], [18, 39]]
+    assert desc == "deletion of beads 5-9, 15-17"
+    Sd, origin, _ = PT.derive(S, pieces)
+    kept = np.r_[0:5, 10:15, 18:40]
+    assert (origin == kept).all()
+    rank = np.abs(np.subtract.outer(np.arange(len(kept)), np.arange(len(kept))))
+    assert np.allclose(Sd, 0.12 * rank)                       # an ideal chain simply loses the deleted beads
+    single = PT.pieces_for("deletion", 40, {"segments": [(15, 25)]})[0]
+    assert [p.beads.tolist() for p in single] == [p.beads.tolist() for p in PT.pieces_for("deletion", 40, {"a": 15, "b": 25})[0]]
+    with pytest.raises(ValueError):
+        PT.pieces_for("deletion", 40, {"segments": [(0, 40)]})
+    with pytest.raises(ValueError):
+        PT.pieces_for("deletion", 40, {"segments": [(12, 12)]})
+
+
 def test_deletion_on_a_fitted_population(chain_result):
     imp = PT.variant_impact(chain_result, "deletion", {"a": 15, "b": 25})
     assert np.isnan(imp.p_after[16, 30]) and np.isfinite(imp.p_after[10, 30])     # deleted beads have no contacts
