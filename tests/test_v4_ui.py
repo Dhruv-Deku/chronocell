@@ -89,3 +89,46 @@ def test_whole_window_population_uses_v4_above_400_beads(app):
     ens = list(at.session_state["ensembles"].values())[0]
     assert ens.config["model"] == "population_v4" and ens.representative_nm.shape == (450, 3)
     assert any(r["Model"] == "v4 population" for r in at.session_state["telemetry"])
+
+
+VCF_TEXT = ("chr22\t20000000\td1\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=20100000\n"
+            "chr9\t100\tx\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=5000\n")
+
+
+def _table(at, column: str):
+    """The first dataframe on the page with this column (AppTest does not index dataframes by key)."""
+    return next((d.value for d in at.dataframe if column in d.value.columns), None)
+
+
+def test_variant_file_scenario_and_impact_panel(app, monkeypatch):
+    import ui.variant_impact as VI
+    monkeypatch.setattr(VI, "BOOT_REPS", 2)                        # two refits keep the test short
+    at = app
+    at.segmented_control(key="workspace").set_value("4D dynamics").run()
+    assert _ok(at), [e.value for e in at.exception]
+    sel = at.selectbox(key="sc_choice_chr22")
+    assert sel.value == "22q11del"                                 # default scenario unchanged
+    assert "From a variant file (VCF / BEDPE)" in sel.options
+    assert "vi_cache" not in at.session_state                      # nothing computed before it is asked for
+    sel.set_value("file").run()
+    at.text_area(key="sc_vtext").input(VCF_TEXT).run()
+    assert _ok(at), [e.value for e in at.exception]
+    txt = _text(at)
+    assert "2 variants read, 1 on the loaded window" in txt and "on chr9, not chr22" in txt
+    assert "Mechanism simulator, not validated" in txt             # the measured SV-test verdict, read from JSON
+    assert "synthetic" in txt                                      # reference input is labelled
+    at.button(key="vi_fit").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert any(r["Stage"] == "ensemble fit (variant impact)" for r in at.session_state["telemetry"])
+    txt = _text(at)
+    assert "Pairs gaining ≥ 2×" in txt and "Uncertainty" in txt
+    genes = _table(at, "Effect")
+    assert genes is not None
+    pairs = _table(at, "Locus A (Mb)")
+    assert len(pairs) > 0 and (pairs["log₂ change"].abs() >= 1).any()
+    assert "90 % interval" not in pairs.columns
+    at.button(key="vi_boot").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert "90 % interval" in _table(at, "Locus A (Mb)").columns
+    assert "Of those, 90 % interval excludes no change" in _text(at)
+    assert any("bootstrap" in r["Stage"] for r in at.session_state["telemetry"])
