@@ -1,5 +1,5 @@
 """
-ChronoCell-5D — 3D / 4D chromatin structural workstation for human chromosomes (GRCh38).
+ChronoCell-5D — 3D / 4D chromatin structural workstation (GRCh38 by default; any configured assembly).
 
     streamlit run app.py
 
@@ -126,6 +126,16 @@ ss.setdefault("region_choice", "whole")
 ss.setdefault("custom_window", None)          # (lo, hi) in local bins; the single source of truth
 ss.setdefault("workspace", "3D structure")
 ss.setdefault("chrom_choice", "chr22")
+ss.setdefault("assembly_choice", genome.DEFAULT_ASSEMBLY)
+if ss.assembly_choice not in genome.assemblies():
+    ss.assembly_choice = genome.DEFAULT_ASSEMBLY
+
+
+def _assembly_changed() -> None:
+    """Keep the chromosome choice valid when the assembly changes (callback, before widgets exist)."""
+    mains = genome.main_chromosomes(ss.assembly_choice)
+    if ss.get("chrom_choice") not in mains:
+        ss.chrom_choice = "chr22" if "chr22" in mains else ("chr19" if "chr19" in mains else mains[-3])
 
 
 # ======================================================================================
@@ -300,7 +310,9 @@ bar_l, bar_r = st.columns([1, 1.4], vertical_alignment="center")
 bar_l.markdown(f'<div class="cc-brand">{MARK}<b>ChronoCell-5D</b><span>chromatin 3D / 4D workstation</span></div>',
                unsafe_allow_html=True)
 with bar_r, st.container(key="nav", horizontal=True, horizontal_alignment="right", gap="medium"):
-    chrom_choice = st.selectbox("Chromosome", genome.MAIN_CHROMOSOMES, key="chrom_choice",
+    asm_name = ss.assembly_choice
+    ASM = genome.assembly(asm_name)
+    chrom_choice = st.selectbox("Chromosome", ASM.main_chromosomes, key="chrom_choice",
                                 label_visibility="collapsed", width=110)
     slot = slot_files(chrom_choice)
     with st.popover("Data"):
@@ -326,6 +338,11 @@ with bar_r, st.container(key="nav", horizontal=True, horizontal_alignment="right
                               help="PyG Data objects need full unpickling, which can execute code. Only enable for "
                                    "files you produced.")
         seed = st.number_input("Reference model seed", 0, 9999, 7)
+        st.selectbox("Genome assembly", list(genome.assemblies()), key="assembly_choice", on_change=_assembly_changed,
+                     format_func=lambda a: f"{genome.assembly(a).display} · {genome.assembly(a).common}",
+                     help="Assemblies are data folders under chronocell/data/genomes/ (add one with "
+                          "python -m chronocell.genome_fetch <assembly>). Chromosome names in uploaded files are "
+                          "matched through the assembly's alias table (UCSC, Ensembl, GenBank, RefSeq).")
     with st.popover("Method"):
         st.markdown('<p class="cc-eyebrow">Physical parameters</p>', unsafe_allow_html=True)
         auto_b0 = st.toggle("b₀ from bead resolution", True,
@@ -335,7 +352,8 @@ with bar_r, st.container(key="nav", horizontal=True, horizontal_alignment="right
                                 help="M ∝ d^−α; α = 3 is the capture-volume argument and the PASTIS default.")
         dmin_f = st.number_input("Excluded volume d_min / b₀", 0.4, 1.0, physics.D_MIN_FACTOR, 0.05)
     with st.popover("About"):
-        html('<p class="cc-meta">ChronoCell-5D reconstructs and analyses the 3D fold of human chromosomes (GRCh38) '
+        html('<p class="cc-meta">ChronoCell-5D reconstructs and analyses the 3D fold of chromosomes (GRCh38 by default; '
+             f'{len(genome.assemblies())} assemblies configured) '
              'from Micro-C contacts, H3K27ac and sequence, and plays 4D trajectories: time courses, disease states '
              'or simulated structural variants. Full guide: <code>APP_GUIDE.md</code>.</p>')
         html('<p class="cc-note">Satorras, Hoogeboom &amp; Welling, ICML 2021 (EGNN) · Lieberman-Aiden et al., Science '
@@ -354,7 +372,7 @@ html(f'<p class="cc-purpose">{WORKSPACES[workspace][2]}</p>')
 # ======================================================================================
 # Sidebar: biological state (files found by format) and ChronoAgent settings
 # ======================================================================================
-bio = states_panel.sidebar(chrom_choice, genome.chrom(chrom_choice).n_bins)
+bio = states_panel.sidebar(chrom_choice, genome.chrom(chrom_choice, None, asm_name).n_bins)
 agent_cfg = agent_panel.sidebar_settings()
 
 if workspace == "Guide":            # plain-language guide: needs no data
@@ -433,12 +451,13 @@ def load_source(i: int) -> tuple[Dataset, str | None]:
     cond = state_of.get(i)
     g = graph_of.get(i, graph)
     try:
-        return load_dataset(chrom_choice, int(seed), b0_arg, sources[i], unit, g, bool(trusted), trk, cond), None
+        return load_dataset(chrom_choice, int(seed), b0_arg, sources[i], unit, g, bool(trusted), trk, cond,
+                            asm_name), None
     except Exception as exc:
         if g is None:
             raise
         g_err = exc
-    d = load_dataset(chrom_choice, int(seed), b0_arg, sources[i], unit, None, bool(trusted), trk, cond)
+    d = load_dataset(chrom_choice, int(seed), b0_arg, sources[i], unit, None, bool(trusted), trk, cond, asm_name)
     return d, (f"{g[1]} could not be applied ({g_err}). Tracks and contacts come from the structure file "
                "or the reference instead.")
 
@@ -448,7 +467,7 @@ try:
     ds, graph_warning = load_source(src_idx)
 except Exception as exc:  # keep the workstation usable; report the file problem in place
     ds_error = (labels_src[src_idx], str(exc))
-    ds = load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False)
+    ds = load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False, assembly=asm_name)
 
 conditions: list[Dataset] = []
 cond_by_idx: dict[int, Dataset] = {}
@@ -505,10 +524,10 @@ if len(sources) > 1:
                            "workstation' there to choose manually.") if driven_idx is not None else
                           "Each provided file is one condition. The reference model stays available for comparison.")
 meta_l.markdown(
-    f'<p class="cc-meta">Reconstructing the 3D fold of human {ch.name}<br>from Micro-C contacts, H3K27ac and '
+    f'<p class="cc-meta">Reconstructing the 3D fold of {ch.genome.common} {ch.name}<br>from Micro-C contacts, H3K27ac and '
     'sequence composition.</p>', unsafe_allow_html=True)
 meta_r.markdown(
-    f'<p class="cc-meta right"><span class="cc-locus">GRCh38 · {ch.name} · {ch.resolution / 1000:g} kb</span><br>'
+    f'<p class="cc-meta right"><span class="cc-locus">{ch.genome.short} · {ch.name} · {ch.resolution / 1000:g} kb</span><br>'
     f'<span class="cc-num">{ds.n:,}</span> beads · <span class="cc-num">{int(ds.valid.sum()):,}</span> assembled · '
     f'<span class="cc-num">{ds.ci.size:,}</span> contacts · <span class="cc-num">{ds.n_frames}</span> '
     f'frame{"s" if ds.n_frames != 1 else ""}</p>', unsafe_allow_html=True)
@@ -660,7 +679,8 @@ if workspace == "4D dynamics":
     st.stop()
 
 if workspace == "Compare":
-    ref_ds = ds if ds.is_reference else load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False)
+    ref_ds = ds if ds.is_reference else load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False,
+                                                     assembly=asm_name)
     options = [(labels_src[0], ref_ds)] + [(labels_src[i], d) for i, d in sorted(cond_by_idx.items())]
     keys = [d.key for _, d in options]
     cur = keys.index(ds.key) if ds.key in keys else 0
@@ -1262,12 +1282,12 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
         buf_bundle = io.BytesIO()
         formats.write_bundle(buf_bundle, formats.StructureBundle(
             chrom=ch.name, resolution=ch.resolution, frames=e_coords[None], times=np.zeros(1), labels=[method],
-            condition=ds.condition, source=ds.structure_label, start_bin=start_bin))
+            condition=ds.condition, source=ds.structure_label, start_bin=start_bin, assembly=ch.assembly))
         report = {
             "software": {"name": "ChronoCell-5D", "version": VERSION, "numpy": np.__version__,
                          "torch": torch.__version__ if TORCH else None},
             "generated_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-            "genome": {"assembly": genome.ASSEMBLY, "chrom": ch.name, "length_bp": ch.size,
+            "genome": {"assembly": ch.genome.display, "chrom": ch.name, "length_bp": ch.size,
                        "resolution_bp": ch.resolution},
             "export": {"first_bin": int(start_bin), "n_beads": len(e_coords), "units": "nm", "frame": frame_idx,
                        "pdb_unit_nm": frame.unit_nm if frame else None,

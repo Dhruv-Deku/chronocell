@@ -338,7 +338,7 @@ def tracks_chart(idx: np.ndarray, gc: np.ndarray, epi: np.ndarray, focus_runs: l
     fig.update_layout(**{k: v for k, v in lay.items() if k not in ("xaxis", "yaxis")})
     fig.update_xaxes(**lay["xaxis"])
     fig.update_yaxes(**lay["yaxis"])
-    fig.update_xaxes(title_text="chr22 position (Mb)", row=2, col=1)
+    fig.update_xaxes(title_text=f"{chrom.name} position (Mb)", row=2, col=1)
     fig.update_yaxes(title_text="f_GC", row=1, col=1)
     fig.update_yaxes(title_text="H3K27ac", row=2, col=1)
     return fig

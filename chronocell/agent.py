@@ -206,11 +206,12 @@ class AgentContext:
     genes: tuple[str, ...] = ()
     comparisons: tuple[Comparison, ...] = field(default_factory=tuple)
     extras: dict = field(default_factory=dict)   # genes_on_fold / neighbourhoods / drug_lab summaries (v3.2)
+    assembly: str = genome.ASSEMBLY             # display name of the genome assembly (v4)
 
     def payload(self) -> dict:
         return {
             "selected_state": self.state, "selected_state_has_data": self.state_has_data,
-            "genome": {"assembly": genome.ASSEMBLY, "chromosome": self.chrom, "bead_resolution_bp": self.resolution,
+            "genome": {"assembly": self.assembly, "chromosome": self.chrom, "bead_resolution_bp": self.resolution,
                        "region": self.region, "locus": self.locus, "anchor_genes_in_view": list(self.genes)},
             "data_provenance": {"structure": self.structure, "tracks": self.tracks,
                                 "synthetic_reference_model": self.is_reference,
@@ -706,7 +707,7 @@ def report_markdown(ctx: AgentContext, analysis: str, engine: str, query: str = 
              "## Sample", "",
              "| Field | Value |", "|---|---|",
              f"| Biological state | {ctx.state}{'' if ctx.state_has_data else ' (no files for this state; view shows another source)'} |",
-             f"| Chromosome · resolution | {ctx.chrom} ({genome.ASSEMBLY}) · {ctx.resolution / 1000:g} kb beads |",
+             f"| Chromosome · resolution | {ctx.chrom} ({ctx.assembly}) · {ctx.resolution / 1000:g} kb beads |",
              f"| Region | {ctx.region} · {ctx.locus} |",
              f"| Structure | {ctx.structure}{' (EGNN reconstruction)' if ctx.reconstruction else ''} |",
              f"| Tracks | {ctx.tracks} |",

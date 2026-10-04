@@ -23,7 +23,7 @@ import numpy as np
 
 from . import egnn, formats, genome, physics, scenarios, synthetic
 
-UCSC_FASTA = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/{chrom}.fa.gz"
+UCSC_FASTA = "https://hgdownload.soe.ucsc.edu/goldenPath/{assembly}/chromosomes/{chrom}.fa.gz"
 
 
 def environment() -> dict:
@@ -35,15 +35,15 @@ def environment() -> dict:
     return info
 
 
-def download_fasta(chrom: str, dest_dir: str) -> str:
-    """UCSC hg38 per-chromosome FASTA (gzipped); returns the decompressed path."""
+def download_fasta(chrom: str, dest_dir: str, assembly: str = "hg38") -> str:
+    """UCSC per-chromosome FASTA of an assembly (gzipped); returns the decompressed path."""
     import gzip
     import shutil
     os.makedirs(dest_dir, exist_ok=True)
-    gz = os.path.join(dest_dir, f"{chrom}.fa.gz")
+    gz = os.path.join(dest_dir, f"{assembly}_{chrom}.fa.gz" if assembly != "hg38" else f"{chrom}.fa.gz")
     out = gz[:-3]
     if not os.path.exists(out):
-        urllib.request.urlretrieve(UCSC_FASTA.format(chrom=chrom), gz)
+        urllib.request.urlretrieve(UCSC_FASTA.format(assembly=assembly, chrom=chrom), gz)
         with gzip.open(gz, "rb") as src, open(out, "wb") as dst:
             shutil.copyfileobj(src, dst)
     return out
@@ -133,7 +133,8 @@ def write_outputs(chrom: genome.Chrom, results: list[ConditionResult], out_root:
         formats.write_bundle(str(d / f"{r.condition}.npz"), formats.StructureBundle(
             chrom=chrom.name, resolution=chrom.resolution, frames=r.frames_nm, times=r.times, labels=r.labels,
             condition=r.condition, source=source, time_unit="hours",
-            gc=r.graph.gc, epi=r.graph.epi, valid=r.graph.valid, ci=r.graph.ci, cj=r.graph.cj, cm=r.graph.cm))
+            gc=r.graph.gc, epi=r.graph.epi, valid=r.graph.valid, ci=r.graph.ci, cj=r.graph.cj, cm=r.graph.cm,
+            assembly=chrom.assembly))
     g = results[0].graph
     formats.write_graph_npz(str(d / "graph.npz"), g.gc, g.epi, g.valid, g.ci, g.cj, g.cm,
                             chrom=chrom.name, resolution=chrom.resolution)
