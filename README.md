@@ -1,6 +1,9 @@
 # ChronoCell-5D
 
-**A 3D / 4D workstation for the folding of human chromosomes.** It rebuilds how a chromosome is folded inside the nucleus from contact data, follows the fold through time and disease, places every gene on it, simulates epigenetic drug mechanisms, and explains the results in plain language.
+**A 3D / 4D workstation for the folding of chromosomes.** It builds whole-chromosome 3D *population* models
+from contact data, with an uncertainty for every distance. It goes from a structural variant to its
+predicted contact changes and the genes they touch. Every claim is tested against real microscopy and
+perturbation data, and the failures are reported next to the successes.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.50%2B-FF4B4B?logo=streamlit&logoColor=white)
@@ -21,10 +24,11 @@
 - [What you can do](#what-you-can-do)
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
-- [Accuracy](#accuracy)
+- [Accuracy: what was tested, and how it came out](#accuracy-what-was-tested-and-how-it-came-out)
 - [Bring your own data](#bring-your-own-data)
 - [ChronoAgent: optional AI key](#chronoagent-optional-ai-key)
 - [Command line](#command-line)
+- [Reproducibility](#reproducibility)
 - [Project layout](#project-layout)
 - [Documentation](#documentation)
 - [Limitations](#limitations)
@@ -36,19 +40,22 @@
 
 Every human cell packs about two metres of DNA into a nucleus a few micrometres across. **How that DNA is folded decides which genes can be read.** Misfolding and rearrangements are involved in cancer, cellular ageing and some neurodegenerative diseases.
 
-The fold can't be photographed directly across a whole chromosome. Experiments such as Hi-C and Micro-C instead measure which pieces of DNA touch. ChronoCell-5D turns those measurements into a 3D structure and puts the tools to study it in one place.
+The fold can't be photographed directly across a whole chromosome. Experiments such as Hi-C and Micro-C instead measure which pieces of DNA touch. ChronoCell-5D turns those measurements into 3D models, says how sure it is about each distance, and puts the tools to study the fold in one place.
 
 ## What you can do
 
 | Page | What it does |
 |---|---|
-| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Measure it with polymer physics, rebuild it from contacts as one structure (v3.2) or as a **population of 100 trajectories (v3.3)**, measure distances between any two beads, slice the fold open with a cutting plane, and export it. Shows two accuracy scores, never mixed. |
-| **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements (22q11.2 deletion, the Philadelphia chromosome, the Ewing sarcoma fusion, SNCA triplication), and export movies and GIFs. |
-| **03 · Compare** | Two states side by side, with linked cameras. Every piece of DNA is coloured by how far it moved, alongside the genes in the most-changed regions. |
-| **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. |
-| **05 · Genes** | All 19,386 human genes placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. |
+| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, raw and recalibrated. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. |
+| **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements from presets, a custom definition or **your own VCF / BEDPE file**. *04 Variant impact* lists the changed contacts, affected genes and enhancer–promoter pairs, with 90 % intervals from refits. It is labelled with its measured standing: "mechanism simulator, not validated". Export movies and GIFs. |
+| **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. |
+| **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. |
+| **05 · Genes** | All 19,386 human genes (hg38) or 20,995 mouse genes (mm39) placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. Click a row to pick a gene; it is then marked in the 3D view. |
 | **06 · Guide** | A plain-language guide to every page and number. |
 | **🤖 ChronoAgent** | Reads the measurements on screen and writes an interpretation. Exports a Markdown report, a PDB structure and a PDF dossier. |
+
+Genome assemblies are configuration (`chronocell/data/genomes/<assembly>/`): human hg38 and mouse mm39
+ship with the app. Chromosome names are read in any common form (`chr9`, `9`, `NC_000009.12`).
 
 <p align="center">
   <img src="docs/images/compare.png" alt="Healthy and tumour folds of the same region side by side, coloured by activity signal" width="820">
@@ -61,9 +68,11 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 ```bash
 git clone https://github.com/Sh1voham/ChronoCell-5D.git
 cd ChronoCell-5D
-pip install -r requirements.txt
+pip install -r requirements.txt          # exact tested versions: requirements.lock
 streamlit run app.py
 ```
+
+Or with Docker (CPU): `docker build -t chronocell . && docker run --rm -p 8501:8501 chronocell`.
 
 The app opens at <http://localhost:8501> with a clearly labelled synthetic reference chromosome.
 
@@ -75,63 +84,66 @@ PyTorch is only needed to reconstruct structures; the viewer, analytics and expo
 
 ```mermaid
 flowchart LR
-    A["Contact data<br/>Hi-C / Micro-C"] --> B["Contacts → target distances<br/>(M ∝ d⁻ᵅ)"]
-    B --> C["Initial layout<br/>(shortest-path MDS)"]
-    C --> D["Refinement<br/>gradient + E(3)-equivariant GNN"]
-    D --> E["3D fold"]
-    F["Signal tracks<br/>GC · H3K27ac · your own"] --> D
-    E --> G["Polymer physics<br/>TADs · compartments"]
-    E --> H["Compare · 4D · Drug lab · Genes"]
-    G --> I["ChronoAgent<br/>report · PDF"]
-    H --> I
+    A["Contact data<br/>Hi-C · Micro-C · imaging"] --> B["Each contact frequency → a pair spread<br/>(Gaussian pair vector, Maxwell law)"]
+    B --> P["Population model<br/>max-entropy Gaussian ensemble<br/>v3.3 windows · v4 whole chromosome"]
+    P --> U["Every pair: median, SD,<br/>interval (raw + recalibrated)"]
+    P --> T["100 exact Langevin trajectories"]
+    A --> S["Single structure (v3.2)<br/>MDS + gradient + E(3)-equivariant GNN"]
+    V["Variant file<br/>VCF · BEDPE"] --> X["Rearranged ensemble<br/>(exact, covariance space)"]
+    P --> X
+    X --> Y["Changed contacts · genes ·<br/>enhancer–promoter pairs"]
+    T --> H["Compare · 4D · Drug lab · Genes"]
+    S --> H
+    H --> I["ChronoAgent · audit record · PDF"]
 ```
 
-1. **Contacts become distances.** DNA pieces that touch often must be close in space.
-2. **A first 3D layout** satisfies those distances as well as possible.
-3. **Refinement** pulls the layout into a physically valid chain: fixed spacing along the DNA, no two pieces overlapping. An E(3)-equivariant graph neural network gives the same answer however the structure is rotated or mirrored.
-4. **Analysis** measures the fold: size, compaction, crowding, contact decay, TAD boundaries and A/B compartments. The other pages and ChronoAgent build on these measurements.
+1. **Contacts become pair spreads.** In a Gaussian polymer, how often two pieces touch fixes the spread of their distance across cells.
+2. **A population model** fits all pairs at once. It is a maximum-entropy Gaussian ensemble (the HIPPS/DIMES approach, Shi & Thirumalai 2019/2023), not one structure. The v4 parameterisation fits a whole chromosome on a CPU: low rank plus a random walk, with exact block gradients.
+3. **Every distance comes with its distribution** across cells: median, SD and a central interval. The interval was tested for calibration on held-out single-cell measurements, and a recalibration fitted on practice data is shown next to it.
+4. **Exact trajectories** are drawn from the ensemble (Langevin dynamics, solved exactly mode by mode). They feed the 3D view, the comparisons and the analyses.
+5. **Variants** rearrange the fitted ensemble exactly in covariance space; predicted contact changes are mapped back to the reference.
 
 Heavy reconstructions can run on a free Google Colab GPU with [`colab/ChronoCell5D_Colab.ipynb`](colab/ChronoCell5D_Colab.ipynb). Its output unzips straight into `coordinates/`.
 
-## Accuracy
+## Accuracy: what was tested, and how it came out
 
-The reconstruction was tested against **real microscopy**: chromatin tracing from Bintu et al., *Science* 2018. That data gives the measured 3D position of every 30 kb piece of DNA in thousands of human cells.
+Every claim was turned into a test on **real, held-out data**:
+- chromatin tracing (Bintu et al., *Science* 2018; Su et al., *Cell* 2020);
+- Hi-C (Rao et al., *Cell* 2014);
+- a cohesin-degron experiment;
+- a published cancer-genome rearrangement.
 
-**How it was tested:**
-1. The cells were split into two halves.
-2. The model saw only contact frequencies from the first half.
-3. It was scored against distances measured in the second half, which it never saw.
+Cells are split in two halves. The model sees only contact information from one half. It is scored on distances measured in the other half, which it never saw.
 
-Two scores are kept separate:
-- **Contact-map fit**: agreement with the input, which only shows the fit converged.
-- **Microscopy accuracy**: agreement with unseen measurements, which is the real test.
+Settings were chosen on separate **practice** datasets and frozen in `validation/frozen.py`. The **test** datasets were then run once. Each percentage is the share of the folding pattern recovered beyond the obvious "further along the DNA = further apart" trend, relative to how well the experiment agrees with itself.
 
-Settings were tuned on separate practice datasets (K562, HCT116). The three test datasets below were
-run once, afterwards.
+Two scores are always kept apart:
+- **contact-map fit** (agreement with the input; shows the fit converged);
+- **microscopy accuracy** (agreement with unseen measurements).
 
-| Test dataset | v3.2 single structure | **v3.3 population model** |
+The population's cell-to-cell spread is shown as *ensemble consistency*, never as accuracy.
+
+The table below is generated from the result files by `python validation/report.py`:
+
+<!-- BEGIN generated:readme_accuracy -->
+| Test (held-out, real data) | Measured | Verdict |
 |---|---|---|
-| IMR90, chr21:28–30 Mb | 39 % | **88 %** |
-| A549, chr21:28–30 Mb | 54 % | **91 %** |
-| IMR90, chr21:18–20 Mb (weak structure, ceiling 0.25) | 35 % | 54 % (±11) |
-| **Overall** (Σ model / Σ ceiling, rule fixed in advance) | **45 %** | **85.6 %** |
+| v3.3 windows, Bintu et al. 2018 tracing (3 test sets, Σ model / Σ ceiling) | population 85.6 % of the reproducible structure; v3.2 single structure 45.2 % | baseline for v4 |
+| Gate 1: whole chromosome (v4) vs windows (v3.3), Su et al. 2020 chr21 + replicate, same pairs | 94.4 vs 94.4 %; 96.2 vs 96.7 %; cross-window pairs (v4 only) 89.2–93.1 % | matches within 0.5 points, slightly below |
+| Gate 1b: sequencing Hi-C (Rao et al. 2014) → imaged distances, all pairs | ranks 80.4–84.7 % of the ceiling; absolute size CCC 0.22–0.33 | ranks transfer, nanometres do not |
+| Gate 2: do stated 90 % intervals hold 90 % of real single-cell distances? (6 test sets) | raw 71–84 %, recalibrated on practice data 83–91 %; per-bead reliability vs error ρ -0.16 to +0.28 | raw intervals too narrow; recalibrated within 7 points of nominal; no usable per-bead reliability |
+| Gate 4: cohesin loss (RAD21 degron, Bintu et al. 2018), held-out region | change agreement 0.868 vs 0.336 for a trend-only shift | pass, one region |
+| Gate 4b: structural variants (K562 chr9 deletions vs GM12878, Rao 2014 Hi-C) | model 0.083, distance shift 0.149, no change 0.424 | not validated (mechanism simulator) |
+| Gate 5: distances from sequence + CTCF alone (no contact data) | 4 of 5 test sets pass the pre-registered rule | pass |
+<!-- END generated:readme_accuracy -->
 
-Each percentage is the share of the folding pattern recovered, beyond the obvious "further along the
-DNA = further apart" trend, relative to how well the experiment agrees with itself.
+**In plain words:**
+- The whole-chromosome model reproduces the measured folding pattern as well as the windowed model, a fraction of a point below, and adds the long-range pairs.
+- From sequencing Hi-C, the *ranking* of distances transfers to real cells; the absolute size in nanometres does not.
+- Stated intervals were too narrow until recalibrated. For close pairs and for Hi-C input they remain too narrow.
+- The cohesin-loss prediction worked on its held-out region. The structural-variant simulator did **not** beat a simple genomic-distance shift on the one real rearrangement tested, so it is labelled a mechanism simulator.
 
-**What the numbers mean:**
-- **Why v3.3 works.** v3.3 models a *population* of structures, because every cell folds
-  differently. It uses a maximum-entropy polymer ensemble, following HIPPS/DIMES by Shi & Thirumalai,
-  with 100 exact Langevin trajectories. A single 3D structure cannot reproduce population statistics.
-- **Size and ranking.** Absolute sizes now match (Lin's CCC 0.93–0.97). On the two structured
-  regions, raw rank agreement beats a distance-only guess.
-- **Where it falls short.** On the weak-structure region, raw ranking stays below that guess
-  (0.87 vs 0.96).
-- **Where it runs today.** The population model is `chronocell/ensemble.py`. In the app, it runs
-  under 3D structure → 03 Model & convergence, on windows of up to 400 beads. Whole-chromosome
-  reconstruction still uses the v3.2 single structure.
-
-Method, full numbers and limitations: [`validation/RESULTS.md`](validation/RESULTS.md). Rerun with `python validation/validate_tracing.py`.
+Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
 
 ## Bring your own data
 
@@ -141,12 +153,13 @@ Files are recognised **by their content**, not their name, and assigned to *Heal
 |---|---|
 | 3D coordinates | `.npy` (N×3 or T×N×3), `.pdb`, `.npz`, `.xyz`, `.csv` |
 | Activity / ChIP / ATAC signal | `.npy` (one value per bead), `.bedGraph`, `.bed`, `.bigWig`¹ |
-| Hi-C / Micro-C contacts | `.cool`, `.mcool`, `.hic`², text tables (`bin bin count`, positions, BEDPE) |
+| Hi-C / Micro-C contacts | `.cool`, `.mcool`, `.hic` (built-in reader, format versions 6–9), text tables (`bin bin count`, positions, BEDPE) |
+| Structural variants | VCF (`SVTYPE` DEL / DUP / INV / BND, symbolic or breakend ALTs), BEDPE: in 02 · 4D dynamics |
 | RNA-seq expression | `.csv` / `.tsv` (gene, value) |
 
-¹ needs `pyBigWig` · ² needs `hic-straw`, or convert with `hic2cool`
+¹ needs `pyBigWig`
 
-Put files in `coordinates/<chromosome>/` (see [`coordinates/README.md`](coordinates/README.md)) or use the sidebar and the *Data* menu.
+Put files in `coordinates/<chromosome>/` (see [`coordinates/README.md`](coordinates/README.md)) or use the sidebar and the *Data* menu. Choose the genome assembly under *Data*; another assembly can be added with `python -m chronocell.genome_fetch <assembly>`.
 
 ## ChronoAgent: optional AI key
 
@@ -163,10 +176,20 @@ The key is sent only to the provider you choose, in a request header, and is nev
 python -m chronocell.build_graph --fasta chr22.fa --bigwig H3K27ac.bigWig --mcool sample.mcool --out graph.npz
 python -m chronocell.build_graph --synthetic --out graph.npz     # no downloads needed
 python -m chronocell.train --graph graph.npz --out predicted_coords.npz
-python -m chronocell.benchmark                                   # accuracy on synthetic structures
+python -m chronocell.genome_fetch mm39 --species "Mus musculus" --common mouse --display GRCm39
 python -m chronocell.demo_states demo_states                     # write the demo patients as files
-python validation/validate_tracing.py                            # accuracy against real microscopy
-python -m pytest                                                 # 117 tests
+python -m pytest                                                 # the test suite
+
+# held-out validation (data download on demand; see validation/RESULTS.md)
+python validation/validate_tracing.py                            # v3.3 windows, Bintu et al. 2018
+python validation/gate1.py --test                                # whole chromosome vs windows, Hi-C -> imaging
+python validation/calibration.py --test                          # interval calibration
+python validation/perturbation.py --test                         # cohesin depletion
+python validation/sv_validation.py                               # structural variants (K562)
+python validation/predictor.py --test                            # prediction without contact data
+python -m validation.benchmark.run                               # benchmark incl. PASTIS
+python validation/scale_benchmark.py                             # runtime and memory vs beads (synthetic)
+python validation/report.py                                      # regenerate the tables in RESULTS.md / README
 ```
 
 ## REST API (optional)
@@ -181,17 +204,17 @@ python -m chronocell.api --port 8000        # interactive docs at http://127.0.0
 
 | Endpoint | Input | Output |
 |---|---|---|
-| `POST /api/v1/reconstruct` | `contacts: {i, j, count}`, `n_beads`, `model: "population"` (≤ 400 beads) or `"single"` | 3D coordinates, metrics, **both accuracy scores** kept separate, timings |
+| `POST /api/v1/reconstruct` | `contacts: {i, j, count}`, `n_beads`, `model: "population"` (v3.3, ≤ 400 beads), `"population_v4"` (≤ 6,000 beads) or `"single"` | 3D coordinates, metrics, **both accuracy scores** kept separate, timings |
 | `POST /api/v1/metrics` | `coords_nm` (N×3), optional `contacts` | R_g, span, ν, overlaps; contact-map fit if contacts are given |
 | `GET /api/v1/benchmark` | none | the held-out microscopy benchmark |
 
-Every call is appended to a run log (`.chronocell_cache/api_run_log.jsonl`). Each entry records:
-- time, endpoint and software version;
-- parameters, as sizes only (no raw data);
-- a SHA-256 of the exact input;
-- run time and outcome.
+Every call is appended to a run log (`.chronocell_cache/api_run_log.jsonl`): time, endpoint, software version, parameters as sizes only, a SHA-256 of the exact input, run time and outcome.
 
-It is a reproducibility record, not a clinical or regulatory audit trail.
+## Reproducibility
+
+- **Reproducibility record.** 01 · 3D structure → Export writes `chronocell_audit_log.json` and a PDF. Each holds the method, equations, parameters, dataset sources and licences, software versions, the SHA-256 of every input file and every measured metric. It is a reproducibility record, not a clinical or regulatory audit.
+- **Pinned environment.** `requirements.lock` lists the exact versions the tests ran with. The `Dockerfile` builds a CPU image with the app, the tests and the validation harness. GitHub Actions (`.github/workflows/ci.yml`) runs the test suite on every push.
+- **Figures and tables.** `python -m validation.reproduce` regenerates every figure in this README and in `paper/` from the result files. It re-runs the held-out tests only when asked with `--rerun`.
 
 ## Project layout
 
@@ -199,31 +222,32 @@ It is a reproducibility record, not a clinical or regulatory audit trail.
 ChronoCell-5D/
 ├── app.py                  Streamlit application (entry point)
 ├── chronocell/             core library, no Streamlit imports
-│   ├── genome.py           GRCh38 chromosomes, bands, gaps, bins
-│   ├── physics.py          polymer physics: R_g, scaling, crowding, losses
-│   ├── egnn.py             E(3)-equivariant GNN and structure fitting
+│   ├── genome.py           assemblies as configuration (hg38, mm39), chromosomes, bands, aliases, bins
+│   ├── population.py       v4 population model: whole chromosomes, per-pair uncertainty, recalibration
 │   ├── ensemble.py         v3.3 population model: max-entropy ensemble + exact Langevin trajectories
-│   ├── accuracy.py         the two separate accuracy scores (contact-map fit, microscopy benchmark)
+│   ├── perturb.py          cohesin depletion; structural variants in covariance space; E-P pairs
+│   ├── svio.py             VCF / BEDPE reading, variants -> scenarios
+│   ├── predict.py          sequence + CTCF distance predictor (Gate 5; not in the app, see RESULTS.md)
+│   ├── hicfile.py          .hic reader (v6-v9, local or remote by HTTP range)
+│   ├── analytics/          pdb_evaluator.py: Self-Math PDB State Evaluator
+│   ├── provenance.py       reproducibility record (JSON + PDF)
+│   ├── physics.py          polymer physics: R_g, scaling, crowding, losses
+│   ├── egnn.py             E(3)-equivariant GNN and single-structure fitting (v3.2)
+│   ├── accuracy.py         the two separate accuracy scores and the measured evidence, read from validation/
 │   ├── normalize.py        ICE contact-map balancing
-│   ├── api.py              REST endpoints (reconstruct / metrics / benchmark) and run log
+│   ├── api.py              REST endpoints and run log
 │   ├── synthetic.py        synthetic reference model
-│   ├── features.py         GC / signal binning, contact extraction
-│   ├── formats.py          PDB, XYZ, bundles, graph readers
-│   ├── ingest.py           BED / bedGraph / bigWig tracks, cool / mcool / hic contacts
-│   ├── states.py           biological-state engine (files recognised by content)
-│   ├── domains.py          TADs, A/B compartments, loops, contact decay
-│   ├── genes.py            gene annotation, 3D accessibility, RNA-seq agreement
-│   ├── scenarios.py        4D structural-variant simulations
+│   ├── features.py, formats.py, ingest.py, states.py, domains.py, genes.py
+│   ├── scenarios.py        4D structural-variant animations
 │   ├── therapy.py          drug-lab mechanism model
 │   ├── agent.py            ChronoAgent (offline rules + Gemini / OpenRouter)
-│   ├── pdf_report.py       PDF dossier
-│   ├── snapshot.py         static PNG / GIF rendering
-│   ├── viz.py, theme.py    figures and design tokens
-│   ├── build_graph.py, train.py, benchmark.py, colab.py, demo_states.py
-│   └── data/               hg38 annotation, 19,386 genes (UCSC RefSeq Select)
+│   ├── pdf_report.py, snapshot.py, viz.py, theme.py
+│   ├── genome_fetch.py     add an assembly from UCSC
+│   └── data/               annotations (hg38, mm39), frozen calibration and perturbation parameters
 ├── ui/                     the six pages, sidebar and shared helpers
-├── tests/                  117 tests, including end-to-end runs of every page
-├── validation/             accuracy against real microscopy
+├── tests/                  unit and end-to-end tests of every page
+├── validation/             held-out tests, benchmark harness, tuning record, results
+├── paper/                  manuscript draft and one-page summary (numbers from validation/)
 ├── colab/                  GPU reconstruction notebook
 ├── coordinates/            drop-in folder for your structures
 └── docs/                   plain-language overview and images
@@ -235,22 +259,36 @@ ChronoCell-5D/
 |---|---|
 | [`docs/OVERVIEW.md`](docs/OVERVIEW.md) | The whole project in plain language, with everyday analogies |
 | [`APP_GUIDE.md`](APP_GUIDE.md) | Every screen, graph, option, file and function |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Architecture, module reference and equations (written for the v2 design; `APP_GUIDE.md` covers the current modules) |
-| [`AUDIT.md`](AUDIT.md) | Audit of the first version and the corrections made |
-| [`validation/RESULTS.md`](validation/RESULTS.md) | Accuracy against real microscopy |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Architecture, module reference and equations |
+| [`AUDIT.md`](AUDIT.md) | Audits of the code and the claims, and the corrections made |
+| [`validation/RESULTS.md`](validation/RESULTS.md) | Every held-out test and its result, failures included |
+| [`validation/TUNING.md`](validation/TUNING.md) | How every setting was chosen, on practice data only |
+| [`paper/`](paper/) | Manuscript draft and a one-page summary |
 | [`coordinates/README.md`](coordinates/README.md) | Coordinate folder and file formats |
 | [`UPDATES.md`](UPDATES.md) | Development log |
 
 ## Limitations
 
 - **Research and education only.** This is not a diagnostic tool and not medical advice.
+- **Absolute distances from sequencing Hi-C are not calibrated.** Ranks transfer to real cells; nanometres do not (Gate 1b).
+- **Intervals are lower bounds for some inputs.** Recalibrated intervals were close to nominal for imaging-derived contacts but too narrow for close pairs and for Hi-C input (Gate 2). There is no per-bead reliability score: the one tested did not predict error.
+- **The structural-variant simulator is not validated.** On the one real rearrangement tested it did not beat a genomic-distance shift. It also assumes the variant list fully describes how the pieces are joined.
 - **The drug lab is a mechanism simulator.** It shows what a drug's mechanism *could* do to a fold, not how well a drug works in patients.
 - **Gene "active / silenced" labels are predictions** from 3D accessibility and signal. RNA-seq can be added to check them.
-- **Validation so far** uses imaging-derived contacts, not sequencing Hi-C of the same cells, and absolute distances need calibration.
+- **The PDB State Evaluator's classes are rule-based descriptors**, with thresholds stated as assumptions in `chronocell/analytics/pdb_evaluator.py`, not trained or validated disease labels.
+- **GPU.** The CUDA path is implemented but was not tested here (no CUDA device); every measured runtime is CPU.
 - **Synthetic data is labelled.** The reference model and demo patients are synthetic, and the app labels them as such everywhere.
 
 ## Licence
 
 No licence has been chosen for this repository yet (see the open items in [`UPDATES.md`](UPDATES.md)). Until a `LICENSE` file is added, please ask the maintainers before reusing the code.
 
-Reference data: GRCh38 annotation and genes from the UCSC Genome Browser (RefSeq Select / MANE). The validation data is from Bintu et al., *Science* 2018, via [github.com/BogdanBintu/ChromatinImaging](https://github.com/BogdanBintu/ChromatinImaging). It is downloaded on demand, not redistributed.
+Reference data:
+- GRCh38 and GRCm39 annotation and genes from the UCSC Genome Browser (RefSeq Select / MANE for human).
+- Validation data are downloaded on demand and not redistributed:
+  - Bintu et al., *Science* 2018 ([github.com/BogdanBintu/ChromatinImaging](https://github.com/BogdanBintu/ChromatinImaging));
+  - Su et al., *Cell* 2020 (Zenodo 3928890, CC-BY-4.0);
+  - Rao et al., *Cell* 2014 (GEO GSE63525);
+  - ENCODE CTCF peaks;
+  - JASPAR 2024 (CC BY 4.0).
+- Sources, licences and checksums: `validation/datasets.py` and `validation/data_manifest.json`.

@@ -243,22 +243,103 @@ def per_chromosome() -> str:
     return "\n".join(out)
 
 
+def readme_accuracy() -> str:
+    """The README's accuracy table: one line per test, every number from a result file."""
+    rows = ["| Test (held-out, real data) | Measured | Verdict |", "|---|---|---|"]
+    v33 = _load("results.json")
+    if v33:
+        o = v33["summary"]["overall"]
+        rows.append(f"| v3.3 windows, Bintu et al. 2018 tracing (3 test sets, Σ model / Σ ceiling) | population "
+                    f"{o['ensemble_v3_3']['percent_of_ceiling']:.1f} % of the reproducible structure; v3.2 single "
+                    f"structure {o['single_structure_v3_2']['percent_of_ceiling']:.1f} % | baseline for v4 |")
+    within, cross, hic, ccc = [], [], [], []
+    for fname in ("results_gate1.json", "results_gate1_rep.json"):
+        r = _load(fname)
+        for d in (r or {}).get("datasets", []):
+            s = d["summary"]
+            w = s["imaging_input"]["within_tiles"]
+            within.append((d["dataset"], w["whole_v4"]["percent_of_ceiling"], w["windowed_v3_3"]["percent_of_ceiling"]))
+            cross.append(s["imaging_input"]["cross_tiles"]["whole_v4"]["percent_of_ceiling"])
+            h = s["hic_input"]["all_pairs"]
+            for k, v in h.items():
+                if k.startswith("whole_v4"):
+                    hic.append(v["percent_of_ceiling"])
+                    ccc.append(v["lin_ccc_nm"])
+    if within:
+        gap = max(v - w for _, w, v in within)
+        verdict1 = ("matches or beats" if gap <= 0 else f"matches within {gap:.1f} points, slightly below" if gap <= 1.0
+                    else f"below the windowed model by up to {gap:.1f} points")
+        rows.append("| Gate 1: whole chromosome (v4) vs windows (v3.3), Su et al. 2020 chr21 + replicate, same pairs | "
+                    + "; ".join(f"{w:.1f} vs {v:.1f} %" for _, w, v in within)
+                    + f"; cross-window pairs (v4 only) {min(cross):.1f}–{max(cross):.1f} % | {verdict1} |")
+    if hic:
+        rows.append(f"| Gate 1b: sequencing Hi-C (Rao et al. 2014) → imaged distances, all pairs | ranks {min(hic):.1f}–"
+                    f"{max(hic):.1f} % of the ceiling; absolute size CCC {min(ccc):.2f}–{max(ccc):.2f} | "
+                    f"{'ranks transfer' if min(hic) >= 50 else 'ranks transfer poorly'}, "
+                    f"{'nanometres do not' if max(ccc) < 0.5 else 'nanometres partly'} |")
+    c = _load("results_calibration.json")
+    if c:
+        raw = [100 * r["coverage"][2] for r in c["rows"]]
+        rec = [100 * r["coverage_recalibrated"][2] for r in c["rows"]]
+        rel = [r["reliability_vs_error_spearman"] for r in c["rows"]]
+        rows.append(f"| Gate 2: do stated 90 % intervals hold 90 % of real single-cell distances? (6 test sets) | raw "
+                    f"{min(raw):.0f}–{max(raw):.0f} %, recalibrated on practice data {min(rec):.0f}–{max(rec):.0f} %; "
+                    f"per-bead reliability vs error ρ {min(rel):+.2f} to {max(rel):+.2f} | raw intervals too narrow; "
+                    f"recalibrated {'within 7 points of nominal' if min(rec) >= 83 else 'still too narrow'}; "
+                    f"{'no usable per-bead reliability' if min(rel) < 0.2 else 'per-bead reliability usable'} |")
+    b = _load("benchmark/results.json")
+    if b:
+        best, pastis, n_ds = [], [], 0
+        for ds, inputs in b["summary"].items():
+            ap = inputs.get("imaging", {}).get("all_pairs", {})
+            ours = [v["percent_of_ceiling"] for k, v in ap.items() if k in ("v3_3_windowed", "v4_whole")]
+            pas = [v["percent_of_ceiling"] for k, v in ap.items() if k.startswith("pastis")]
+            if ours and pas:
+                n_ds += 1
+                best.append(max(ours))
+                pastis.append(max(pas))
+        if n_ds:
+            rows.append(f"| Gate 3: benchmark vs PASTIS 0.4.0 and baselines, imaging-derived input ({n_ds} test units) | "
+                        f"ChronoCell {min(best):.1f}–{max(best):.1f} %, best PASTIS {min(pastis):.1f}–{max(pastis):.1f} % "
+                        f"of the ceiling; {len(b['where_we_lose'])} 'where we lose' entries | see RESULTS.md |")
+    p = _load("results_perturbation.json")
+    if p:
+        f, t = p["summary"]["full_model"], p["summary"]["trend_only"]
+        rows.append(f"| Gate 4: cohesin loss (RAD21 degron, Bintu et al. 2018), held-out region | change agreement "
+                    f"{f['change_spearman']:.3f} vs {t['change_spearman']:.3f} for a trend-only shift | "
+                    f"{'pass, one region' if f['change_spearman'] > t['change_spearman'] and f['auxin_lin_ccc_nm'] > p['summary']['no_change']['auxin_lin_ccc_nm'] else 'fail'} |")
+    s = _load("results_sv.json")
+    if s:
+        sp = s["spearman"]
+        rows.append(f"| Gate 4b: structural variants (K562 chr9 deletions vs GM12878, Rao 2014 Hi-C) | model "
+                    f"{sp['model']:.3f}, distance shift {sp['distance_shift']:.3f}, no change {sp['no_change']:.3f} | "
+                    f"{s['verdict']} |")
+    g5 = _load("results_predictor.json")
+    if g5:
+        rows.append(f"| Gate 5: distances from sequence + CTCF alone (no contact data) | {g5['datasets_passing']} of "
+                    f"{len(g5['settings']['test'])} test sets pass the pre-registered rule | {g5['verdict']} |")
+    return "\n".join(rows)
+
+
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate3": gate3, "gate4": gate4, "gate5": gate5, "scale": scale,
-          "per_chromosome": per_chromosome}
+          "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy}
+TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 
 def render(text: str) -> str:
     for name, fn in BLOCKS.items():
         pat = re.compile(rf"(<!-- BEGIN generated:{name} -->\n)(.*?)(<!-- END generated:{name} -->)", re.S)
-        text = pat.sub(lambda m: m.group(1) + fn().rstrip() + "\n" + m.group(3), text)
+        if pat.search(text):
+            text = pat.sub(lambda m: m.group(1) + fn().rstrip() + "\n" + m.group(3), text)
     return text
 
 
 def main() -> None:
-    text = RESULTS_MD.read_text(encoding="utf-8")
-    new = render(text)
-    RESULTS_MD.write_text(new, encoding="utf-8", newline="\n")
-    print(f"{RESULTS_MD}: {sum(f'BEGIN generated:{n}' in new for n in BLOCKS)} generated blocks refreshed")
+    for path in TARGETS:
+        text = path.read_text(encoding="utf-8")
+        new = render(text)
+        path.write_text(new, encoding="utf-8", newline="\n")
+        print(f"{path.name}: {sum(f'BEGIN generated:{n}' in new for n in BLOCKS)} generated blocks refreshed")
     if "--print" in sys.argv:
         for n, fn in BLOCKS.items():
             print(f"\n=== {n}\n{fn()}")
