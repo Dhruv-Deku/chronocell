@@ -123,9 +123,7 @@ def _bootstrap(pred: np.ndarray, median_a: np.ndarray, xyz_b: np.ndarray, sep: n
     pct, raw, ccc = [], [], []
     for _ in range(reps):
         pick = rng.integers(0, len(d), len(d))
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            t = np.nanmedian(d[pick], axis=0)
+        t = PR.nanmedian0(d[pick])
         sp = PR._flat_scores(p, t, s)
         sc = PR._flat_scores(a, t, s)
         pct.append(100 * sp["spearman_distance_corrected"] / sc["spearman_distance_corrected"])
