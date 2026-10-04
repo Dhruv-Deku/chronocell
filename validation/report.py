@@ -107,6 +107,60 @@ def gate2() -> str:
     return "\n".join(out)
 
 
+def gate2b() -> str:
+    h = _load("results_calibration_hic.json")
+    if not h:
+        return "_results_calibration_hic.json: not run (python validation/calibration.py --test --input hic)._"
+    lo90, hi90 = h["rule"]["pass_90"]
+    lo50, hi50 = h["rule"]["pass_50"]
+    out = [f"{h['mode']}; Hi-C recalibration fitted on {', '.join(h['calibration_used']['fitted_on'])}. Pass (pre-registered): "
+           f"recalibrated 90 % interval holds {100 * lo90:.0f}–{100 * hi90:.0f} % and 50 % interval {100 * lo50:.0f}–"
+           f"{100 * hi50:.0f} % on every test dataset.", "",
+           "| Test dataset | Loci | Model | Size ratio (model / measured) | Stated 50 / 80 / 90 %: raw | With the imaging "
+           "recalibration | With the Hi-C recalibration | Within the rule |", "|---|---|---|---|---|---|---|---|"]
+    f = lambda v: " / ".join(f"{100 * x:.0f}" for x in v) + " %"  # noqa: E731
+    for r in h["rows"]:
+        out.append(f"| {r['dataset']} | {r['loci']} | {r['model']} | {r['median_scale_model_over_real']:.2f} | "
+                   f"{f(r['coverage'])} | {f(r.get('coverage_imaging_recalibration', []))} | {f(r['coverage_recalibrated'])} | "
+                   f"{'yes' if h['per_dataset_pass'][r['dataset']] else 'no'} |")
+    r0 = h["rows"][0]
+    out += ["", f"Width of the stated 90 % interval (upper / lower bound): raw {r0['width_90_raw']:.2f}, Hi-C recalibrated "
+                f"{r0['width_90_recalibrated']:.2f}. {sum(h['per_dataset_pass'].values())} of {len(h['per_dataset_pass'])} "
+                f"test datasets within the rule. Verdict: **{h['verdict']}**."]
+    p = _load("results_calibration_hic_practice.json")
+    if p:
+        out += ["", "Practice (in-sample, after the fit): " + "; ".join(
+            f"{r['dataset']} {f(r['coverage_recalibrated'])}" for r in p["rows"]) + "."]
+    return "\n".join(out)
+
+
+def gate2c() -> str:
+    r = _load("results_reliability.json")
+    p = _load("results_reliability_practice.json")
+    out = []
+    if p:
+        names = [k for k in ("input_se", "misfit", "combined") if k in p["rows"][0]]
+        out += ["Practice (all candidates; in-sample choice): pair-level stratified Spearman / bead-level Spearman.", "",
+                "| Practice dataset | Input | " + " | ".join(names) + " |", "|---|---|" + "---|" * len(names)]
+        for row in p["rows"]:
+            out.append(f"| {row['dataset']} | {row['input']} | " + " | ".join(
+                f"{row[k]['pair_stratified_spearman']:+.3f} / {row[k]['bead_spearman']:+.3f}" for k in names) + " |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_reliability.json: not run (python validation/reliability.py --test)._"])
+    out += [f"Test (run once): score **{r['rule']['score']}**; pass on every test dataset: Spearman ≥ "
+            f"{r['rule']['min_spearman']:.2f} and its 95 % interval above 0.", "",
+            "| Test dataset | Input | Pair level: stratified ρ [95 %] | Bead level: ρ [95 %] |", "|---|---|---|---|"]
+    for row in r["rows"]:
+        v = row[r["rule"]["score"]]
+        out.append(f"| {row['dataset']} | {row['input']} | {v['pair_stratified_spearman']:+.3f} "
+                   f"[{v['pair_ci95'][0]:+.3f}, {v['pair_ci95'][1]:+.3f}] | {v['bead_spearman']:+.3f} "
+                   f"[{v['bead_ci95'][0]:+.3f}, {v['bead_ci95'][1]:+.3f}] |")
+    out += ["", "Verdicts: " + "; ".join(f"{k.replace('_', ' ')} **{v['verdict']}** ({v['passing']} of {v['datasets']})"
+                                       for k, v in r["verdict"].items()) + "."]
+    return "\n".join(out)
+
+
 # --------------------------------------------------------------------------------------------- Gate 3
 def gate3() -> str:
     b = _load("benchmark/results.json")
@@ -287,6 +341,20 @@ def readme_accuracy() -> str:
                     f"per-bead reliability vs error ρ {min(rel):+.2f} to {max(rel):+.2f} | raw intervals too narrow; "
                     f"recalibrated {'within 7 points of nominal' if min(rec) >= 83 else 'still too narrow'}; "
                     f"{'no usable per-bead reliability' if min(rel) < 0.2 else 'per-bead reliability usable'} |")
+    h = _load("results_calibration_hic.json")
+    if h:
+        raw = [100 * r["coverage"][2] for r in h["rows"]]
+        rec = [100 * r["coverage_recalibrated"][2] for r in h["rows"]]
+        rows.append(f"| Gate 2b: the same, with sequencing Hi-C input ({len(h['rows'])} test sets) | raw {min(raw):.0f}–"
+                    f"{max(raw):.0f} %, recalibrated on practice Hi-C {min(rec):.0f}–{max(rec):.0f} % | "
+                    f"{'pass' if h['verdict'] == 'pass' else 'fail: intervals far too narrow for Hi-C input; the app says so'} |")
+    rr = _load("results_reliability.json")
+    if rr:
+        v = rr["verdict"]
+        rows.append(f"| Gate 2c: does a per-pair score from the input say which distances are wrong? | "
+                    + "; ".join(f"{k.replace('_', ' ')}: {x['passing']} of {x['datasets']} sets reach the pre-registered bar"
+                                for k, x in v.items())
+                    + f" | {'usable' if any(x['verdict'] == 'pass' for x in v.values()) else 'no usable reliability score'} |")
     b = _load("benchmark/results.json")
     if b:
         best, pastis, n_ds = [], [], 0
@@ -321,7 +389,8 @@ def readme_accuracy() -> str:
     return "\n".join(rows)
 
 
-BLOCKS = {"gate1": gate1, "gate2": gate2, "gate3": gate3, "gate4": gate4, "gate5": gate5, "scale": scale,
+BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
+          "gate5": gate5, "scale": scale,
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 

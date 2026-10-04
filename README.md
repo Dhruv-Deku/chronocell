@@ -132,6 +132,7 @@ The table below is generated from the result files by `python validation/report.
 | Gate 1: whole chromosome (v4) vs windows (v3.3), Su et al. 2020 chr21 + replicate, same pairs | 94.4 vs 94.4 %; 96.2 vs 96.7 %; cross-window pairs (v4 only) 89.2–93.1 % | matches within 0.5 points, slightly below |
 | Gate 1b: sequencing Hi-C (Rao et al. 2014) → imaged distances, all pairs | ranks 80.4–84.7 % of the ceiling; absolute size CCC 0.22–0.33 | ranks transfer, nanometres do not |
 | Gate 2: do stated 90 % intervals hold 90 % of real single-cell distances? (6 test sets) | raw 71–84 %, recalibrated on practice data 83–91 %; per-bead reliability vs error ρ -0.16 to +0.28 | raw intervals too narrow; recalibrated within 7 points of nominal; no usable per-bead reliability |
+| Gate 2b: the same, with sequencing Hi-C input (4 test sets) | raw 23–51 %, recalibrated on practice Hi-C 43–73 % | fail: intervals far too narrow for Hi-C input; the app says so |
 | Gate 4: cohesin loss (RAD21 degron, Bintu et al. 2018), held-out region | change agreement 0.868 vs 0.336 for a trend-only shift | pass, one region |
 | Gate 4b: structural variants (K562 chr9 deletions vs GM12878, Rao 2014 Hi-C) | model 0.083, distance shift 0.149, no change 0.424 | not validated (mechanism simulator) |
 | Gate 5: distances from sequence + CTCF alone (no contact data) | 4 of 5 test sets pass the pre-registered rule | pass |

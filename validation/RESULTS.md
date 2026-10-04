@@ -47,6 +47,8 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | 1 | Does the whole-chromosome model at least match the windowed v3.3 model on the same regions? | Su chr21, 651 loci: 94.4 vs 94.4 % of the ceiling, and 96.2 vs 96.7 % on the replicate. It also predicts the cross-window pairs (89–93 %) that v3.3 cannot. | **Matches**, but slightly below: by 0.05–0.06 and 0.47–0.54 points, in every split |
 | 1b | Do sequencing Hi-C contacts give the right distances? | Ranks: 80–85 % of the ceiling. Absolute sizes: no (CCC 0.22–0.33). | **Ranks yes, nanometres no** |
 | 2 | Are the stated intervals honest? | Raw 90 % intervals cover 71–84 %. After recalibration fitted on practice data: 83–91 %. Short separations are worst. Per-bead reliability does not predict error. | **Recalibrated intervals usable for imaging-derived input; not for Hi-C input; no per-bead reliability** |
+| 2b | Are they honest with sequencing Hi-C input? | see Gate 2b | see Gate 2b |
+| 2c | Can a per-pair score from the input say which distances are wrong? | see Gate 2c | see Gate 2c |
 | 3 | Benchmark against baselines and published tools | see below | see below |
 | 4 | Does the cohesin-loss prediction match real RAD21 depletion? | Held-out region: change agreement 0.868 vs 0.336 for a trend-only shift | **Pass, on one region** |
 | 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
@@ -178,9 +180,70 @@ Coverage of the stated 90 % interval by genomic separation (raw → recalibrated
 - **Where the intervals cannot be trusted:**
   - close pairs (< 100 kb): 74–84 % even after recalibration;
   - the low-structure IMR-90 18–20 Mb region: 83 % at the 90 % level;
-  - **Hi-C input**: coverage is far below nominal (benchmark, Gate 3).
+  - **Hi-C input**: coverage is far below nominal, even after a Hi-C-specific recalibration
+    (Gate 2b).
 - **Per-bead reliability does not predict per-bead error** on test data (ρ from −0.16 to +0.28).
-  The score is shown only as "fit consistency" and is not offered as a reliability.
+  The score is shown only as "fit consistency" and is not offered as a reliability. A second,
+  per-pair attempt is Gate 2c below.
+
+## Gate 2b — intervals with sequencing Hi-C input
+
+**Question.** Gate 2 recalibrated the intervals for imaging-derived contacts. The app's usual input
+is sequencing Hi-C. Does the same recalibration method, fitted on practice Hi-C input, make the
+stated intervals honest for it?
+
+**Test** (`python validation/calibration.py --test --input hic`, pre-registered in
+`frozen.HIC_CALIBRATION` and committed with the practice-fitted recalibration before the run). Input:
+Rao et al. 2014 Hi-C on the imaged loci, the Gate 1 Hi-C settings and the app's b₀ anchor. Truth:
+half B's single-copy distances, split 0. Pass: on every test dataset the recalibrated 90 % interval
+holds 83–97 % and the 50 % interval 40–60 %.
+
+<!-- BEGIN generated:gate2b -->
+test (run once; Hi-C recalibration frozen); Hi-C recalibration fitted on bintu_k562_28_30, su_chr2, su_chr2_parm_rep. Pass (pre-registered): recalibrated 90 % interval holds 83–97 % and 50 % interval 40–60 % on every test dataset.
+
+| Test dataset | Loci | Model | Size ratio (model / measured) | Stated 50 / 80 / 90 %: raw | With the imaging recalibration | With the Hi-C recalibration | Within the rule |
+|---|---|---|---|---|---|---|---|
+| bintu_imr90_28_30 | 65 | ensemble_v3_3 | 0.49 | 16 / 30 / 39 % | 22 / 44 / 58 % | 40 / 58 / 66 % | no |
+| bintu_imr90_18_20 | 65 | ensemble_v3_3 | 0.35 | 9 / 18 / 23 % | 13 / 26 / 36 % | 25 / 37 / 43 % | no |
+| su_chr21 | 651 | population_v4 | 0.57 | 23 / 42 / 51 % | 30 / 56 / 70 % | 41 / 64 / 73 % | no |
+| su_chr21_rep | 651 | population_v4 | 0.57 | 23 / 41 / 51 % | 29 / 55 / 69 % | 41 / 63 / 72 % | no |
+
+Width of the stated 90 % interval (upper / lower bound): raw 4.71, Hi-C recalibrated 3.78. 0 of 4 test datasets within the rule. Verdict: **fail**.
+
+Practice (in-sample, after the fit): bintu_k562_28_30 34 / 50 / 57 %; su_chr2 43 / 64 / 73 %; su_chr2_parm_rep 44 / 67 / 75 %.
+<!-- END generated:gate2b -->
+
+**Reading.**
+- **Fail, on every test set.** With Hi-C input a stated 90 % interval holds 23–51 % of real
+  single-cell distances. The recalibration fitted on practice Hi-C raises that to 43–73 %, still far
+  below 90 %. The imaging recalibration, which the app applied to every input until now, gives
+  36–70 %. The weak-structure IMR-90 18–20 Mb region is worst (model 0.35× the measured size).
+- **Why, seen on practice data before the test.** The model built from Hi-C is about half the
+  measured size (Gate 1b). 29–49 % of practice single-cell distances fell beyond the model's
+  99.5th percentile. The recalibration works on a 200-bin histogram of those percentiles, so it
+  cannot stretch the upper tail far enough. The method was kept as pre-registered, not changed
+  after seeing this.
+- **In the app.** For a population built from sequencing counts, the probe no longer shows the
+  imaging recalibration. It shows the model's interval with the measured shortfall from this test,
+  and says to read the range as the model's cell-to-cell spread, not as a 90 % range for real cells.
+  Intervals of a predicted population (Gate 5) were not tested and are labelled so.
+
+## Gate 2c — can the input say which distances will be wrong?
+
+**Question.** Gate 2's per-bead score did not predict error. Can a per-*pair* score, computed from
+the input and the fitted model only, rank which distances are off?
+
+**Test** (`python validation/reliability.py`). Error of a pair: the absolute deviation of
+log(model / measured median) from the median of that log ratio in its separation stratum (10
+equal-count strata), so the known size and trend biases (Gate 1b) do not count as pair errors. Score: Spearman of the
+candidate vs minus that error within each stratum, averaged; per bead, its median pair score vs its
+median pair error. 95 % intervals from 200 resamples of the loci. Candidates, chosen on practice
+data: the delta-method input noise of the pair's contact count, the model's misfit to the pair's
+own input, and their combination. The test is pre-registered in `frozen.RELIABILITY`.
+
+<!-- BEGIN generated:gate2c -->
+_results_reliability.json: not run (python validation/reliability.py --test)._
+<!-- END generated:gate2c -->
 
 ## Gate 3 — benchmark (Pillar 3)
 
