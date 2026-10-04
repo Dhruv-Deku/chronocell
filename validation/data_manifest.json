@@ -44,6 +44,36 @@
   "bytes": 20080720,
   "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/K562_chr21-28-30Mb.csv"
  },
+ "data/encode/ENCFF470EAN.bed.gz": {
+  "sha256": "75565fdab146677b46972327309d2e4df8cd60c83acba1e986ec11c0a0df9700",
+  "bytes": 1443448,
+  "url": "https://www.encodeproject.org/files/ENCFF470EAN/@@download/ENCFF470EAN.bed.gz"
+ },
+ "data/encode/ENCFF582SNT.bed.gz": {
+  "sha256": "ccfc21d5f4b7f97b1225da799ec9a56df23440270d6444774d0b2a88d78d14eb",
+  "bytes": 785405,
+  "url": "https://www.encodeproject.org/files/ENCFF582SNT/@@download/ENCFF582SNT.bed.gz"
+ },
+ "data/encode/ENCFF624ZSR.bed.gz": {
+  "sha256": "f36dd7b7bd5e1356bf12b1af70fe506f2fd9dc1e680cf6b2efa866fcf983729a",
+  "bytes": 761536,
+  "url": "https://www.encodeproject.org/files/ENCFF624ZSR/@@download/ENCFF624ZSR.bed.gz"
+ },
+ "data/encode/ENCFF670ULH.bed.gz": {
+  "sha256": "5941d1232b84ca46dd573806cfa9a36c5333166dfe501ea85848d07958187ded",
+  "bytes": 595548,
+  "url": "https://www.encodeproject.org/files/ENCFF670ULH/@@download/ENCFF670ULH.bed.gz"
+ },
+ "data/hg38/chr2.fa.gz": {
+  "sha256": "748007e198312d16d6277dcdd48d4f050109273cacf1a7a09860f965f2060555",
+  "bytes": 78561132,
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr2.fa.gz"
+ },
+ "data/hg38/chr21.fa.gz": {
+  "sha256": "c979ca1e5065c2521a50773473e0d0cc018fd6f3e9bb3aa90493fe7b45d57d1b",
+  "bytes": 12709705,
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr21.fa.gz"
+ },
  "data/hic_cache/rao2014_gm12878_chr9_16000000_36000000_25000.npz": {
   "sha256": "1273e7e8caa560b407f82161600390d05dd97f254ceb4bfdfc6aec74599913ab",
   "bytes": 655019,
@@ -68,6 +98,11 @@
   "sha256": "e0dac48f461c4c85e3fbd02b2ed8ccccc0c548d2e86ad76ddbf3e25c0ee28dac",
   "bytes": 120663,
   "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic"
+ },
+ "data/jaspar/MA0139.1.jaspar": {
+  "sha256": "620a615d5b2c106e80c2e2cb41fac72c0d516e1c186c54e61295e5752dcebd83",
+  "bytes": 571,
+  "url": "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar"
  },
  "data/su2020/Hi-C_contacts_chromosome2.tsv": {
   "sha256": "bc8aa014200d2615ec00af48d181498f0b0b53dffcc8e4c9b84d2b0c4d34f611",

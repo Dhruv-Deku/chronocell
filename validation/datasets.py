@@ -205,6 +205,84 @@ def bintu_hic(key: str) -> tuple[np.ndarray, str]:
 # ======================================================================================
 # Download with integrity record
 # ======================================================================================
+# ======================================================================================
+# Pillar 5 inputs (sequence + CTCF): ENCODE CTCF peaks, UCSC hg38 sequence, JASPAR CTCF motif
+# ======================================================================================
+ENCODE_CITE = ("ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. "
+               "Nature 583, 699-710 (2020).")
+ENCODE_LICENSE = ("Public ENCODE portal data; the consortium asks that the project and experiment be cited. "
+                  "Downloaded on demand; not redistributed.")
+CTCF_PEAKS = {   # cell line -> (file accession, experiment, MD5 published by the ENCODE portal); GRCh38 IDR thresholded
+    "IMR90": ("ENCFF670ULH", "ENCSR000EFI", "f0bb4b9b1c16409cf9cc397e91edad0f"),
+    "A549": ("ENCFF624ZSR", "ENCSR035OXA", "28df1622fd35c6caacfe9351815c7c9e"),
+    "K562": ("ENCFF582SNT", "ENCSR000BPJ", "e5d29f1be4f8bf69ce79686a3b6d13b7"),
+    "HCT116": ("ENCFF470EAN", "ENCSR048RGR", "7899f33fb47d856bdc6531bc2665e08d"),
+}
+UCSC_HG38 = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/"
+HG38_FASTA_MD5 = {"chr21": "184df2bd9b812b6e6b6da16c6021369e", "chr2": "609cc41e8a44eb99f87839456c6ed333"}  # UCSC md5sum.txt
+UCSC_LICENSE = "UCSC hg38 (GRCh38) sequence, freely available for download and use; downloaded on demand."
+UCSC_CITE = "Genome Reference Consortium GRCh38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002)."
+JASPAR_URL = "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar"
+JASPAR_CITE = ("Rauluseviciute I et al. JASPAR 2024: 20th anniversary of the open-access database of transcription "
+               "factor binding profiles. Nucleic Acids Res 52, D174-D182 (2024). Matrix MA0139.1 (CTCF).")
+JASPAR_LICENSE = "CC BY 4.0 (JASPAR)."
+
+
+def fetch_url(url: str, path: Path, md5: str | None = None, retries: int = 6) -> Path:
+    """Download one file (resuming), verify the MD5 its source publishes when there is one, and record its
+    SHA-256 in the manifest."""
+    try:
+        import truststore                  # the system certificate store (UCSC / ENCODE behind TLS inspection)
+        truststore.inject_into_ssl()
+    except ImportError:
+        pass
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".part")
+        for attempt in range(1, retries + 1):
+            have = tmp.stat().st_size if tmp.exists() else 0
+            headers = dict(UA, **({"Range": f"bytes={have}-"} if have else {}))
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
+                    resumed = bool(have) and r.status == 206
+                    total = r.headers.get("Content-Range", "").rpartition("/")[2] if resumed else r.headers.get("Content-Length")
+                    total = int(total) if total and total.isdigit() else None
+                    with tmp.open("ab" if resumed else "wb") as fh:
+                        while chunk := r.read(1 << 20):
+                            fh.write(chunk)
+                if total is not None and tmp.stat().st_size < total:      # the server closed early: resume
+                    raise OSError(f"short read ({tmp.stat().st_size:,} of {total:,} bytes)")
+                break
+            except OSError as exc:
+                if attempt == retries:
+                    raise
+                print(f"retry {attempt} for {path.name}: {exc}", flush=True)
+                time.sleep(min(60, 3 * 2 ** attempt))
+        if md5:
+            _verify(tmp, {"md5": md5})
+        tmp.replace(path)
+    man = _load_manifest().get(path.relative_to(ROOT).as_posix())
+    if not man or man.get("bytes") != path.stat().st_size:
+        if md5:
+            _verify(path, {"md5": md5})
+        record(path, url)
+    return path
+
+
+def ctcf_peaks_path(cell_line: str) -> Path:
+    acc, _, md5 = CTCF_PEAKS[cell_line]
+    return fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz",
+                     DATA / "encode" / f"{acc}.bed.gz", md5)
+
+
+def hg38_fasta_path(chrom: str) -> Path:
+    return fetch_url(UCSC_HG38 + f"{chrom}.fa.gz", DATA / "hg38" / f"{chrom}.fa.gz", HG38_FASTA_MD5[chrom])
+
+
+def jaspar_ctcf_path() -> Path:
+    return fetch_url(JASPAR_URL, DATA / "jaspar" / "MA0139.1.jaspar")
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:
