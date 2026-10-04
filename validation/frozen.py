@@ -88,3 +88,24 @@ HIC_CALIBRATION = {"practice": ["bintu_k562_28_30", "su_chr2", "su_chr2_parm_rep
                    "test": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep"],
                    "split": 0, "p_adjacent": GATE1["p_adjacent"], "hic_zeros": GATE1["hic_zeros"],
                    "anchor": "literature_b0", "pass_90": (0.83, 0.97), "pass_50": (0.40, 0.60)}
+
+# Gate 5m (mouse transfer of the Gate 5 predictor). Pre-registered before any mouse data were read, and
+# NOT RUN: the traces are on the 4DN Data Portal, whose downloads need a (free) 4DN account access key that
+# this machine does not have. The app keeps the predictor hg38-only until this test has run and passed.
+# Truth: ORCA chromatin tracing in mouse ES cells (E14TG2a), Hafner et al., Mol Cell 83:1377 (2023), GRCm38
+# (mm10), two 3-Mb loci: 4DN experiment sets 4DNESD28H8O7 (chr6, untreated) and 4DNESWDXDZSE (chr3,
+# untreated) = the test; the same loci in the CTCF-AID and RAD21-AID lines without auxin are reported as
+# secondary; with auxin (CTCF or cohesin degraded) as controls, not in the rule.
+# Inputs: ENCODE CTCF IDR thresholded peaks of mouse ES-Bruce4 (ENCFF533APC, experiment ENCSR000CCB, mm10,
+# MD5 d2c0c0c2ed1d8e11989362580ca85af7; a different ES line from the imaged cells, the only ENCODE mouse ES
+# CTCF ChIP-seq) and the UCSC mm10 sequence (md5sum.txt). Model: validation/predictor_model.json unchanged
+# (trained on human data only; nothing is refitted on mouse). Scoring and pass rule: Gate 5's, unchanged
+# (half-B medians as truth, all pairs, 3 splits, 95 % interval from split 0): pass if BOTH test loci have
+# (i) % of ceiling > 0 with its 95 % interval above 0 and (ii) raw Spearman above the training-trend
+# baseline's. Pass -> the predictor may be offered for mouse assemblies (mm39), labelled with this result.
+PREDICTOR_MOUSE = {"status": "pre-registered, not run (4DN access key needed)",
+                   "test": ["4DNESD28H8O7", "4DNESWDXDZSE"],
+                   "secondary": ["4DNESJ3TXVIR", "4DNESQ49IXDU", "4DNESTNG39BO", "4DNESLRTOSQT"],
+                   "control": ["4DNES2KX6HQ5", "4DNESMN7RCSB", "4DNESG62SAVA", "4DNESBH54BG2"],
+                   "peaks": ("ENCFF533APC", "ENCSR000CCB", "d2c0c0c2ed1d8e11989362580ca85af7"), "assembly": "mm10",
+                   "model": "validation/predictor_model.json", "splits": 3, "pass": "both test loci meet Gate 5 (i) and (ii)"}
