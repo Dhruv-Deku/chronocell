@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from chronocell import accuracy as ACC
+from ui import predict_view
 from ui.common import html
 
 ss = st.session_state
@@ -101,20 +103,49 @@ def render(version: str) -> None:
     html('<div class="cc-analogy"><b>The exam analogy.</b> <i>Contact-map fit</i> is like checking a student against '
          'the homework they copied from: a high mark only shows they copied carefully. <i>Microscopy accuracy</i> is the '
          'real exam: questions they never saw. We report both, side by side, and never add them together.</div>')
+    models = (ACC.load_benchmark() or {}).get("models", {})
+
+    def pct(name: str) -> str:
+        v = models.get(name, {}).get("overall_percent_of_ceiling")
+        return "not measured on this install" if v is None else f"{v:.1f} %"
+
+    pred = models.get("predicted_sequence_ctcf")
+    caveat = predict_view.control_caveat(pred) if pred else None
+    ev = ACC.interval_evidence() or {}
+    rng = lambda r: f"{r[0]:.0f}–{r[1]:.0f} %"                                  # noqa: E731
+    hic_txt = (f"stated 90 % ranges held {rng(ev['imaging_recalibrated_90'])} after recalibration with imaging-derived "
+               "contacts" if ev.get("imaging_recalibrated_90") else "not yet measured for imaging-derived contacts")
+    if ev.get("hic_verdict"):
+        hic_txt += (f"; with sequencing Hi-C, {rng(ev['hic_recalibrated_90'])} after recalibration (pre-registered test "
+                    f"{'passed' if ev['hic_verdict'] == 'pass' else 'not passed: read the range as model spread only'})")
+    elif ev.get("hic_raw_90"):
+        hic_txt += f"; with sequencing Hi-C only {rng(ev['hic_raw_90'])} ({ev['hic_source']})"
     html('<dl class="cc-gloss">'
          '<dt>Contact-map fit</dt><dd>How well the 3D model reproduces the contact data it was built from (Spearman '
          '\u03c1, measured live on your window). It shows the fit converged, not that the shape is right.</dd>'
          '<dt>Microscopy accuracy</dt><dd>How well the <b>method</b> predicts distances measured under a microscope in '
-         'cells it never saw (chromatin tracing, Bintu et al. 2018). The <b>population model</b> recovers 85.6 % of '
-         'the folding pattern the experiment can reproduce; the older single-structure model recovers 45 %. It is a '
-         'property of the method, not a measurement on your data. Full details are in <code>validation/RESULTS.md</code>.</dd>'
+         'cells it never saw (chromatin tracing, Bintu et al. 2018; Su et al. 2020). On the held-out test sets the '
+         f'windowed <b>population model</b> recovers {pct("ensemble_v3_3")} of the folding pattern the experiment can '
+         f'reproduce, the older single-structure model {pct("single_structure_v3_2")}, and the whole-chromosome model '
+         f'built from sequencing Hi-C {pct("population_v4")}. It is a property of the method, not a measurement on '
+         'your data. Every number is read from the result files; details are in <code>validation/RESULTS.md</code>.</dd>'
          '<dt>Population model</dt><dd>One chromosome folds differently in every cell, like a crowd of people each '
          'standing a little differently. The population model builds the whole crowd (100 trajectories), not one '
-         'average person. Find it under 01 3D structure \u2192 03 Model &amp; convergence, on windows of up to 400 '
-         'beads.</dd>'
+         'average person. Find it under 01 3D structure \u2192 03 Model &amp; convergence: the windowed model up to '
+         '400 beads, the whole-chromosome model beyond.</dd>'
+         '<dt>Predicted from sequence + CTCF (no contact data)</dt><dd>For a window with no Hi-C, the population model '
+         'can be built from a <i>prediction</i>: CTCF ChIP-seq peaks of the cell type and the DNA sequence. Like '
+         'guessing a room layout from where the doors are. It is labelled "predicted" everywhere. Held-out test: '
+         f'{pct("predicted_sequence_ctcf")} of the reproducible pattern, against the numbers above for models built '
+         'from contacts: a prior, not a measurement.' + (f' {caveat}' if caveat else '') + '</dd>'
+         '<dt>Predicted next to built from contacts</dt><dd>When one window has both models, 03 Model &amp; convergence '
+         'shows their distance maps side by side with how well they agree. That is agreement between two models, not '
+         'accuracy, and the two are never blended: mixing a prediction with contact data was not tested.</dd>'
          '<dt>Measure and Slicing plane</dt><dd><i>Measure</i> (above the view) gives the distance between any two '
-         'beads, and for the population model the typical range across cells. <i>Display \u2192 Slicing plane</i> cuts '
-         'the fold open like slicing a cake, to see inside.</dd></dl>')
+         'beads, and for the population model the typical range across cells. Under it, the app says how often such a '
+         f'range held real single-cell distances in held-out tests <i>for your kind of input</i>: {hic_txt}, and untested '
+         'for a prediction. <i>Display \u2192 Slicing plane</i> cuts the fold open like slicing a cake, to see '
+         'inside.</dd></dl>')
 
     html('<h2 class="cc-h2">Bring your own data</h2>')
     st.dataframe([

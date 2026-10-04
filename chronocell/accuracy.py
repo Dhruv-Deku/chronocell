@@ -91,8 +91,13 @@ def _predictor_benchmark(folder: Path) -> dict | None:
             den += float(v["ceiling"])
     if not per:
         return None
+    controls = {}
+    for k in r["settings"].get("control", []):      # cohesin-depleted cells: CTCF-anchored loops are gone there
+        v = r["summary"].get(k, {}).get("sequence + CTCF", {}).get("all_pairs", {}).get("predictor")
+        if v:
+            controls[k] = round(float(v["percent_of_ceiling"]), 1)
     return {"overall_percent_of_ceiling": round(num / den, 1) if den else None,
-            "per_dataset_percent_of_ceiling": per, "verdict": r["verdict"],
+            "per_dataset_percent_of_ceiling": per, "verdict": r["verdict"], "control_percent_of_ceiling": controls,
             "definition": ("Prediction from sequence + CTCF peaks with no contact data (Gate 5): trend-removed Spearman rho "
                            "vs held-out tracing medians as % of the half-A vs half-B ceiling, all locus pairs; overall = "
                            "sum over test datasets weighted by their ceilings.")}

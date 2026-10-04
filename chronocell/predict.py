@@ -1,7 +1,8 @@
 """
 No-Hi-C prediction (Pillar 5): the pattern of 3D distances between loci from sequence and CTCF binding
-alone, for regions with no contact data. A hypothesis under test (validation/predictor.py, Gate 5),
-not part of the app unless that test passes.
+alone, for regions with no contact data. Tested held out in validation/predictor.py (Gate 5): it passed
+the pre-registered rule, modestly, so the app and `python -m chronocell.predict` offer it, always
+labelled "predicted, not measured".
 
 Per locus (a genome interval):
   fwd, rev   CTCF ChIP-seq peaks in the locus whose best CTCF motif match (a position weight matrix,
@@ -340,50 +341,71 @@ def predict_window(loci_starts: np.ndarray, loci_ends: np.ndarray, seq: bytes, p
     return d, info
 
 
+def compare_maps(a: np.ndarray, b: np.ndarray, max_pairs: int = 200_000, seed: int = 0) -> dict:
+    """Agreement between two median-distance maps of the same loci (e.g. built from contacts vs predicted):
+    Spearman rho over the pairs i < j, raw and beyond the separation trend (each distance divided by its
+    map's mean at the same |i - j|, as in the validation protocol). Pairs are a seeded random sample when
+    there are more than max_pairs. Agreement between two models, not accuracy."""
+    from .accuracy import spearman
+    a, b = np.asarray(a, np.float64), np.asarray(b, np.float64)
+    n = len(a)
+    if a.shape != (n, n) or b.shape != (n, n) or n < 3:
+        raise ValueError("Need two square maps of the same size (at least 3 loci).")
+    i, j = np.triu_indices(n, 1)
+    sampled = len(i) > max_pairs
+    if sampled:
+        pick = np.random.default_rng(seed).choice(len(i), max_pairs, replace=False)
+        i, j = i[pick], j[pick]
+    x, y = a[i, j], b[i, j]
+    ok = np.isfinite(x) & np.isfinite(y) & (x > 0) & (y > 0)
+    x, y, s = x[ok], y[ok], (j - i)[ok]
+    _, inv = np.unique(s, return_inverse=True)
+    xe = (np.bincount(inv, weights=x) / np.bincount(inv))[inv]
+    ye = (np.bincount(inv, weights=y) / np.bincount(inv))[inv]
+    return {"spearman": spearman(x, y), "spearman_trend_removed": spearman(x / xe, y / ye), "pairs": int(ok.sum()),
+            "sampled": bool(sampled), "median_ratio": float(np.median(y / x)) if ok.any() else float("nan")}
+
+
 UCSC_CHROMOSOMES = "https://hgdownload.soe.ucsc.edu/goldenPath/{assembly}/chromosomes/"
+ENCODE_DOWNLOAD = "https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz"
+SOURCES_PATH = DATA / "validation_sources.json"
+USER_AGENT = {"User-Agent": "ChronoCell-5D (research; github.com/Sh1voham/ChronoCell-5D)"}
 
 
-def fetch_chromosome_fasta(assembly: str, chrom: str, dest_dir: str | Path, progress=None, retries: int = 6) -> Path:
-    """One chromosome's sequence from UCSC ({assembly}/chromosomes/{chrom}.fa.gz), kept gzipped in dest_dir.
-    Interrupted transfers resume; the file is checked against UCSC's md5sum.txt before it is used.
-    progress(bytes_done, bytes_total) is called while downloading."""
-    import hashlib
-    import time
-    import urllib.request
+def _trust_system_certificates() -> None:
     try:
         import truststore                  # the system certificate store, where TLS is inspected
         truststore.inject_into_ssl()
     except ImportError:
         pass
-    dest = Path(dest_dir)
-    dest.mkdir(parents=True, exist_ok=True)
-    out = dest / f"{assembly}_{chrom}.fa.gz"
-    if out.exists():
-        return out
-    base = UCSC_CHROMOSOMES.format(assembly=assembly)
-    md5 = None
-    try:
-        with urllib.request.urlopen(base + "md5sum.txt", timeout=60) as r:
-            for line in r.read().decode().splitlines():
-                parts = line.split()
-                if len(parts) == 2 and parts[1] == f"{chrom}.fa.gz":
-                    md5 = parts[0]
-    except OSError:
-        md5 = None
-    tmp = out.with_suffix(".gz.part")
+
+
+def download_verified(url: str, out: str | Path, md5: str, progress=None, retries: int = 6) -> Path:
+    """Download url to out through out.part: interrupted or short transfers resume with an HTTP Range
+    request; the file is moved into place only if its MD5 equals the one its source publishes (on a
+    mismatch the partial file is deleted and OSError raised). progress(bytes_done, bytes_total)."""
+    import hashlib
+    import time
+    import urllib.request
+    _trust_system_certificates()
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.name + ".part")
     for attempt in range(1, retries + 1):
         have = tmp.stat().st_size if tmp.exists() else 0
-        req = urllib.request.Request(base + f"{chrom}.fa.gz", headers={"Range": f"bytes={have}-"} if have else {})
+        req = urllib.request.Request(url, headers=dict(USER_AGENT, **({"Range": f"bytes={have}-"} if have else {})))
         try:
             with urllib.request.urlopen(req, timeout=120) as r:
                 resumed = bool(have) and r.status == 206
                 total = r.headers.get("Content-Range", "").rpartition("/")[2] if resumed else r.headers.get("Content-Length")
                 total = int(total) if total and total.isdigit() else None
+                done = have if resumed else 0
                 with tmp.open("ab" if resumed else "wb") as fh:
                     while chunk := r.read(1 << 20):
                         fh.write(chunk)
+                        done += len(chunk)
                         if progress is not None:
-                            progress(tmp.stat().st_size, total)
+                            progress(done, total)
             if total is not None and tmp.stat().st_size < total:
                 raise OSError(f"short read ({tmp.stat().st_size:,} of {total:,} bytes)")
             break
@@ -391,13 +413,205 @@ def fetch_chromosome_fasta(assembly: str, chrom: str, dest_dir: str | Path, prog
             if attempt == retries:
                 raise
             time.sleep(min(30, 2 * 2 ** attempt))
-    if md5 is not None:
-        h = hashlib.md5()
-        with tmp.open("rb") as fh:
-            for chunk in iter(lambda: fh.read(1 << 20), b""):
-                h.update(chunk)
-        if h.hexdigest() != md5:
-            tmp.unlink()
-            raise OSError(f"{chrom}.fa.gz does not match UCSC's MD5; deleted, please retry.")
+    h = hashlib.md5()
+    with tmp.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    if h.hexdigest() != md5:
+        tmp.unlink()
+        raise OSError(f"{out.name} does not match the MD5 its source publishes; deleted, please retry.")
     tmp.replace(out)
     return out
+
+
+def fetch_chromosome_fasta(assembly: str, chrom: str, dest_dir: str | Path, progress=None, retries: int = 6) -> Path:
+    """One chromosome's sequence from UCSC ({assembly}/chromosomes/{chrom}.fa.gz), kept gzipped in dest_dir.
+    Interrupted transfers resume; the file is checked against UCSC's md5sum.txt before it is used (no
+    published MD5, no download). progress(bytes_done, bytes_total) is called while downloading."""
+    import time
+    import urllib.request
+    _trust_system_certificates()
+    out = Path(dest_dir) / f"{assembly}_{chrom}.fa.gz"
+    if out.exists():
+        return out
+    base = UCSC_CHROMOSOMES.format(assembly=assembly)
+    md5 = None
+    for attempt in range(1, retries + 1):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(base + "md5sum.txt", headers=USER_AGENT), timeout=60) as r:
+                for line in r.read().decode().splitlines():
+                    parts = line.split()
+                    if len(parts) == 2 and parts[1] == f"{chrom}.fa.gz":
+                        md5 = parts[0]
+            break
+        except OSError:
+            if attempt == retries:
+                raise
+            time.sleep(min(30, 2 * 2 ** attempt))
+    if md5 is None:
+        raise OSError(f"UCSC's md5sum.txt lists no {chrom}.fa.gz for {assembly}; not downloading an unverifiable file.")
+    return download_verified(base + f"{chrom}.fa.gz", out, md5, progress, retries)
+
+
+def encode_ctcf_sources(path: Path = SOURCES_PATH) -> list[dict]:
+    """The ENCODE CTCF ChIP-seq peak files listed in data/validation_sources.json (the Gate 5 inputs):
+    cell line, file accession, experiment, the MD5 the ENCODE portal publishes, assembly and citation."""
+    try:
+        rows = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    out = []
+    for r in rows:
+        if not str(r.get("key", "")).startswith("encode_ctcf_") or not r.get("md5"):
+            continue
+        acc = r["url"].rstrip("/").rpartition("/")[2]
+        out.append({"cell_line": r["cell_line"], "accession": acc, "experiment": r.get("experiment", ""), "md5": r["md5"],
+                    "assembly": r.get("assembly", ""), "citation": r["citation"], "license": r.get("license", ""),
+                    "page": r["url"]})
+    return out
+
+
+def fetch_encode_peaks(accession: str, md5: str, dest_dir: str | Path, progress=None, retries: int = 6) -> Path:
+    """An ENCODE peak file (bed.gz), downloaded once into dest_dir and checked against the portal's MD5."""
+    out = Path(dest_dir) / f"{accession}.bed.gz"
+    if out.exists():
+        return out
+    return download_verified(ENCODE_DOWNLOAD.format(acc=accession), out, md5, progress, retries)
+
+
+# ======================================================================================
+# Command line
+# ======================================================================================
+CACHE_FASTA = Path(__file__).resolve().parent.parent / ".chronocell_cache" / "fasta"
+VALIDATED_LOCUS_BP = (30_000, 50_000)        # locus sizes of the Gate 5 test sets (Bintu 2018; Su 2020 chr21)
+
+
+def read_fasta_record(path: str | Path, name: str, norm=None) -> bytes:
+    """The sequence of one record of a FASTA file (optionally gzipped), upper case: the record whose name
+    (first word of the header, normalised by norm) is `name`, or the only record of a one-sequence file."""
+    op = gzip.open if str(path).endswith(".gz") else open
+    seqs: dict[str, list[bytes]] = {}
+    cur = None
+    with op(path, "rb") as fh:
+        for line in fh:
+            if line.startswith(b">"):
+                head = line[1:].strip().split()
+                cur = head[0].decode("utf-8", "replace") if head else ""
+                seqs[cur] = []
+            elif cur is not None:
+                seqs[cur].append(line.strip())
+    if not seqs:
+        raise ValueError(f"{path}: no FASTA record")
+    for k, v in seqs.items():
+        try:
+            if (norm(k) if norm else k) == name:
+                return b"".join(v).upper()
+        except (KeyError, ValueError):
+            continue
+    if len(seqs) == 1:
+        return b"".join(next(iter(seqs.values()))).upper()
+    raise ValueError(f"{path}: no record named {name} (records: {', '.join(list(seqs)[:5])} ...)")
+
+
+def _sha256(path: str | Path) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def run_cli(chrom: str, start: int, end: int, peaks_path: str | Path, out: str | Path, fasta: str | Path | None = None,
+            bin_bp: int = 30_000, assembly_name: str = "hg38") -> dict:
+    """Predict the median-distance map of [start, end) in bins of bin_bp from CTCF peaks + sequence; write
+    out (.npy, nm) and out with .json (the record: inputs with SHA-256, model, validation). Returns the record."""
+    import datetime as dt
+    from . import accuracy as ACC, genome
+    loaded = load_model()
+    if loaded is None:
+        raise SystemExit(f"The predictor file is missing: {MODEL_PATH}")
+    model, meta = loaded
+    if assembly_name != meta.get("assembly"):
+        raise SystemExit(f"The predictor was trained and tested on human {meta.get('assembly')} only; "
+                         f"{assembly_name} is not supported (validation/RESULTS.md, Gate 5).")
+    name = genome.normalize_chrom(chrom, assembly_name)
+    size = genome.chromosome_size(name, assembly_name)
+    if not (0 <= start < end <= size):
+        raise SystemExit(f"Region {name}:{start:,}-{end:,} is outside the chromosome (size {size:,}).")
+    if bin_bp <= 0 or (end - start) // bin_bp < 3:
+        raise SystemExit("Need at least 3 bins: lower --bin or widen the region.")
+    norm = lambda c: genome.normalize_chrom(c, assembly_name)       # noqa: E731
+    if fasta is None:
+        fasta = fetch_chromosome_fasta(assembly_name, name, CACHE_FASTA,
+                                       lambda d, t: print(f"\rdownloading {name}: {d / 1e6:,.1f} MB", end="", flush=True))
+        print()
+        seq_source = f"UCSC {assembly_name} {name}.fa.gz (MD5 checked)"
+    else:
+        seq_source = "user file"
+    seq = read_fasta_record(fasta, name, norm)
+    if len(seq) < end:
+        raise SystemExit(f"The sequence of {name} in {fasta} is {len(seq):,} bp, shorter than the region end {end:,}.")
+    pk = read_peaks(Path(peaks_path).read_bytes(), name, norm)
+    if len(pk["starts"]) == 0:
+        raise SystemExit(f"No peaks on {name} in {peaks_path}.")
+    edges = np.arange(start, end - bin_bp + 1, bin_bp, dtype=np.int64)
+    d, info = predict_window(edges, edges + bin_bp, seq, pk, model, meta["settings"])
+    out = Path(out)
+    np.save(out, d)
+    bench = (ACC.load_benchmark() or {}).get("models", {}).get("predicted_sequence_ctcf") or {}
+    record = {
+        "status": "predicted, not measured",
+        "what": "median 3D distance (nm) across cells between every pair of loci, predicted from CTCF ChIP-seq peaks "
+                "(oriented by the JASPAR CTCF motif) and GC content, with no contact data",
+        "software": "ChronoCell-5D chronocell.predict",
+        "utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "output": {"file": out.name, "sha256": _sha256(out), "shape": list(d.shape), "units": "nm"},
+        "region": {"assembly": assembly_name, "chrom": name, "start": int(start), "end": int(edges[-1] + bin_bp),
+                   "bin_bp": int(bin_bp), "loci": int(len(edges))},
+        "inputs": {"peaks": {"file": str(peaks_path), "sha256": _sha256(peaks_path), **info},
+                   "sequence": {"file": str(fasta), "sha256": _sha256(fasta), "source": seq_source}},
+        "model": {"file": "chronocell/data/predictor.json", "sha256": _sha256(MODEL_PATH), "trained_on": model.trained_on,
+                  "ridge_lambda": model.ridge_lambda, "motif": meta["settings"]["motif"], "motif_citation": JASPAR_CITATION},
+        "validation": {**(meta.get("validation") or {}),
+                       "overall_percent_of_ceiling": bench.get("overall_percent_of_ceiling"),
+                       "per_dataset_percent_of_ceiling": bench.get("per_dataset_percent_of_ceiling"),
+                       "cohesin_depleted_control_percent_of_ceiling": bench.get("control_percent_of_ceiling"),
+                       "validated_locus_bp": list(VALIDATED_LOCUS_BP),
+                       "reading": "a prior, not a measurement; its signal is compartment / insulation level, not CTCF "
+                                  "loops (the cohesin-depleted control scored as high); see validation/RESULTS.md, Gate 5"},
+    }
+    if bin_bp not in VALIDATED_LOCUS_BP:
+        record["validation"]["warning"] = (f"bin size {bin_bp:,} bp was not tested; Gate 5 tested "
+                                           + " and ".join(f"{b // 1000} kb" for b in VALIDATED_LOCUS_BP) + " loci")
+    out.with_suffix(".json").write_text(json.dumps(record, indent=1, default=float) + "\n", encoding="utf-8")
+    return record
+
+
+def main(argv: list[str] | None = None) -> None:
+    """python -m chronocell.predict --chrom chr21 --start 28000000 --end 30000000 --peaks ctcf.narrowPeak --out map.npy"""
+    import argparse
+    ap = argparse.ArgumentParser(prog="python -m chronocell.predict",
+                                 description="Predict a median 3D distance map from CTCF peaks + sequence, with no contact "
+                                             "data (the frozen Gate 5 model; hg38 only). Writes OUT (.npy, nm) and a "
+                                             "JSON record next to it. The output is predicted, not measured.")
+    ap.add_argument("--chrom", required=True)
+    ap.add_argument("--start", type=int, required=True, help="region start (bp, 0-based)")
+    ap.add_argument("--end", type=int, required=True, help="region end (bp)")
+    ap.add_argument("--peaks", required=True, help="CTCF ChIP-seq peaks of the cell type: narrowPeak or BED (.gz accepted)")
+    ap.add_argument("--fasta", help="the chromosome's sequence (FASTA, .gz accepted); default: download from UCSC once")
+    ap.add_argument("--bin", type=int, default=30_000, help="locus size in bp (tested: 30000, 50000; default 30000)")
+    ap.add_argument("--assembly", default="hg38")
+    ap.add_argument("--out", required=True, help="output .npy (a .json record is written beside it)")
+    a = ap.parse_args(argv)
+    rec = run_cli(a.chrom, a.start, a.end, a.peaks, a.out, a.fasta, a.bin, a.assembly)
+    r = rec["region"]
+    print(f"wrote {a.out} ({r['loci']} x {r['loci']} loci, {r['chrom']}:{r['start']:,}-{r['end']:,}) and "
+          f"{Path(a.out).with_suffix('.json').name}: PREDICTED, not measured; "
+          f"{rec['inputs']['peaks']['peaks']} peaks, {rec['inputs']['peaks']['peaks_with_motif']} with a motif match.")
+    if "warning" in rec["validation"]:
+        print("warning:", rec["validation"]["warning"])
+
+
+if __name__ == "__main__":
+    main()

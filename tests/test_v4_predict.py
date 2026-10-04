@@ -93,3 +93,103 @@ def test_population_follows_a_predicted_map():
     assert res.config["input"] == "distance map (no contact data)"
     with pytest.raises(ValueError):
         P.fit_population_from_medians(np.zeros((2, 2)))
+
+
+def _cli_inputs(tmp_path, n: int = 3_000_000, records=("chr21",)):
+    fa = tmp_path / "seq.fa.gz"
+    with gzip.open(fa, "wb") as fh:
+        for k, name in enumerate(records):
+            seq = _random_seq(n, 10 + k)
+            fh.write(b">" + name.encode() + b" test\n" + b"\n".join(seq[i:i + 60] for i in range(0, n, 60)) + b"\n")
+    peaks = tmp_path / "ctcf.narrowPeak"
+    peaks.write_text("".join(f"chr21\t{1_000_000 + k * 150_000}\t{1_000_000 + k * 150_000 + 400}\tp{k}\t0\t.\t5\t5\t5\t200\n"
+                             for k in range(10)) + "chr22\t5\t500\tother\t0\t.\t5\t5\t5\t100\n")
+    return fa, peaks
+
+
+def test_cli_writes_the_map_and_a_record_with_hashes(tmp_path, capsys):
+    import hashlib
+    import json
+    fa, peaks = _cli_inputs(tmp_path, records=("chr20", "chr21"))
+    out = tmp_path / "map.npy"
+    PD.main(["--chrom", "21", "--start", "1000000", "--end", "2500000", "--peaks", str(peaks), "--fasta", str(fa),
+             "--out", str(out)])
+    d = np.load(out)
+    assert d.shape == (50, 50) and np.allclose(d, d.T) and (d[np.triu_indices(50, 1)] > 0).all()
+    rec = json.loads(out.with_suffix(".json").read_text())
+    assert rec["status"] == "predicted, not measured"
+    assert rec["region"] == {"assembly": "hg38", "chrom": "chr21", "start": 1_000_000, "end": 2_500_000, "bin_bp": 30_000,
+                             "loci": 50}
+    assert rec["inputs"]["peaks"]["sha256"] == hashlib.sha256(peaks.read_bytes()).hexdigest()
+    assert rec["inputs"]["peaks"]["peaks"] == 10                     # the chr22 line is not on this chromosome
+    assert rec["inputs"]["sequence"]["sha256"] == hashlib.sha256(fa.read_bytes()).hexdigest()
+    assert rec["output"]["sha256"] == hashlib.sha256(out.read_bytes()).hexdigest()
+    assert rec["model"]["sha256"] == hashlib.sha256(PD.MODEL_PATH.read_bytes()).hexdigest()
+    assert rec["validation"]["result_file"] == "validation/results_predictor.json" and "warning" not in rec["validation"]
+    # the same inputs as the app's prediction give the same map
+    model, meta = PD.load_model()
+    seq = PD.read_fasta_record(fa, "chr21")
+    starts = 1_000_000 + np.arange(50) * 30_000
+    d2, _ = PD.predict_window(starts, starts + 30_000, seq, PD.read_peaks(peaks.read_bytes(), "chr21"), model,
+                              meta["settings"])
+    assert np.allclose(d, d2)
+    assert "PREDICTED, not measured" in capsys.readouterr().out
+
+
+def test_cli_refuses_what_was_not_validated(tmp_path):
+    import json
+    fa, peaks = _cli_inputs(tmp_path)
+    with pytest.raises(SystemExit, match="hg38 only"):
+        PD.main(["--chrom", "chr1", "--start", "0", "--end", "300000", "--peaks", str(peaks), "--fasta", str(fa),
+                 "--assembly", "mm39", "--out", str(tmp_path / "m.npy")])
+    with pytest.raises(SystemExit, match="outside the chromosome"):
+        PD.main(["--chrom", "chr21", "--start", "0", "--end", "999000000", "--peaks", str(peaks), "--fasta", str(fa),
+                 "--out", str(tmp_path / "m.npy")])
+    with pytest.raises(SystemExit, match="shorter than the region"):
+        PD.main(["--chrom", "chr21", "--start", "2000000", "--end", "4000000", "--peaks", str(peaks), "--fasta", str(fa),
+                 "--out", str(tmp_path / "m.npy")])
+    # an untested bin size runs, with a warning in the record
+    PD.main(["--chrom", "chr21", "--start", "1000000", "--end", "2500000", "--bin", "100000", "--peaks", str(peaks),
+             "--fasta", str(fa), "--out", str(tmp_path / "m.npy")])
+    assert "was not tested" in json.loads((tmp_path / "m.json").read_text())["validation"]["warning"]
+
+
+def test_cli_reproduces_the_gate5_map_on_real_inputs(tmp_path):
+    """The app / CLI path (read_peaks, offset GC index) gives exactly the map scored in Gate 5 for the IMR-90
+    test loci. Needs the downloaded validation inputs (validation/data, git-ignored); skipped without them."""
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / "validation"
+    peaks, fasta = root / "data" / "encode" / "ENCFF670ULH.bed.gz", root / "data" / "hg38" / "chr21.fa.gz"
+    if not (peaks.exists() and fasta.exists() and (root / "data" / "IMR90_chr21-28-30Mb.csv").exists()):
+        pytest.skip("validation inputs not downloaded (python validation/predictor.py --test fetches them)")
+    sys.path.insert(0, str(root))
+    import datasets as D
+    import predictor as VP
+    tr = D.load("bintu_imr90_28_30")
+    d = VP.design("bintu_imr90_28_30", tr)
+    model = PD.Predictor.from_json((root / "predictor_model.json").read_text())
+    n = d["loci"].n
+    want = np.exp(VP._matrix(n, d["i"], d["j"], model.log_distance(d["X"], d["sep"].astype(float))))
+    start, step = int(tr.starts[0]), int(tr.starts[1] - tr.starts[0])
+    PD.main(["--chrom", "chr21", "--start", str(start), "--end", str(start + n * step), "--bin", str(step),
+             "--peaks", str(peaks), "--fasta", str(fasta), "--out", str(tmp_path / "m.npy")])
+    got = np.load(tmp_path / "m.npy")
+    iu = np.triu_indices(n, 1)
+    assert np.allclose(got[iu], want[iu], rtol=1e-12)
+
+
+def test_cohesin_control_caveat_is_read_from_the_result_file():
+    from chronocell import accuracy as ACC
+    import ui.predict_view as PV
+    pred = ACC.load_benchmark()["models"]["predicted_sequence_ctcf"]
+    r = __import__("json").loads((ACC.VALIDATION / "results_predictor.json").read_text(encoding="utf-8"))
+    ctl = r["settings"]["control"][0]
+    want = r["summary"][ctl]["sequence + CTCF"]["all_pairs"]["predictor"]["percent_of_ceiling"]
+    assert pred["control_percent_of_ceiling"][ctl] == round(want, 1)
+    txt = PV.control_caveat(pred)
+    assert f"{want:.1f} %" in txt and "not CTCF loops" in txt
+    # a control that scored low would be read the other way, with no claim about compartments
+    low = dict(pred, control_percent_of_ceiling={ctl: 1.0})
+    assert "not CTCF loops" not in PV.control_caveat(low)
+    assert PV.control_caveat(dict(pred, control_percent_of_ceiling={})) is None

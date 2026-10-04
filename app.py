@@ -751,6 +751,9 @@ with head_l:
          f'the region to the other. Beads that touch in 3D can switch each other’s genes on or off.</p>')
     options = (["Input structure"] + (["EGNN reconstruction"] if fit is not None else [])
                + (["Population model"] if ens is not None else []))
+    pending = ss.pop("structure_pending", None)       # set by a fit in the previous run, before this widget exists
+    if pending and pending[0] == fit_key and pending[1] in options:
+        ss[f"structure_{fit_key}"] = pending[1]
     shown = st.segmented_control("Structure", options, default=options[-1] if ss.get("show_fit") else options[0],
                                  required=True, key=f"structure_{fit_key}", label_visibility="collapsed") \
         if len(options) > 1 else options[0]
@@ -1257,6 +1260,7 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                     c_fit = ACC.spearman(res_e.contact_probability[wci, wcj], wcm)
                     res_e.config["window_contact_fit"] = c_fit
                     ss.ensembles[fit_key] = res_e
+                    ss.setdefault("contact_ensembles", {})[fit_key] = res_e   # for the side-by-side view
                     model_name = "v4 population" if big else "v3.3 population"
                     frames, reps = res_e.trajectories_nm.shape[:2]
                     for sname, secs, loss in (("ensemble fit", res_e.config["fit_seconds"], res_e.history["best_loss"][0]),
@@ -1266,7 +1270,7 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                                                           res_e.spread_cv if loss is None else None))
                     ss.pop("ens_running", None)
                     ss.show_fit = True
-                    ss[f"structure_{fit_key}"] = "Population model"
+                    ss.structure_pending = (fit_key, "Population model")
                     st.rerun()
                 except (ValueError, FloatingPointError) as exc:
                     ss.pop("ens_running", None)
@@ -1284,6 +1288,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             readout(rows_e)
             st.plotly_chart(viz.ensemble_loss_chart(ens.history), theme=None, width="stretch", config=T.PLOT_CONFIG,
                             key="ens_loss")
+        if TORCH:
+            predict_view.render_comparison(ds, lo, hi, fit_key)      # only when both models exist for this window
 
         # ---- the two accuracy scores, never mixed ----
         html('<p class="cc-eyebrow" style="margin-top:14px">Accuracy · two separate scores</p>')

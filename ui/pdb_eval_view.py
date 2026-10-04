@@ -37,7 +37,9 @@ def _sources(options: list[tuple[str, Dataset]], populations: dict) -> list[tupl
     out = [(f"structure:{i}", lab) for i, (lab, _) in enumerate(options)]
     for k, res in populations.items():
         n = res.representative_nm.shape[0]
-        out.append((f"population:{k}", f"Population model · {n} beads · {res.frames_nm.shape[0]} members (this session)"))
+        kind = (" · predicted from sequence + CTCF (no contact data)"
+                if str(res.config.get("input", "")).startswith("predicted") else "")
+        out.append((f"population:{k}", f"Population model{kind} · {n} beads · {res.frames_nm.shape[0]} members (this session)"))
     out.append(("upload", "Upload a PDB file"))
     return out
 
