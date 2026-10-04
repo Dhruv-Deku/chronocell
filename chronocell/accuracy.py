@@ -70,7 +70,32 @@ def load_benchmark(path: Path | str = RESULTS) -> dict | None:
     v4 = _gate1_benchmark(Path(path).parent)
     if v4:
         out["models"]["population_v4"] = v4
+    pred = _predictor_benchmark(Path(path).parent)
+    if pred:
+        out["models"]["predicted_sequence_ctcf"] = pred
     return out if out["models"] else None
+
+
+def _predictor_benchmark(folder: Path) -> dict | None:
+    """The no-contact-data predictor's held-out benchmark (Gate 5): % of ceiling per test dataset, all pairs."""
+    try:
+        r = json.loads((folder / "results_predictor.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    per, num, den = {}, 0.0, 0.0
+    for k in r["settings"]["test"]:
+        v = r["summary"].get(k, {}).get("sequence + CTCF", {}).get("all_pairs", {}).get("predictor")
+        if v:
+            per[k] = round(float(v["percent_of_ceiling"]), 1)
+            num += float(v["percent_of_ceiling"]) * float(v["ceiling"])
+            den += float(v["ceiling"])
+    if not per:
+        return None
+    return {"overall_percent_of_ceiling": round(num / den, 1) if den else None,
+            "per_dataset_percent_of_ceiling": per, "verdict": r["verdict"],
+            "definition": ("Prediction from sequence + CTCF peaks with no contact data (Gate 5): trend-removed Spearman rho "
+                           "vs held-out tracing medians as % of the half-A vs half-B ceiling, all locus pairs; overall = "
+                           "sum over test datasets weighted by their ceilings.")}
 
 
 def _gate1_benchmark(folder: Path) -> dict | None:

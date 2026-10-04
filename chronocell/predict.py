@@ -35,6 +35,11 @@ import numpy as np
 
 BASES = b"ACGT"
 FEATURES = ("conv", "div", "tandem", "anchor", "between", "gc")
+DATA = Path(__file__).with_name("data")
+MODEL_PATH = DATA / "predictor.json"                 # frozen copy of validation/predictor_model.json (Gate 5)
+JASPAR_PATH = DATA / "jaspar_MA0139.1.jaspar"         # JASPAR 2024, MA0139.1 (CTCF), CC BY 4.0
+JASPAR_CITATION = ("Rauluseviciute I et al. JASPAR 2024. Nucleic Acids Res 52, D174-D182 (2024); matrix MA0139.1 "
+                   "(CTCF), CC BY 4.0.")
 
 
 # ======================================================================================
@@ -49,17 +54,21 @@ def read_fasta(path: str | Path) -> bytes:
 
 
 class GCIndex:
-    """GC fraction of any interval in O(1) from cumulative counts (N and other symbols are ignored)."""
+    """GC fraction of any interval in O(1) from cumulative counts (N and other symbols are ignored).
+    `offset` = the chromosome coordinate of seq[0], for an index built on part of a chromosome."""
 
-    def __init__(self, seq: bytes):
+    def __init__(self, seq: bytes, offset: int = 0):
         a = np.frombuffer(seq, dtype=np.uint8)
         gc = (a == ord("G")) | (a == ord("C"))
         acgt = gc | (a == ord("A")) | (a == ord("T"))
+        self.offset = int(offset)
         self.gc = np.concatenate([[0], np.cumsum(gc, dtype=np.int64)])
         self.acgt = np.concatenate([[0], np.cumsum(acgt, dtype=np.int64)])
 
     def fraction(self, starts: np.ndarray, ends: np.ndarray) -> np.ndarray:
-        starts, ends = np.asarray(starts, np.int64), np.asarray(ends, np.int64)
+        last = len(self.gc) - 1
+        starts = np.clip(np.asarray(starts, np.int64) - self.offset, 0, last)
+        ends = np.clip(np.asarray(ends, np.int64) - self.offset, 0, last)
         n = self.acgt[ends] - self.acgt[starts]
         return np.where(n > 0, (self.gc[ends] - self.gc[starts]) / np.maximum(n, 1), np.nan)
 
@@ -253,3 +262,142 @@ def fit_ridge(Xs: list[np.ndarray], ys: list[np.ndarray], lam: float) -> tuple[n
     A = Z.T @ (w[:, None] * Z) + lam * np.eye(Z.shape[1])
     beta = np.linalg.solve(A, Z.T @ (w * y))
     return beta, mu, sd
+
+
+# ======================================================================================
+# In the app: the frozen model on a window with no contact data
+# ======================================================================================
+def load_model() -> tuple["Predictor", dict] | None:
+    """The frozen predictor and its settings / validation record (chronocell/data/predictor.json)."""
+    try:
+        d = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    meta = {k: d.pop(k) for k in ("settings", "assembly", "validation", "source_note") if k in d}
+    d["trend"] = tuple(d["trend"])
+    return Predictor(**d), meta
+
+
+def load_pwm(pseudocount: float = 0.25) -> np.ndarray:
+    return log_odds(read_jaspar(JASPAR_PATH.read_text(encoding="utf-8")), pseudocount)
+
+
+def read_peaks(data: bytes | str, chrom_name: str, norm=None) -> dict[str, np.ndarray]:
+    """ChIP-seq peaks of one chromosome from narrowPeak (summit in column 10) or BED (gzip accepted);
+    header, track and browser lines are skipped. norm(name) normalises chromosome names."""
+    if isinstance(data, bytes):
+        if data[:2] == b"\x1f\x8b":
+            data = gzip.decompress(data)
+        data = data.decode("utf-8", "replace")
+    starts, ends, summits = [], [], []
+    for line in data.splitlines():
+        if not line.strip() or line.startswith(("#", "track", "browser")):
+            continue
+        f = line.split("\t") if "\t" in line else line.split()
+        if len(f) < 3:
+            continue
+        try:
+            c = norm(f[0]) if norm else f[0]
+            a, b = int(f[1]), int(f[2])
+        except (ValueError, KeyError):
+            continue
+        if c != chrom_name or b <= a:
+            continue
+        sm = -1
+        if len(f) >= 10:
+            try:
+                sm = int(f[9])
+            except ValueError:
+                sm = -1
+        starts.append(a)
+        ends.append(b)
+        summits.append(sm)
+    return {"starts": np.asarray(starts, np.int64), "ends": np.asarray(ends, np.int64),
+            "summits": np.asarray(summits, np.int64)}
+
+
+def predict_window(loci_starts: np.ndarray, loci_ends: np.ndarray, seq: bytes, peaks: dict[str, np.ndarray],
+                   model: "Predictor", settings: dict, pwm: np.ndarray | None = None) -> tuple[np.ndarray, dict]:
+    """Predicted median distance (nm, N x N) between loci from sequence + CTCF peaks alone, with the
+    frozen model and settings of Gate 5. Returns the matrix and a summary of the inputs used."""
+    pwm = load_pwm(settings.get("pseudocount", 0.25)) if pwm is None else pwm
+    s, e, sm = peaks["starts"], peaks["ends"], peaks["summits"]
+    strand, score = orient_peaks(seq, s, e, sm, pwm, settings.get("motif_min_relative_score", 0.8),
+                                 settings.get("summit_half_width_bp", 100))
+    mid = np.where(sm >= 0, s + sm, (s + e) // 2)
+    lo, hi = int(np.min(loci_starts)), int(np.max(loci_ends))
+    loci = annotate(loci_starts, loci_ends, mid, strand, GCIndex(seq[lo:hi], offset=lo))
+    i, j = np.triu_indices(loci.n, 1)
+    X = pair_features(loci, mid, i, j)
+    sep = np.abs((loci.starts[j] + loci.ends[j]) - (loci.starts[i] + loci.ends[i])) / 2
+    d = np.zeros((loci.n, loci.n))
+    v = np.exp(model.log_distance(X, sep))
+    d[i, j] = v
+    d[j, i] = v
+    info = {"peaks": int(len(s)), "peaks_with_motif": int((strand != 0).sum()),
+            "loci_with_peak": int(((loci.fwd + loci.rev + loci.unk) > 0).sum()), "loci": int(loci.n),
+            "gc_mean": float(np.nanmean(loci.gc)) if np.isfinite(loci.gc).any() else float("nan")}
+    return d, info
+
+
+UCSC_CHROMOSOMES = "https://hgdownload.soe.ucsc.edu/goldenPath/{assembly}/chromosomes/"
+
+
+def fetch_chromosome_fasta(assembly: str, chrom: str, dest_dir: str | Path, progress=None, retries: int = 6) -> Path:
+    """One chromosome's sequence from UCSC ({assembly}/chromosomes/{chrom}.fa.gz), kept gzipped in dest_dir.
+    Interrupted transfers resume; the file is checked against UCSC's md5sum.txt before it is used.
+    progress(bytes_done, bytes_total) is called while downloading."""
+    import hashlib
+    import time
+    import urllib.request
+    try:
+        import truststore                  # the system certificate store, where TLS is inspected
+        truststore.inject_into_ssl()
+    except ImportError:
+        pass
+    dest = Path(dest_dir)
+    dest.mkdir(parents=True, exist_ok=True)
+    out = dest / f"{assembly}_{chrom}.fa.gz"
+    if out.exists():
+        return out
+    base = UCSC_CHROMOSOMES.format(assembly=assembly)
+    md5 = None
+    try:
+        with urllib.request.urlopen(base + "md5sum.txt", timeout=60) as r:
+            for line in r.read().decode().splitlines():
+                parts = line.split()
+                if len(parts) == 2 and parts[1] == f"{chrom}.fa.gz":
+                    md5 = parts[0]
+    except OSError:
+        md5 = None
+    tmp = out.with_suffix(".gz.part")
+    for attempt in range(1, retries + 1):
+        have = tmp.stat().st_size if tmp.exists() else 0
+        req = urllib.request.Request(base + f"{chrom}.fa.gz", headers={"Range": f"bytes={have}-"} if have else {})
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                resumed = bool(have) and r.status == 206
+                total = r.headers.get("Content-Range", "").rpartition("/")[2] if resumed else r.headers.get("Content-Length")
+                total = int(total) if total and total.isdigit() else None
+                with tmp.open("ab" if resumed else "wb") as fh:
+                    while chunk := r.read(1 << 20):
+                        fh.write(chunk)
+                        if progress is not None:
+                            progress(tmp.stat().st_size, total)
+            if total is not None and tmp.stat().st_size < total:
+                raise OSError(f"short read ({tmp.stat().st_size:,} of {total:,} bytes)")
+            break
+        except OSError:
+            if attempt == retries:
+                raise
+            time.sleep(min(30, 2 * 2 ** attempt))
+    if md5 is not None:
+        h = hashlib.md5()
+        with tmp.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        if h.hexdigest() != md5:
+            tmp.unlink()
+            raise OSError(f"{chrom}.fa.gz does not match UCSC's MD5; deleted, please retry.")
+    tmp.replace(out)
+    return out

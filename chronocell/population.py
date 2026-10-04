@@ -594,6 +594,35 @@ def fit_population_from_counts(ci: np.ndarray, cj: np.ndarray, cm: np.ndarray, n
     return res
 
 
+def fit_population_from_medians(median_nm: np.ndarray, p_adjacent: float = 0.5, n_observed: float = 1000.0,
+                                cfg: PopulationConfig | None = None,
+                                progress: Callable[[int, int, dict[str, float]], None] | None = None) -> ENS.EnsembleResult:
+    """Population model whose pair medians follow a given distance map, e.g. a prediction made without
+    contact data (chronocell.predict). Each median d_ij gives a per-axis spread sigma_ij = d_ij / MAXWELL_MEDIAN
+    and a contact frequency at the radius r_c where adjacent beads touch with probability p_adjacent; the
+    frequencies are then fitted like measured ones (v3.3 up to V33_MAX_BEADS beads, v4 above), which projects
+    the map onto a valid 3D Gaussian ensemble. n_observed only sets the fit weights (no sampling noise here)."""
+    d = np.asarray(median_nm, dtype=np.float64)
+    n = len(d)
+    if n < 3 or d.shape != (n, n):
+        raise ValueError("Need a square distance map of at least 3 beads.")
+    adj = np.diag(d, 1)
+    adj = adj[np.isfinite(adj) & (adj > 0)]
+    if adj.size == 0:
+        raise ValueError("No adjacent distances to anchor the contact radius.")
+    r_c = float(np.median(adj)) / float(ENS.gaussian_median_distance(p_adjacent, 1.0))
+    sig = np.where(np.isfinite(d) & (d > 0), d / MAXWELL_MEDIAN, np.nan)
+    freq = np.where(np.isfinite(sig), ENS.contact_probability_from_sigma(np.nan_to_num(sig, nan=1.0) / r_c), np.nan)
+    np.fill_diagonal(freq, np.nan)
+    if n > V33_MAX_BEADS:
+        res = fit_population(freq, n_observed, r_c_nm=r_c, cfg=cfg or config_for(n), progress=progress)
+    else:
+        res = ENS.fit_ensemble(freq, n_observed, r_c_nm=r_c, progress=progress)
+    res.config.update({"input": "distance map (no contact data)", "p_adjacent_assumed": p_adjacent,
+                       "n_observed_weight": n_observed})
+    return res
+
+
 # ======================================================================================
 # Uncertainty read-outs (any EnsembleResult: v3.3 dense covariance or v4 model)
 # ======================================================================================

@@ -173,3 +173,28 @@ def test_bead_tooltips_click_to_pick_and_linked_gene(app):
     assert _ok(at), [e.value for e in at.exception]
     _, spec = _chart(at, "viewport")
     assert any(d.get("text") == ["  BCR"] for d in spec["data"])
+
+
+def test_prediction_mode_without_contact_data(app, monkeypatch):
+    import numpy as np
+    import ui.predict_view as PV
+    seq = np.random.default_rng(0).choice(np.frombuffer(b"ACGT", np.uint8), size=51_000_000).tobytes()
+    monkeypatch.setattr(PV, "_sequence", lambda ch: seq)                       # no download in tests
+    at = app
+    at.session_state["custom_window"] = (2000, 2150)
+    at.segmented_control(key="region_choice").set_value("custom").run()
+    assert at.segmented_control(key="pop_input").value == "Contact data"      # default unchanged
+    at.segmented_control(key="pop_input").set_value("Sequence + CTCF (predicted)").run()
+    assert _ok(at), [e.value for e in at.exception]
+    txt = _text(at)
+    assert "Predicted from sequence + CTCF" in txt and "Gate 5" in txt
+    peaks = "\n".join(f"chr22\t{20_005_000 + k * 100_000}\t{20_005_400 + k * 100_000}\tp{k}\t0\t.\t5\t5\t5\t200"
+                      for k in range(12))
+    at.text_area(key="pred_peaks_text").input(peaks).run()
+    at.button(key="pred_go").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    ens = [r for r in at.session_state["ensembles"].values() if str(r.config.get("input", "")).startswith("predicted")]
+    assert ens and ens[0].config["prediction_inputs"]["peaks_file"] == "pasted peaks"
+    assert ens[0].config["prediction_inputs"]["peaks"] == 12
+    assert any(r["Model"] == "sequence + CTCF predictor" for r in at.session_state["telemetry"])
+    assert "predicted from sequence + CTCF (no contact data)" in _text(at)    # labelled wherever it is shown
