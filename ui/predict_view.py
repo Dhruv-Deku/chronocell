@@ -274,3 +274,7 @@ def render_comparison(ds: Dataset, lo: int, hi: int, fit_key: str) -> None:
     html('<p class="cc-note">Agreement between two models, not accuracy: neither map is a distance measurement on this '
          'window. The two are shown side by side and never blended: combining a prediction with contact data was not '
          'tested (validation/RESULTS.md, Gate 5). Where both exist, the model built from contacts is the validated one.</p>')
+    if ds.is_reference:
+        html('<p class="cc-note"><b>These contacts are the synthetic reference model</b>, not measurements: here the '
+             'agreement only compares a planted toy fold with a prediction from real sequence and says nothing about real '
+             'folding.</p>')

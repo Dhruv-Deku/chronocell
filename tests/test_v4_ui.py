@@ -249,6 +249,7 @@ def test_encode_peaks_by_cell_type_and_side_by_side_with_the_contact_model(app, 
     # 3. both models of this window, side by side, never blended
     txt = _text(at)
     assert "Predicted vs built from measured contacts" in txt and "never blended" in txt
+    assert "These contacts are the synthetic reference model" in txt     # the demo window is synthetic: said so
     cmp = list(at.session_state["prediction_comparison"].values())[0]
     assert -1 <= cmp["spearman"] <= 1 and -1 <= cmp["spearman_trend_removed"] <= 1 and cmp["pairs"] > 0.9 * 150 * 149 / 2
     meas = list(at.session_state["contact_ensembles"].values())[0]
