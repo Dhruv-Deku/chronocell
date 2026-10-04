@@ -44,6 +44,11 @@
   "bytes": 20080720,
   "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/K562_chr21-28-30Mb.csv"
  },
+ "data/hic_cache/rao2014_gm12878_chr9_16000000_36000000_25000.npz": {
+  "sha256": "1273e7e8caa560b407f82161600390d05dd97f254ceb4bfdfc6aec74599913ab",
+  "bytes": 655019,
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_GM12878_insitu_primary+replicate_combined_30.hic"
+ },
  "data/hic_cache/rao2014_imr90_chr21_20000000_21950032_5000.npz": {
   "sha256": "aba5d6673d57a9aa1b7d7f18a885ee5d7858a3e4897869395c015ddc09a12e80",
   "bytes": 89675,
@@ -57,6 +62,11 @@
  "data/hic_cache/rao2014_k562_chr21_29370000_31322390_5000.npz": {
   "sha256": "090e9f6e2f81ac9638255c2a2b320381e4a4ff14db18b3807d9728109a245c3c",
   "bytes": 97843,
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic"
+ },
+ "data/hic_cache/rao2014_k562_chr9_16000000_36000000_25000.npz": {
+  "sha256": "e0dac48f461c4c85e3fbd02b2ed8ccccc0c548d2e86ad76ddbf3e25c0ee28dac",
+  "bytes": 120663,
   "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic"
  },
  "data/su2020/Hi-C_contacts_chromosome2.tsv": {

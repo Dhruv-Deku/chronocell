@@ -156,3 +156,50 @@ def test_cohesin_loss_map_shifts_trend_and_shrinks_the_domain_pattern():
     _, r1 = PT.trend_residual(np.log(np.where(out > 0, out, 1.0)), sep)
     assert np.allclose(r1[iu], 0.5 * r0[iu], atol=1e-9)                        # half the domain pattern lost
     assert np.mean(np.log(out[iu] / d[iu])) == pytest.approx(0.1, abs=0.02)
+
+
+# ---------------------------------------------------------------- windowed impact and variant files -> scenarios
+@pytest.mark.parametrize("op,params", [("deletion", {"a": 15, "b": 25}), ("inversion", {"a": 12, "b": 22}),
+                                       ("duplication", {"a": 14, "b": 20}),
+                                       ("deletion", {"segments": [(10, 13), (20, 26)]})])
+def test_windowed_impact_matches_the_full_window(chain_result, op, params):
+    full = PT.variant_impact(chain_result, op, params)
+    win = PT.variant_impact(chain_result, op, params, window=(4, 36))
+    a, b = full.log2_fc[4:36, 4:36], win.log2_fc
+    assert (np.isfinite(a) == np.isfinite(b)).all()
+    ok = np.isfinite(a)
+    assert np.allclose(a[ok], b[ok], atol=1e-9)
+
+
+def test_windowed_impact_on_a_v4_model():
+    from chronocell import population as P
+    d = _population(n=60, cells=4000, seed=5)
+    res = P.fit_population((d < 1.0).mean(0), 4000, r_c_nm=150.0,
+                           cfg=P.PopulationConfig(iterations=300, replicas=4, frames=2, rank_cap=32))
+    full = PT.variant_impact(res, "deletion", {"a": 25, "b": 35})
+    win = PT.variant_impact(res, "deletion", {"a": 25, "b": 35}, window=(10, 50))
+    a, b = full.log2_fc[10:50, 10:50], win.log2_fc
+    ok = np.isfinite(a)
+    assert (np.isfinite(b) == ok).all() and np.allclose(a[ok], b[ok], atol=1e-6)
+    assert np.nanmax(win.log2_fc) > 1.0                     # flanks of a 10-bead deletion gain contact
+
+
+def test_variants_map_onto_the_loaded_window():
+    text = ("##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+            "chr22\t20000000\td1\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=20500000\n"
+            "chr22\t30000000\tv1\tN\t<INV>\t.\tPASS\tSVTYPE=INV;END=30200000\n"
+            "chr22\t23290000\tb1\tN\tN[chr9:130700000[\t.\tPASS\tSVTYPE=BND\n"
+            "chr9\t100\tx\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=5000\n"
+            "chr22\t49000000\tfar\tN\t<DUP>\t.\tPASS\tSVTYPE=DUP;END=49100000\n")
+    vf = svio.read_any(text, "pasted")
+    assert vf.format == "VCF" and len(vf.variants) == 5
+    res, bin0, n = 10_000, 1_500, 2_000                    # window chr22:15.0-35.0 Mb
+    got = [svio.to_scenario(v, "chr22", res, bin0, n, partners=genome.main_chromosomes("hg38")) for v in vf.variants]
+    assert got[0] == ("deletion", {"a": 500, "b": 550})
+    assert got[1] == ("inversion", {"a": 1500, "b": 1520})
+    assert got[2][0] == "translocation" and got[2][1]["partner"] == "chr9" and got[2][1]["breakpoint"] == 828      # VCF POS 23,290,000 is 0-based 23,289,999
+    assert got[3] == "on chr9, not chr22" and got[4] == "outside the loaded window"
+    assert svio.deletion_segments(vf.variants, "chr22", res, bin0, n) == [(500, 550)]
+    assert "DEL chr22:20,000,001-20,500,000" in svio.label(vf.variants[0])
+    bed = svio.read_any("chr22\t20000000\t20000100\tchr22\t20400000\t20400100\tdelA\t0\t+\t-\n", "pasted")
+    assert bed.format == "BEDPE" and svio.to_scenario(bed.variants[0], "chr22", res, bin0, n)[0] == "deletion"

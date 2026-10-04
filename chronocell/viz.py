@@ -10,6 +10,8 @@ detail (spline density x ring sides) adapts to the window so a full chromosome s
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -356,6 +358,33 @@ def matrix_chart(mat: np.ndarray, lo: int, k: int, kind: str, height: int = 330,
     fig = go.Figure(go.Heatmap(z=z, x=mb, y=mb, colorscale=cs,
                                hovertemplate="%{x:.2f} × %{y:.2f} Mb<br>" + fmt + "<extra></extra>",
                                colorbar=dict(thickness=8, len=0.8, outlinewidth=0, title=dict(text=title, side="right"),
+                                             tickfont=dict(size=10, color=T.MUTED))))
+    fig.update_layout(**T.plot_layout(height, margin=dict(l=48, r=8, t=6, b=40),
+                                      xaxis=dict(title="Mb", constrain="domain", showgrid=False),
+                                      yaxis=dict(title="Mb", autorange="reversed", scaleanchor="x", constrain="domain",
+                                                 showgrid=False)))
+    return fig
+
+
+def fold_change_map(fc: np.ndarray, lo_bin: int, resolution: int, height: int = 330, max_px: int = 300) -> go.Figure:
+    """log2 contact change (after / before) of a simulated variant in reference coordinates, pooled to at
+    most max_px pixels a side; blank where a bead is absent after the variant."""
+    n = len(fc)
+    k = max(1, int(np.ceil(n / max_px)))
+    pad = (-n) % k
+    z = np.pad(np.asarray(fc, dtype=float), ((0, pad), (0, pad)), constant_values=np.nan)
+    m = z.shape[0] // k
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        z = np.nanmean(z.reshape(m, k, m, k), axis=(1, 3))
+        lim = float(np.nanpercentile(np.abs(z), 99)) if np.isfinite(z).any() else 1.0
+    lim = lim if lim > 0 else 1.0
+    mb = (lo_bin + (np.arange(m) + 0.5) * k) * resolution / 1e6
+    fig = go.Figure(go.Heatmap(z=z, x=mb, y=mb, zmid=0.0, zmin=-lim, zmax=lim,
+                               colorscale=[[0.0, T.ACCENT], [0.5, T.PAPER_RAISED], [1.0, T.TERRACOTTA]],
+                               hovertemplate="%{x:.2f} × %{y:.2f} Mb<br>log₂ change %{z:+.2f}<extra></extra>",
+                               colorbar=dict(thickness=8, len=0.8, outlinewidth=0,
+                                             title=dict(text="log₂ after / before", side="right"),
                                              tickfont=dict(size=10, color=T.MUTED))))
     fig.update_layout(**T.plot_layout(height, margin=dict(l=48, r=8, t=6, b=40),
                                       xaxis=dict(title="Mb", constrain="domain", showgrid=False),
