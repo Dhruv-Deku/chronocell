@@ -47,8 +47,8 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | 1 | Does the whole-chromosome model at least match the windowed v3.3 model on the same regions? | Su chr21, 651 loci: 94.4 vs 94.4 % of the ceiling, and 96.2 vs 96.7 % on the replicate. It also predicts the cross-window pairs (89–93 %) that v3.3 cannot. | **Matches**, but slightly below: by 0.05–0.06 and 0.47–0.54 points, in every split |
 | 1b | Do sequencing Hi-C contacts give the right distances? | Ranks: 80–85 % of the ceiling. Absolute sizes: no (CCC 0.22–0.33). | **Ranks yes, nanometres no** |
 | 2 | Are the stated intervals honest? | Raw 90 % intervals cover 71–84 %. After recalibration fitted on practice data: 83–91 %. Short separations are worst. Per-bead reliability does not predict error. | **Recalibrated intervals usable for imaging-derived input; not for Hi-C input; no per-bead reliability** |
-| 2b | Are they honest with sequencing Hi-C input? | see Gate 2b | see Gate 2b |
-| 2c | Can a per-pair score from the input say which distances are wrong? | see Gate 2c | see Gate 2c |
+| 2b | Are they honest with sequencing Hi-C input? | Stated 90 % intervals hold 23–51 %; 43–73 % after a recalibration fitted on practice Hi-C | **Fail: with Hi-C input the range is the model's spread, not a 90 % range** |
+| 2c | Can a per-pair score from the input say which distances are wrong? | Imaging input: weak (pairs +0.07 to +0.20, below the 0.20 bar); Hi-C input: none (−0.05 to +0.03) | **Fail: no reliability score in the app** |
 | 3 | Benchmark against baselines and published tools | see below | see below |
 | 4 | Does the cohesin-loss prediction match real RAD21 depletion? | Held-out region: change agreement 0.868 vs 0.336 for a trend-only shift | **Pass, on one region** |
 | 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
@@ -242,8 +242,52 @@ data: the delta-method input noise of the pair's contact count, the model's misf
 own input, and their combination. The test is pre-registered in `frozen.RELIABILITY`.
 
 <!-- BEGIN generated:gate2c -->
-_results_reliability.json: not run (python validation/reliability.py --test)._
+Practice (all candidates; in-sample choice): pair-level stratified Spearman / bead-level Spearman.
+
+| Practice dataset | Input | input_se | misfit | combined |
+|---|---|---|---|---|
+| bintu_k562_28_30 | imaging | +0.191 / +0.331 | +0.124 / +0.253 | +0.178 / +0.348 |
+| bintu_hct116_28_30 | imaging | +0.087 / +0.216 | +0.063 / +0.035 | +0.083 / +0.219 |
+| bintu_hct116_28_30_auxin | imaging | +0.266 / +0.534 | +0.175 / +0.307 | +0.245 / +0.430 |
+| bintu_hct116_34_37 | imaging | +0.009 / -0.281 | +0.067 / -0.147 | +0.066 / -0.208 |
+| su_chr2 | imaging | -0.031 / -0.108 | +0.057 / +0.262 | +0.049 / +0.159 |
+| su_chr2_parm_rep | imaging | +0.077 / +0.152 | +0.099 / +0.241 | +0.099 / +0.263 |
+| bintu_k562_28_30 | hic | -0.079 / -0.040 | -0.080 / +0.194 | -0.095 / -0.015 |
+| su_chr2 | hic | -0.048 / +0.002 | -0.020 / +0.019 | -0.024 / +0.009 |
+| su_chr2_parm_rep | hic | -0.104 / -0.160 | -0.014 / +0.072 | -0.026 / +0.042 |
+
+Test (run once): score **misfit**; pass on every test dataset: Spearman ≥ 0.20 and its 95 % interval above 0.
+
+| Test dataset | Input | Pair level: stratified ρ [95 %] | Bead level: ρ [95 %] |
+|---|---|---|---|
+| bintu_imr90_28_30 | imaging | +0.112 [+0.018, +0.216] | +0.329 [+0.076, +0.581] |
+| bintu_imr90_18_20 | imaging | +0.081 [-0.007, +0.135] | +0.248 [+0.013, +0.451] |
+| bintu_a549_28_30 | imaging | +0.175 [+0.003, +0.273] | +0.373 [+0.097, +0.567] |
+| bintu_hct116_34_37_auxin | imaging | +0.072 [+0.007, +0.131] | -0.033 [-0.204, +0.187] |
+| su_chr21 | imaging | +0.130 [+0.102, +0.155] | +0.245 [+0.170, +0.312] |
+| su_chr21_rep | imaging | +0.195 [+0.163, +0.221] | +0.452 [+0.383, +0.520] |
+| bintu_imr90_28_30 | hic | +0.017 [-0.070, +0.097] | +0.107 [-0.143, +0.357] |
+| bintu_imr90_18_20 | hic | +0.026 [-0.039, +0.106] | -0.016 [-0.285, +0.263] |
+| su_chr21 | hic | -0.043 [-0.063, -0.022] | -0.099 [-0.186, -0.000] |
+| su_chr21_rep | hic | -0.051 [-0.075, -0.027] | -0.049 [-0.137, +0.046] |
+
+Verdicts: imaging pair **fail** (0 of 6); imaging bead **fail** (5 of 6); hic pair **fail** (0 of 4); hic bead **fail** (0 of 4).
 <!-- END generated:gate2c -->
+
+**Reading.**
+- **Fail, by the pre-registered rule, for both input types at both levels.** No reliability score is
+  shown in the app.
+- **Imaging-derived input: a weak, consistent signal below the bar.** Pairs the model fits worst are
+  somewhat more often wrong (pair level +0.07 to +0.20 within separation strata, every 95 % interval
+  but one above 0). Per bead, 5 of 6 test sets reach the bar. The one that does not is the
+  cohesin-depleted set (−0.03), so "every test set" is not met.
+- **Sequencing Hi-C input, the app's usual case: no signal** (pair level −0.05 to +0.03). With Hi-C
+  the model's misfit to its own input says nothing about where it is wrong, because the input itself
+  departs from imaged distances (Gate 1b).
+- **Multiplicity.** This is the second reliability attempt on Gate 2's test sets (the first was
+  Gate 2's per-bead score). The score was chosen on practice data only, but these test sets were no
+  longer untouched for this question. A pass would have needed confirming on new data; a fail does
+  not.
 
 ## Gate 3 — benchmark (Pillar 3)
 
