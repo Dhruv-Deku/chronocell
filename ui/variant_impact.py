@@ -67,6 +67,8 @@ def populations(ds: Dataset, frame: int) -> list[tuple[int, int, str, object]]:
     """Population models of this dataset and frame built this session: (lo, hi, key, result), largest first."""
     out = []
     for key, res in st.session_state.get("ensembles", {}).items():
+        if str(res.config.get("input", "")).startswith("predicted"):     # built from contacts only, never a prediction
+            continue
         try:
             dkey, fr, lo, hi = key.rsplit(":", 3)
             if dkey == ds.key and int(fr) == int(frame):

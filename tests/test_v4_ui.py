@@ -190,6 +190,7 @@ def test_prediction_mode_without_contact_data(app, monkeypatch):
     assert _ok(at), [e.value for e in at.exception]
     txt = _text(at)
     assert "Predicted from sequence + CTCF" in txt and "Gate 5" in txt
+    assert "Control, cohesin depleted" in txt and "not CTCF loops" in txt      # read from the Gate 5 result file
     peaks = "\n".join(f"chr22\t{20_005_000 + k * 100_000}\t{20_005_400 + k * 100_000}\tp{k}\t0\t.\t5\t5\t5\t200"
                       for k in range(12))
     at.text_area(key="pred_peaks_text").input(peaks).run()
@@ -200,3 +201,57 @@ def test_prediction_mode_without_contact_data(app, monkeypatch):
     assert ens[0].config["prediction_inputs"]["peaks"] == 12
     assert any(r["Model"] == "sequence + CTCF predictor" for r in at.session_state["telemetry"])
     assert "predicted from sequence + CTCF (no contact data)" in _text(at)    # labelled wherever it is shown
+
+
+def test_encode_peaks_by_cell_type_and_side_by_side_with_the_contact_model(app, monkeypatch, tmp_path):
+    import gzip
+    import hashlib
+    import numpy as np
+    import ui.predict_view as PV
+    from chronocell import predict as PD
+    from test_v4_downloads import _Server
+    seq = np.random.default_rng(1).choice(np.frombuffer(b"ACGT", np.uint8), size=51_000_000).tobytes()
+    monkeypatch.setattr(PV, "_sequence", lambda ch: seq)                       # no sequence download in tests
+    body = gzip.compress("".join(f"chr22\t{20_003_000 + k * 120_000}\t{20_003_300 + k * 120_000}\t.\t0\t.\t9\t9\t9\t150\n"
+                                 for k in range(12)).encode())
+    srv = _Server({"/files/ENCFFLOCAL/@@download/ENCFFLOCAL.bed.gz": body})
+    try:
+        monkeypatch.setattr(PD, "ENCODE_DOWNLOAD", srv.url + "/files/{acc}/@@download/{acc}.bed.gz")
+        monkeypatch.setattr(PD, "encode_ctcf_sources", lambda: [
+            {"cell_line": "IMR90", "accession": "ENCFFLOCAL", "experiment": "ENCSRLOCAL", "md5": hashlib.md5(body).hexdigest(),
+             "assembly": "GRCh38", "citation": "ENCODE Project Consortium (test copy).", "license": "", "page": srv.url}])
+        monkeypatch.setattr(PV, "ENCODE_DIR", tmp_path / "encode")
+        at = app
+        at.session_state["custom_window"] = (2000, 2150)
+        at.segmented_control(key="region_choice").set_value("custom").run()
+        # 1. the population model from the window's contacts (the validated path, unchanged)
+        next(b for b in at.button if (b.label or "").startswith("Build population model")).click().run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert "Predicted vs built from measured contacts" not in _text(at)         # only one model so far
+        # 2. the prediction, with peaks fetched from ENCODE by cell type
+        at.segmented_control(key="pop_input").set_value("Sequence + CTCF (predicted)").run()
+        assert at.segmented_control(key="pred_peaks_src").value == "Upload or paste"  # default unchanged
+        at.segmented_control(key="pred_peaks_src").set_value("ENCODE, by cell type").run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert "ENCFFLOCAL" in _text(at) and at.button(key="pred_go").disabled       # nothing fetched yet
+        at.button(key="pred_encode_dl").click().run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert (tmp_path / "encode" / "ENCFFLOCAL.bed.gz").read_bytes() == body
+        assert "12 peaks on chr22" in _text(at)
+        at.button(key="pred_go").click().run()
+        assert _ok(at), [e.value for e in at.exception]
+    finally:
+        srv.close()
+    pred = at.session_state["predicted_ensembles"]
+    rec = list(pred.values())[0].config["prediction_inputs"]
+    assert rec["encode_accession"] == "ENCFFLOCAL" and rec["encode_experiment"] == "ENCSRLOCAL"
+    assert rec["peaks_sha256"] == hashlib.sha256(body).hexdigest()
+    # 3. both models of this window, side by side, never blended
+    txt = _text(at)
+    assert "Predicted vs built from measured contacts" in txt and "never blended" in txt
+    cmp = list(at.session_state["prediction_comparison"].values())[0]
+    assert -1 <= cmp["spearman"] <= 1 and -1 <= cmp["spearman_trend_removed"] <= 1 and cmp["pairs"] > 0.9 * 150 * 149 / 2
+    meas = list(at.session_state["contact_ensembles"].values())[0]
+    assert not str(meas.config.get("input", "")).startswith("predicted")
+    for key in ("cmp_measured", "cmp_predicted"):
+        assert _chart(at, key)[0] is not None
