@@ -88,8 +88,8 @@ with _LOCK:
             from chronocell import (accuracy as ACC, agent as A, domains, features, formats, genes as G, genome,
                                     pdf_report, physics, snapshot as SN, states as S, theme as T, viz)
             from ui import agent_panel, compare, drug_lab, four_d, genes_view, guide, states_panel
-            from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, load_dataset, readout,
-                                   slot_files, slot_graph, warning_card)
+            from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
+                                   readout, slot_files, slot_graph, warning_card)
             break
         except (KeyError, ImportError):
             # A file saved while this run was importing: the watcher unloaded a module mid-import.
@@ -109,7 +109,7 @@ with _LOCK:
 
 st.set_page_config(page_title="ChronoCell-5D · chromatin 3D/4D workstation", page_icon="◐", layout="wide",
                    initial_sidebar_state="expanded")
-T.inject()
+inject_theme()
 
 VERSION = "3.3"
 MAX_FIT_BEADS = 2000

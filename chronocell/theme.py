@@ -12,8 +12,6 @@ minimum (WCAG 1.4.11). GHOST / CONTEXT are deliberately de-emphasised inactive s
 
 from __future__ import annotations
 
-import streamlit as st
-
 PAPER = "#F2F2EF"
 PAPER_RAISED = "#F8F8F6"
 INK = "#1C1E1B"
@@ -235,10 +233,6 @@ section[data-testid="stSidebar"] .block-container, section[data-testid="stSideba
 .stSlider [data-baseweb="slider"] div[role="slider"] {{ box-shadow: none; }}
 </style>
 """
-
-
-def inject() -> None:
-    st.markdown(CSS, unsafe_allow_html=True)
 
 
 def plot_layout(height: int, **kw) -> dict:
