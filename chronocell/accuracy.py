@@ -99,6 +99,38 @@ def _gate1_benchmark(folder: Path) -> dict | None:
 VALIDATION = RESULTS.parent
 
 
+def interval_evidence() -> dict | None:
+    """How well the population's stated 90 % intervals held on held-out single-cell distances (Gate 2),
+    by input type, read from the result files: imaging-derived contacts (validation/results_calibration.json)
+    and sequencing Hi-C (validation/benchmark/results.json, else the practice run, labelled as such).
+    Ranges are min-max over datasets, in %. None if no calibration test has been run."""
+    try:
+        c = json.loads((VALIDATION / "results_calibration.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    raw = [100 * r["coverage"][2] for r in c["rows"]]
+    rec = [100 * r["coverage_recalibrated"][2] for r in c["rows"] if r.get("coverage_recalibrated")]
+    out = {"imaging_raw_90": (min(raw), max(raw)), "imaging_recalibrated_90": (min(rec), max(rec)) if rec else None,
+           "hic_raw_90": None, "hic_recalibrated_90": None, "hic_source": None}
+    for fname, label in (("benchmark/results.json", "held-out test"), ("benchmark/results_practice.json", "practice")):
+        try:
+            b = json.loads((VALIDATION / fname).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        hr, hc = [], []
+        for ds in b["summary"].values():
+            for model, v in ds.get("hic", {}).get("all_pairs", {}).items():
+                if model in ("v3_3_windowed", "v4_whole") and "coverage" in v:
+                    hr.append(100 * v["coverage"]["90"])
+                    if "coverage_recalibrated" in v:
+                        hc.append(100 * v["coverage_recalibrated"]["90"])
+        if hr:
+            out.update(hic_raw_90=(min(hr), max(hr)), hic_recalibrated_90=(min(hc), max(hc)) if hc else None,
+                       hic_source=label)
+            break
+    return out
+
+
 def sv_evidence() -> dict | None:
     """The structural-variant test (validation/sv_validation.py, pre-registered) as measured, or None if it
     has not been run. Nothing here is typed in: every number is read from validation/results_sv.json."""

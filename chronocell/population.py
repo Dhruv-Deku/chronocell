@@ -38,9 +38,12 @@ Physics, stated plainly
 
 from __future__ import annotations
 
+import json
 import math
 import time
 from dataclasses import asdict, dataclass, field
+from functools import lru_cache
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
@@ -91,10 +94,40 @@ class PairSummary:
         return asdict(self)
 
 
-def summarise_sigma(sigma_nm: np.ndarray, r_c_nm: float, level: float = 0.8) -> dict[str, np.ndarray]:
-    """Mean, sd, median and central `level` interval of the pair distance for per-axis sd sigma (nm)."""
+CALIBRATION_PATH = Path(__file__).with_name("data") / "calibration.json"
+
+
+@lru_cache(maxsize=1)
+def _recalibration_cdf() -> tuple[np.ndarray, np.ndarray] | None:
+    try:
+        h = np.asarray(json.loads(CALIBRATION_PATH.read_text(encoding="utf-8"))["pit_histogram"], dtype=np.float64)
+    except (OSError, ValueError, KeyError):
+        return None
+    return np.linspace(0.0, 1.0, len(h) + 1), np.concatenate([[0.0], np.cumsum(h) / h.sum()])
+
+
+def recalibrated_interval(level: float) -> tuple[float, float] | None:
+    """(lower, upper) multipliers of sigma for a stated central `level`, after the quantile recalibration
+    (Kuleshov et al., ICML 2018) fitted on practice imaging data and frozen in data/calibration.json:
+    the interval runs between model quantiles G^-1((1 - level)/2) and G^-1((1 + level)/2), with G the
+    empirical CDF of practice PIT values. None if the calibration file is missing. Its held-out test,
+    and where it does not hold (sequencing Hi-C input), is Gate 2 in validation/RESULTS.md."""
+    if not 0.0 < level < 1.0:
+        raise ValueError("level must be in (0, 1)")
+    r = _recalibration_cdf()
+    if r is None:
+        return None
+    edges, cdf = r
+    u_lo, u_hi = np.interp((1 - level) / 2, cdf, edges), np.interp((1 + level) / 2, cdf, edges)
+    return float(maxwell_quantile(u_lo)), float(maxwell_quantile(u_hi))
+
+
+def summarise_sigma(sigma_nm: np.ndarray, r_c_nm: float, level: float = 0.8,
+                    recalibrated: bool = False) -> dict[str, np.ndarray]:
+    """Mean, sd, median and central `level` interval of the pair distance for per-axis sd sigma (nm);
+    with `recalibrated`, the interval bounds use the practice-fitted recalibration (if available)."""
     s = np.asarray(sigma_nm, dtype=np.float64)
-    lo, hi = central_interval(level)
+    lo, hi = (recalibrated and recalibrated_interval(level)) or central_interval(level)
     return {"mean": MAXWELL_MEAN * s, "sd": MAXWELL_SD * s, "median": MAXWELL_MEDIAN * s, "lower": lo * s,
             "upper": hi * s, "contact_probability": ENS.contact_probability_from_sigma(s / r_c_nm)}
 
@@ -573,10 +606,11 @@ def pair_sigma_nm(res: ENS.EnsembleResult, i: np.ndarray, j: np.ndarray) -> np.n
     return np.asarray(res.median_distance_nm, dtype=np.float64)[i, j] / MAXWELL_MEDIAN
 
 
-def pair_summary(res: ENS.EnsembleResult, i: int, j: int, level: float = 0.8) -> PairSummary:
-    """Mean, sd, median and central `level` interval (nm) of one pair's distance across the population."""
+def pair_summary(res: ENS.EnsembleResult, i: int, j: int, level: float = 0.8, recalibrated: bool = False) -> PairSummary:
+    """Mean, sd, median and central `level` interval (nm) of one pair's distance across the population
+    (interval recalibrated on practice data if `recalibrated`)."""
     sig = pair_sigma_nm(res, np.array([i]), np.array([j]))
-    s = summarise_sigma(sig, float(res.config.get("r_c_nm", 150.0)), level)
+    s = summarise_sigma(sig, float(res.config.get("r_c_nm", 150.0)), level, recalibrated)
     return PairSummary(*(float(s[k][0]) for k in ("mean", "sd", "median", "lower", "upper")), level,
                        float(s["contact_probability"][0]))
 

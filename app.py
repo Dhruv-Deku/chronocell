@@ -959,11 +959,26 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
             level = int(str(ss.get("probe_level") or "50 %").split()[0])
             ps = POP.pair_summary(population, i_p, j_p, level / 100.0)
             rows += [("Population median (all trajectories)", f"{population.median_distance_nm[i_p, j_p]:,.0f}", "nm"),
-                     (f"Middle {level} % of cells (model)", f"{ps.lower:,.0f}–{ps.upper:,.0f}", "nm"),
-                     ("Mean ± SD across cells (model)", f"{ps.mean:,.0f} ± {ps.sd:,.0f}", "nm"),
+                     (f"Middle {level} % of cells (model)", f"{ps.lower:,.0f}–{ps.upper:,.0f}", "nm")]
+            if POP.recalibrated_interval(level / 100.0) is not None:
+                pr = POP.pair_summary(population, i_p, j_p, level / 100.0, recalibrated=True)
+                rows.append((f"Middle {level} % of cells, recalibrated<small>quantile recalibration fitted on practice "
+                             "imaging data (Gate 2)</small>", f"{pr.lower:,.0f}–{pr.upper:,.0f}", "nm"))
+            rows += [("Mean ± SD across cells (model)", f"{ps.mean:,.0f} ± {ps.sd:,.0f}", "nm"),
                      ("Contact probability (model)", f"{population.contact_probability[i_p, j_p]:.3f}",
                       f"< {population.config.get('r_c_nm', 0):.0f} nm")]
         readout(rows)
+        ev_int = ACC.interval_evidence() if population is not None else None
+        if ev_int:
+            a, b = ev_int["imaging_raw_90"]
+            note = (f"Held-out check of these intervals (Gate 2): with imaging-derived contacts, stated 90 % intervals "
+                    f"held {a:.0f}–{b:.0f} % of real single-cell distances")
+            if ev_int["imaging_recalibrated_90"]:
+                note += f", {ev_int['imaging_recalibrated_90'][0]:.0f}–{ev_int['imaging_recalibrated_90'][1]:.0f} % recalibrated"
+            if ev_int["hic_recalibrated_90"]:
+                note += (f"; with sequencing Hi-C input, {ev_int['hic_recalibrated_90'][0]:.0f}–"
+                         f"{ev_int['hic_recalibrated_90'][1]:.0f} % recalibrated ({ev_int['hic_source']})")
+            html(f'<p class="cc-note">{note}. Read the interval as a lower bound on cell-to-cell spread.</p>')
     fitv = phys["fit"]
     spec_l, spec_r = st.columns([1, 1])
     spec_l.markdown(
