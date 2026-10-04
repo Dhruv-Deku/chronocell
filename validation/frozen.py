@@ -67,3 +67,24 @@ PREDICTOR = {"train": ["bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_3
              "control": ["bintu_hct116_34_37_auxin"],
              "motif": "JASPAR MA0139.1", "motif_min_relative_score": 0.8, "pseudocount": 0.25,
              "summit_half_width_bp": 100, "ridge_grid": [1e-4, 1e-3, 1e-2, 1e-1, 1.0], "pass_min_datasets": 3}
+
+# Gate 2b (Pillar 2, sequencing Hi-C input; validation/calibration.py --input hic). Pre-registered before
+# the practice fit and before any test run. Gate 2 recalibrated the intervals for imaging-derived
+# contacts only; with Hi-C input the practice benchmark (K562 chr21:28-30 Mb) covered 33 % raw and 50 %
+# with the imaging recalibration at the stated 90 % level. Question: does a recalibration fitted on
+# practice Hi-C input make the stated intervals honest for Hi-C input?
+# Input: the Gate 1 Hi-C settings (raw counts, zero-count pairs unobserved, p_adjacent 0.3) and the
+# app's length anchor (adjacent beads at the literature b0 for the locus step); Rao et al. 2014 Hi-C
+# of the same cell line on the imaged loci. Model: v3.3 up to 400 loci, WHOLE_CHROMOSOME above (as
+# Gate 2). Truth: half B's single-copy distances, split 0. Recalibration: the Gate 2 method unchanged
+# (quantile recalibration of the pooled PIT histogram, every practice dataset weighted equally),
+# frozen in chronocell/data/calibration_hic.json before the test run.
+# Pass ("usable for sequencing input"): on EVERY test dataset the recalibrated stated 90 % interval
+# holds 83-97 % of half B's single-copy distances AND the stated 50 % interval holds 40-60 %.
+# Otherwise: the app shows the interval for sequencing input with the measured coverage and the
+# warning that it is far below nominal. Reported alongside, not in the rule: raw coverage, coverage
+# with the imaging recalibration, and the width of the recalibrated 90 % interval (upper / lower).
+HIC_CALIBRATION = {"practice": ["bintu_k562_28_30", "su_chr2", "su_chr2_parm_rep"],
+                   "test": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep"],
+                   "split": 0, "p_adjacent": GATE1["p_adjacent"], "hic_zeros": GATE1["hic_zeros"],
+                   "anchor": "literature_b0", "pass_90": (0.83, 0.97), "pass_50": (0.40, 0.60)}
