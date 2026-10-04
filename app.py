@@ -100,10 +100,10 @@ with _LOCK:
             _purge_project_modules()
     try:
         import torch
-        from chronocell import egnn, ensemble as ENS
+        from chronocell import egnn, ensemble as ENS, population as POP
         TORCH = True
     except ImportError:  # the viewer, physics, 4D scenarios and export work without PyTorch
-        torch = egnn = ENS = None
+        torch = egnn = ENS = POP = None
         TORCH = False
     _stamp_project_modules()
 
@@ -113,7 +113,6 @@ inject_theme()
 
 VERSION = "3.3"
 MAX_FIT_BEADS = 2000
-MAX_ENSEMBLE_BEADS = 400      # population model: O(N^2) pairs, ~20 s for 300 beads on CPU
 MIN_FIT_CONTACTS = 20
 REGIONS = {"whole": "Whole chromosome", "centromere": "Centromere", "telomeres": "Telomeric ends",
            "hubs": "Enhancer hubs", "custom": "Custom window"}
@@ -179,6 +178,20 @@ def window_contacts(ds_key: str, _ds: Dataset, lo: int, hi: int) -> tuple[np.nda
 @st.cache_data(show_spinner=False)
 def equivariance_report() -> dict:
     return egnn.equivariance_check(n=300, seed=0)
+
+
+def telemetry_row(model: str, g_lo: int, g_hi: int, n: int, stage: str, seconds: float, device: str,
+                  energy: float | None, contact_fit: float | None, consistency: float | None = None) -> dict:
+    """One measured row of the execution-telemetry table. Microscopy accuracy needs imaging ground truth,
+    which a user's window does not have, so it is never filled in here (the method's held-out benchmark is
+    shown separately under Accuracy)."""
+    ok = lambda v: v is not None and np.isfinite(v)  # noqa: E731
+    return {"Model": model, "Window": f"{g_lo:,}–{g_hi - 1:,}", "Beads": n, "Stage": stage,
+            "Time (s)": round(float(seconds), 2), "ms / bead": round(1000 * float(seconds) / max(n, 1), 2),
+            "Device": device, "Contact-map fit": round(float(contact_fit), 3) if ok(contact_fit) else None,
+            "Microscopy accuracy": None,
+            "Ensemble consistency (CV)": round(float(consistency), 3) if ok(consistency) else None,
+            "Energy (final objective)": round(float(energy), 5) if ok(energy) else None}
 
 
 def best_fit_window(ds: Dataset, width: int = 800) -> tuple[int, int]:
@@ -1044,13 +1057,9 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                     c_fit = ACC.contact_fit_structure(res_fit.coords_nm, wci, wcj, wcm)
                     names = {"embed": "contact embedding", "refine": "EGNN refinement"}
                     for sname, (t_a, t_b, last) in stage_t.items():
-                        ss.telemetry.append({"Model": "v3.2 single structure", "Window": f"{g_lo:,}–{g_hi - 1:,}",
-                                             "Beads": n_win, "Stage": names.get(sname, sname),
-                                             "Time (s)": round(t_b - t_a, 2),
-                                             "ms / bead": round(1000 * (t_b - t_a) / n_win, 2),
-                                             "Device": res_fit.config.get("device_used", "cpu"),
-                                             "Final loss": round(float(last), 5),
-                                             "Contact-map fit": round(c_fit, 3) if np.isfinite(c_fit) else None})
+                        ss.telemetry.append(telemetry_row("v3.2 single structure", g_lo, g_hi, n_win,
+                                                          names.get(sname, sname), t_b - t_a,
+                                                          res_fit.config.get("device_used", "cpu"), last, c_fit))
                     ss.show_fit = True
                     st.rerun()
                 except (ValueError, FloatingPointError) as exc:
@@ -1072,21 +1081,30 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                             width="stretch", config=T.PLOT_CONFIG, key="loss")
             html('<p class="cc-note">Contact data fix a structure only up to reflection, so accuracy is measured over '
                  'O(3). On planted structures, EGNN refinement matches plain coordinate refinement (AUDIT.md §5).</p>')
-        # ---- population model (v3.3) ----
-        html('<p class="cc-eyebrow" style="margin-top:14px">Population model (v3.3) · validated on real microscopy</p>')
+        # ---- population model (v3.3 up to 400 beads; v4 whole-window model above) ----
+        big = n_win > POP.V33_MAX_BEADS if TORCH else False
+        html('<p class="cc-eyebrow" style="margin-top:14px">'
+             + ("Population model (v4) · whole window" if big else "Population model (v3.3) · validated on real microscopy")
+             + '</p>')
         html('<p class="cc-note">Every cell folds differently, and Hi-C averages thousands of cells. The population model '
              'fits a maximum-entropy ensemble of chains to the contacts (HIPPS/DIMES approach) and draws 100 exact '
              'Langevin trajectories from it. The view shows the most typical member; the distance probe reports the '
              'whole population. Members are Gaussian chains without excluded volume, so a single member can show bead '
              'overlaps: read the population statistics, not the fine detail of one member.</p>')
+        if big:
+            html(f'<p class="cc-note">Above {POP.V33_MAX_BEADS} beads the v4 model fits the whole window at once '
+                 f'(rank-{POP.WHOLE_CHROMOSOME_DEFAULTS["rank_cap"]} chain plus a random walk, exact block gradients). '
+                 'Its held-out accuracy is under Accuracy below and in <code>validation/RESULTS.md</code> (Gate 1).</p>')
+        if ss.pop("ens_running", None):
+            html('<p class="cc-note"><b>The last population fit was stopped before it finished; nothing was saved.</b></p>')
         n_win_ctc = int(((ds.ci >= lo) & (ds.ci < hi) & (ds.cj >= lo) & (ds.cj < hi)).sum()) if ds.has_contacts else 0
         if not TORCH:
             html('<p class="cc-note">Needs PyTorch (<code>pip install torch</code>).</p>')
         elif not ds.has_contacts:
             html('<p class="cc-note">Needs contacts (Data → Graph).</p>')
-        elif n_win > MAX_ENSEMBLE_BEADS:
+        elif n_win > POP.MAX_BEADS:
             html(f'<p class="cc-note">This window has {n_win:,} beads; the population model handles up to '
-                 f'{MAX_ENSEMBLE_BEADS} (about 20 s for 300 on CPU). Choose <b>Custom window</b> and narrow it.</p>')
+                 f'{POP.MAX_BEADS:,}. Choose <b>Custom window</b> and narrow it, or a coarser resolution.</p>')
         elif n_win_ctc < MIN_FIT_CONTACTS:
             html('<p class="cc-note">Too few contacts in this window for a population model.</p>')
         else:
@@ -1095,40 +1113,58 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                                   help="Sequencing counts are relative, so one number must be assumed: how often two "
                                        "neighbouring beads touch. It sets the probability scale; lengths stay anchored "
                                        "to b₀ either way.")
-                go_ens = st.form_submit_button("Build population model (100 trajectories)", width="stretch")
+                go_ens = st.form_submit_button("Build whole-window population model (v4)" if big else
+                                               "Build population model (100 trajectories)", width="stretch")
             if go_ens:
                 wci, wcj, wcm = window_contacts(ds.key, ds, lo, hi)
+                st.button("Stop", key="ens_stop", icon=":material/stop_circle:",
+                          help="Stops the fit at its next progress update; nothing is saved.")
                 bar_e = st.progress(0.0, text="Fitting the ensemble…")
+                t_start = time.time()
+                ss.ens_running = fit_key
 
                 def on_step(it: int, tot: int, row: dict) -> None:
                     if it % 50 == 0 or it == tot:
-                        bar_e.progress(min(it / max(tot, 1), 1.0), text=f"Fitting the ensemble · step {it}/{tot} · "
-                                                                         f"misfit {row['loss']:.4f}")
+                        stage_txt = " (coarse level)" if row.get("stage") == "coarse" else ""
+                        bar_e.progress(min(it / max(tot, 1), 1.0),
+                                       text=f"Fitting the ensemble{stage_txt} · step {it}/{tot} · misfit {row['loss']:.4f} · "
+                                            f"{time.time() - t_start:.0f} s")
                 try:
-                    res_e = ENS.fit_from_counts(wci, wcj, wcm, n_win, ds.valid[lo:hi], b0_nm=float(b0),
-                                                p_adjacent=float(p_adj), progress=on_step)
+                    if big:
+                        res_e = POP.fit_population_from_counts(wci, wcj, wcm, n_win, ds.valid[lo:hi], b0_nm=float(b0),
+                                                               p_adjacent=float(p_adj), cfg=POP.config_for(n_win),
+                                                               progress=on_step)
+                    else:
+                        res_e = ENS.fit_from_counts(wci, wcj, wcm, n_win, ds.valid[lo:hi], b0_nm=float(b0),
+                                                    p_adjacent=float(p_adj), progress=on_step)
                     c_fit = ACC.spearman(res_e.contact_probability[wci, wcj], wcm)
                     res_e.config["window_contact_fit"] = c_fit
                     ss.ensembles[fit_key] = res_e
+                    model_name = "v4 population" if big else "v3.3 population"
+                    frames, reps = res_e.trajectories_nm.shape[:2]
                     for sname, secs, loss in (("ensemble fit", res_e.config["fit_seconds"], res_e.history["best_loss"][0]),
-                                              ("Langevin sampling (100 × 50)", res_e.config["sampling_seconds"], None)):
-                        ss.telemetry.append({"Model": "v3.3 population", "Window": f"{g_lo:,}–{g_hi - 1:,}",
-                                             "Beads": n_win, "Stage": sname, "Time (s)": round(secs, 2),
-                                             "ms / bead": round(1000 * secs / n_win, 2),
-                                             "Device": res_e.config.get("device_used", "cpu"),
-                                             "Final loss": None if loss is None else round(float(loss), 5),
-                                             "Contact-map fit": round(c_fit, 3) if np.isfinite(c_fit) else None})
+                                              (f"Langevin sampling ({reps} × {frames})", res_e.config["sampling_seconds"], None)):
+                        ss.telemetry.append(telemetry_row(model_name, g_lo, g_hi, n_win, sname, secs,
+                                                          res_e.config.get("device_used", "cpu"), loss, c_fit,
+                                                          res_e.spread_cv if loss is None else None))
+                    ss.pop("ens_running", None)
                     ss.show_fit = True
                     ss[f"structure_{fit_key}"] = "Population model"
                     st.rerun()
                 except (ValueError, FloatingPointError) as exc:
+                    ss.pop("ens_running", None)
                     st.error(f"Population model stopped: {exc}")
         if ens is not None:
-            readout([("Runtime", f"{ens.seconds:.1f}", f"s on {ens.config.get('device_used', 'cpu')}"),
-                     ("Trajectories × frames", f"{ens.trajectories_nm.shape[1]} × {ens.trajectories_nm.shape[0]}", ""),
-                     ("Assumed adjacent contact probability", f"{ens.config.get('p_adjacent_assumed', float('nan')):.2f}",
-                      f"r_c = {ens.config.get('r_c_nm', float('nan')):.0f} nm"),
-                     ("Cell-to-cell spread (CV)", f"{ens.spread_cv:.2f}", "Gaussian model: 0.42")])
+            rows_e = [("Runtime", f"{ens.seconds:.1f}", f"s on {ens.config.get('device_used', 'cpu')}"),
+                      ("Trajectories × frames", f"{ens.trajectories_nm.shape[1]} × {ens.trajectories_nm.shape[0]}", ""),
+                      ("Assumed adjacent contact probability", f"{ens.config.get('p_adjacent_assumed', float('nan')):.2f}",
+                       f"r_c = {ens.config.get('r_c_nm', float('nan')):.0f} nm"),
+                      ("Ensemble consistency · cell-to-cell spread (CV)<small>how much the population's members differ; "
+                       "not accuracy</small>", f"{ens.spread_cv:.2f}", "Gaussian model: 0.42")]
+            if ens.config.get("model") == "population_v4":
+                rows_e.insert(1, ("Model rank · random walk", f"{ens.config.get('rank')} · "
+                                  f"{'on' if ens.config.get('local_term') else 'off'}", f"{ens.config.get('n_beads'):,} beads"))
+            readout(rows_e)
             st.plotly_chart(viz.ensemble_loss_chart(ens.history), theme=None, width="stretch", config=T.PLOT_CONFIG,
                             key="ens_loss")
 
@@ -1157,8 +1193,11 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             html('<p class="cc-eyebrow" style="margin-top:14px">Execution telemetry · this session</p>')
             st.dataframe(pd.DataFrame(ss.telemetry[::-1]), hide_index=True, width="stretch",
                          height=min(38 + 35 * len(ss.telemetry), 300), key="telemetry_table")
-            html('<p class="cc-note">Measured wall-clock times on this machine; contact-map fit is Spearman ρ against the '
-                 'window\'s own input contacts.</p>')
+            html('<p class="cc-note">Every value is measured in this session: wall-clock time on this machine; '
+                 'contact-map fit = Spearman ρ against the window\'s own input contacts; ensemble consistency = '
+                 'cell-to-cell spread of the population (not accuracy); energy = the final value of the quantity the '
+                 'stage minimises. Microscopy accuracy stays empty: your window has no imaging ground truth (the '
+                 'method\'s held-out benchmark is under Accuracy).</p>')
 
         if TORCH:
             if st.button("Verify E(3) equivariance", key="equiv"):

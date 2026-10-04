@@ -149,3 +149,12 @@ def test_excluded_volume_members_report_the_change_they_make():
     assert info["overlaps_after"] <= info["overlaps_before"]
     assert 0.0 <= info["median_relative_pair_distance_change"] < 5.0
     assert 0.85 < info["median_bond_over_b0_after"] < 1.15
+
+
+def test_app_defaults_match_the_frozen_validation_settings():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "validation"))
+    import frozen
+    assert P.WHOLE_CHROMOSOME_DEFAULTS == frozen.WHOLE_CHROMOSOME
+    assert P.config_for(5000).rank_cap == frozen.WHOLE_CHROMOSOME["rank_cap"]
