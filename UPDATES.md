@@ -579,3 +579,130 @@ Made by Claude (Claude Code, Claude Opus 5.5); requested by Shivoham Pandey.
 **21:41 · Pushed** branch `feat/microscopy-accuracy-v3.3` to github.com/Sh1voham/ChronoCell-5D
 (private) at the requester's instruction. `origin` was updated from the old WolframNU13/Team-NU-13 URL.
 No licence was added; `main` was not pushed.
+
+---
+
+## 4 October 2026 — v4 (reconstructed from git history)
+
+**Reconstructed on 5 October 2026 from the commit messages of this branch, not written as the work
+happened.** Commit times are the witnesses (IST). Every commit on `feat/v4-evidence` is authored
+`DHRUV` (the machine's git identity), which does **not** record who contributed which idea; the
+`Contributors:` lines are left blank for that reason. The measured results are in
+`validation/RESULTS.md`; they are not repeated here.
+
+**11:13 · `1e20719` Baseline:** ChronoCell-5D v3.3 as downloaded (118 tests passing).
+**11:18 – 12:54 · Core of v4:**
+- `e4feebc` scalable population model with exact per-pair uncertainty (Pillars 1, 2);
+- `37cdab2` built-in `.hic` reader (local or remote by HTTP range) and the shared validation protocol;
+- `35c1d8d` perturbation engine, SV files, chromosome names; cohesin parameters frozen (Pillar 4);
+- `1217079` Gate 1 settings frozen before the Su chr21 test run;
+- `141ea88` Self-Math PDB State Evaluator (Pillar 7);
+- `5fa9472`, `ced6aaa` population model beyond 400 beads in the app; exact interval in the probe;
+- `66023af` genome assemblies as configuration (hg38 + mm39) (Pillar 6);
+- `f6516fe` reproducibility record, JSON + PDF (Pillar 8);
+- `20493a0` held-out results of Gate 1 and Gate 4 (cohesin); Gate 2 recalibration frozen.
+
+**16:12 – 16:32 · Structural variants and environment:** `50a1e27` SV test pre-registered; `38bfbbc`
+Gate 4b measured, not validated; `7338fda`, `89fdaa2` variant files and the 04 Variant impact panel;
+`1224f11` pinned versions, Dockerfile, CI.
+
+**17:10 – 18:15 · Prediction without contact data:** `233fdaa` Gate 5 pre-registered; `780aba7`
+predictor frozen on practice data; `9fef9e3`, `84effe1`, `c183b9b` tuning record and protocol;
+`ebfe542` recalibrated interval in the probe; `9ba5061` RESULTS.md v4; `03f20c0` Gate 5 passes its
+pre-registered rule, modestly; `e153602` the prediction in the app.
+
+Contributors: _______________
+
+---
+
+## 4 – 5 October 2026 — remaining gates and features (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5), at the request of this machine's user (git
+identity `DHRUV`). Every commit below is on `feat/v4-evidence`, local only: nothing was pushed and no
+pull request was opened, as requested. Times are the machine clock (IST).
+
+**Rules the work followed** (set by the requester): every number in the documents comes from a result
+file through `validation/report.py`; pass rules are committed before the test that uses them; tuning
+uses practice data only; failures are reported next to successes; nothing is pushed.
+
+**Pre-registrations, each committed before its test:**
+- `a372531` Gate 2b, intervals with Hi-C input (rule + practice-fitted Hi-C recalibration);
+- `1af2b96` Gate 5m, the predictor on mouse (not run, see below);
+- `b625717` Gate 2c, a per-pair reliability score (after a practice comparison of three candidates).
+
+**Results:**
+- `bea3fde` **Gate 2b fails**: with Hi-C input the stated intervals stay far below nominal even after
+  a Hi-C recalibration fitted on practice data. The probe no longer applies the imaging recalibration
+  to sequencing input; it shows the measured shortfall.
+- `667d290` **Gate 2c fails**: the chosen per-pair score ranks error weakly with imaging-derived input and
+  not at all with Hi-C input, below the pre-registered bar; no reliability score is shown in the app.
+- `3297c52` **Gate 3 measured**: with imaging-derived input the population models are best or tied best
+  on 27 of 28 test units; with Hi-C input on 18 of 26 (the no-3D inversion or PASTIS is ahead on seven
+  genome-scale chromosomes). The full run was stopped by the machine's 2-hour job limit, so the plan
+  was run in four parts and merged (`--merge`); PASTIS PM2 on the two 651-locus sets did not finish in
+  an hour and is recorded as not finished.
+- `21b7078` **Cost**: the scale benchmark is complete (v4 fits the whole synthetic chr22 in under nine
+  minutes on this CPU). The per-chromosome runtime is **partial**: the 2-hour job limit stopped it after
+  13 chromosomes; three were measured while the test suite ran and are kept but discarded from the
+  table; 35 remain. `python validation/chromosome_runtime.py --resume` finishes it.
+
+**Features** (`7263d77`):
+- CTCF peaks by cell type: "ENCODE, by cell type" fetches the GRCh38 IDR peaks of IMR-90, A549, K562
+  or HCT116 (listed in `chronocell/data/validation_sources.json`) once into the cache, checks the MD5
+  the portal publishes, records the accession in the prediction's inputs and shows the citation.
+  Upload and paste remain.
+- Predicted and contact-built maps side by side, with their agreement; never blended.
+- `python -m chronocell.predict`: the predicted map (`.npy`) plus a JSON record (inputs with SHA-256,
+  model, validation reference, "predicted, not measured"); hg38 only.
+- The cohesin-control caveat (Gate 5) in the predictor's banner and in the Guide, read from the result
+  file.
+- Downloads: one routine for the UCSC sequence and ENCODE peaks; resume after interruption or short
+  reads; no file without a published MD5. Tests use a local HTTP server.
+
+**Bugs found and fixed:**
+- Building a second population model for a window that already had one (a prediction after a
+  contact model, or the reverse) crashed: Streamlit forbids setting a widget's value after it is
+  drawn. The choice is now applied before the widget on the next run.
+- The variant-impact panel could take a *predicted* population as its base without saying so; it now
+  uses populations built from contacts only. The PDB evaluator labels predicted populations.
+- Download progress lagged the bytes received (it read the file size before the buffer was flushed).
+
+**Checked by hand, not committed:** the real UCSC download of hg38 chr21 through the app's code
+(12,709,705 bytes; MD5 184df2bd9b812b6e6b6da16c6021369e, equal to UCSC's), and the real ENCODE IMR-90
+CTCF peaks (595,548 bytes; MD5 equal to the portal's; 374 peaks on chr21). The command line on those
+real inputs reproduces the Gate 5 validation map for the IMR-90 test loci exactly (now a test that runs
+when the validation data are present).
+
+**Checked in the running app** (a separate instance on port 8502, driven in Chrome; reference chr22,
+window 20.0–21.5 Mb, 150 beads): a population model built from contacts; Input "Sequence + CTCF" →
+"ENCODE, by cell type" → IMR90 fetched the real ENCODE file (724 peaks on chr22); the chr22 sequence
+downloaded from UCSC with a progress bar (12,255,678 bytes; MD5 equal to UCSC's md5sum.txt); the
+prediction was built and labelled "predicted from sequence + CTCF (no contact data)"; the banner and
+the cohesin caveat read Gate 5 from its result file; the side-by-side view showed both maps (rank
+agreement 0.519, 0.132 beyond the trend, size ratio 2.23); the probe showed "coverage not tested" for
+the predicted population and, after rebuilding from contacts (no crash), the Gate 2b shortfall for Hi-C
+input; the Guide read its numbers from the result files. Seeing the side-by-side view on the synthetic
+reference led to one change: it now says when the contacts are the synthetic reference, so the
+agreement means nothing about real folding.
+
+**Not done, with the reason:**
+- **A second structural-variant test**: none could be pre-registered and run here (RESULTS.md,
+  Gate 4b): the cleanest candidate (Firre deletion, GEO GSE98632) has raw reads only.
+- **Mouse (mm39) prediction**: the pre-registered test needs a 4DN Data Portal access key (downloads
+  answer HTTP 403 without one). Mouse stays without prediction.
+- **PASTIS PM2 on the two 651-locus sets** (Gate 3): did not finish in 60 minutes; recorded as not
+  finished.
+- **35 of 45 per-chromosome runtimes**: stopped by the job limit (above); resumable.
+
+**Housekeeping:** `truststore` listed as optional; `validation_sources.json` completed (PASTIS, UCSC
+sequences, genome bundles, published checksums); README, ARCHITECTURE (new section 11), Guide updated;
+references to a `validation/reproduce` script and a `paper/` folder, which never existed in this
+repository, removed.
+
+**Noticed, not touched:** the tracked file `AI-Powered Codon Optimization for Vaccines(1).pdf` was
+deleted from the working tree during this session by something other than these commands. It is
+left deleted-but-uncommitted for the owner to decide.
+
+**Tests:** 226 passed, 1 skipped (the FastAPI wrapper), against 201 passed, 1 skipped before this work.
+
+Contributors to the ideas behind these changes: _______________

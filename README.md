@@ -8,7 +8,7 @@ perturbation data, and the failures are reported next to the successes.
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.50%2B-FF4B4B?logo=streamlit&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/pytorch-2.2%2B-EE4C2C?logo=pytorch&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-117%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-226%20passing%2C%201%20skipped-2ea44f)
 
 <p align="center">
   <img src="docs/images/fold.png" alt="3D fold of the long arm of human chromosome 22, coloured from one end to the other" width="760">
