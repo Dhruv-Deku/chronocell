@@ -1,0 +1,240 @@
+[
+ {
+  "key": "bintu_imr90_28_30",
+  "role": "test",
+  "cell_line": "IMR90",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "IMR90_chr21-28-30Mb.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_imr90_18_20",
+  "role": "test",
+  "cell_line": "IMR90",
+  "region": "chr21:18.6-20.6 Mb",
+  "files": [
+   "IMR90_chr21-18-20Mb.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_a549_28_30",
+  "role": "test",
+  "cell_line": "A549",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "A549_chr21-28-30Mb.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_k562_28_30",
+  "role": "practice",
+  "cell_line": "K562",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "K562_chr21-28-30Mb.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_hct116_28_30",
+  "role": "practice",
+  "cell_line": "HCT116",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "HCT116_chr21-28-30Mb_untreated.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_hct116_28_30_auxin",
+  "role": "practice",
+  "cell_line": "HCT116",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "HCT116_chr21-28-30Mb_6h auxin.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)"
+ },
+ {
+  "key": "bintu_hct116_34_37",
+  "role": "practice",
+  "cell_line": "HCT116",
+  "region": "chr21:34.6-37.1 Mb",
+  "files": [
+   "HCT116_chr21-34-37Mb_untreated.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "bintu_hct116_34_37_auxin",
+  "role": "test",
+  "cell_line": "HCT116",
+  "region": "chr21:34.6-37.1 Mb",
+  "files": [
+   "HCT116_chr21-34-37Mb_6h auxin.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)"
+ },
+ {
+  "key": "bintu_imr90_28_30_cellcycle",
+  "role": "excluded",
+  "cell_line": "IMR90",
+  "region": "chr21:28.0-29.9 Mb",
+  "files": [
+   "IMR90_chr21-28-30Mb_cell cycle.csv"
+  ],
+  "base": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/",
+  "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
+  "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_chr2",
+  "role": "practice",
+  "cell_line": "IMR90",
+  "region": "chr2, whole chromosome (935 loci, 250 kb steps)",
+  "files": [
+   "chromosome2.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_chr2_parm_rep",
+  "role": "practice",
+  "cell_line": "IMR90",
+  "region": "chr2 p-arm replicate (250 kb steps)",
+  "files": [
+   "chromosome2_p-arm_replicate.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_chr21",
+  "role": "test",
+  "cell_line": "IMR90",
+  "region": "chr21, whole chromosome (651 loci, 50 kb steps)",
+  "files": [
+   "chromosome21.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_chr21_rep",
+  "role": "test",
+  "cell_line": "IMR90",
+  "region": "chr21 replicate with cell-cycle markers (651 loci)",
+  "files": [
+   "chromosome21-cell_cycle.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_genome",
+  "role": "test",
+  "cell_line": "IMR90",
+  "region": "1,041 loci on every chromosome (DNA-MERFISH, 3 replicates)",
+  "files": [
+   "genomic-scale.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_hic_chr21",
+  "role": "input",
+  "cell_line": "IMR90",
+  "region": "Hi-C, chr21 loci (50 kb bins)",
+  "files": [
+   "Hi-C_contacts_chromosome21.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_hic_chr2",
+  "role": "input",
+  "cell_line": "IMR90",
+  "region": "Hi-C, chr2 loci (50 kb bins)",
+  "files": [
+   "Hi-C_contacts_chromosome2.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ },
+ {
+  "key": "su_hic_genome",
+  "role": "input",
+  "cell_line": "IMR90",
+  "region": "Hi-C, genome-scale loci (500 kb bins)",
+  "files": [
+   "Hi-C_contacts_genome-scale.tsv"
+  ],
+  "base": "https://zenodo.org/records/3928890/files/",
+  "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
+  "assembly": "hg38",
+  "condition": "untreated"
+ }
+]

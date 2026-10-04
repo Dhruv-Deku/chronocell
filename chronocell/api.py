@@ -35,8 +35,9 @@ from . import accuracy as ACC
 from . import physics
 
 API_VERSION = "v1"
-SOFTWARE = "ChronoCell-5D 3.3"
-MAX_POPULATION_BEADS = 400
+SOFTWARE = "ChronoCell-5D 4.0"
+MAX_POPULATION_BEADS = 400            # model "population" (v3.3, unchanged)
+MAX_POPULATION_V4_BEADS = 6000        # model "population_v4" (whole-window model)
 MAX_SINGLE_BEADS = 2000
 DEFAULT_LOG = Path(__file__).resolve().parent.parent / ".chronocell_cache" / "api_run_log.jsonl"
 
@@ -179,30 +180,37 @@ def handle_metrics(payload: dict) -> dict:
 def handle_reconstruct(payload: dict) -> dict:
     """Rebuild 3D structure from contacts.
 
-    model = "population" (default; v3.3 maximum-entropy ensemble, <= 400 beads) or "single" (v3.2 EGNN).
+    model = "population" (default; v3.3 maximum-entropy ensemble, <= 400 beads), "population_v4" (the v4
+    whole-window model, <= 6,000 beads) or "single" (v3.2 EGNN).
     Optional: b0_nm, p_adjacent (population), seed, include ("median_distance", "population").
     """
     model = str(payload.get("model", "population")).lower()
-    if model not in ("population", "single"):
-        raise RequestError("model must be 'population' or 'single'.")
+    if model not in ("population", "population_v4", "single"):
+        raise RequestError("model must be 'population', 'population_v4' or 'single'.")
     ci, cj, cm, n = _contacts(payload)
     b0 = float(payload.get("b0_nm") or physics.B0_NM)
     seed = int(payload.get("seed", 0))
     include = set(payload.get("include") or ())
     t0 = time.time()
-    if model == "population":
-        if n > MAX_POPULATION_BEADS:
-            raise RequestError(f"population model: at most {MAX_POPULATION_BEADS} beads (got {n}).")
+    if model in ("population", "population_v4"):
+        limit = MAX_POPULATION_BEADS if model == "population" else MAX_POPULATION_V4_BEADS
+        if n > limit:
+            raise RequestError(f"{model} model: at most {limit} beads (got {n}).")
         from . import ensemble as ENS
         p_adj = float(payload.get("p_adjacent", 0.5))
         if not 0.05 <= p_adj <= 0.95:
             raise RequestError("p_adjacent must be between 0.05 and 0.95.")
-        res = ENS.fit_from_counts(ci, cj, cm, n, b0_nm=b0, p_adjacent=p_adj, cfg=ENS.EnsembleConfig(seed=seed))
+        if model == "population":
+            res = ENS.fit_from_counts(ci, cj, cm, n, b0_nm=b0, p_adjacent=p_adj, cfg=ENS.EnsembleConfig(seed=seed))
+        else:
+            from . import population as POP
+            res = POP.fit_population_from_counts(ci, cj, cm, n, b0_nm=b0, p_adjacent=p_adj,
+                                                 cfg=POP.config_for(n, seed=seed))
         coords = res.representative_nm
         c_fit = ACC.spearman(res.contact_probability[ci, cj], cm)
-        out = {"model": "population_v3_3", "coords_nm": coords.round(3).tolist(),
+        out = {"model": "population_v3_3" if model == "population" else "population_v4", "coords_nm": coords.round(3).tolist(),
                "coords_note": "representative member of the population (closest to the median distance map)",
-               "accuracy": ACC.two_scores("ensemble_v3_3", c_fit),
+               "accuracy": ACC.two_scores("ensemble_v3_3" if model == "population" else "population_v4", c_fit),
                "telemetry": {"fit_seconds": round(res.config["fit_seconds"], 3),
                              "sampling_seconds": round(res.config["sampling_seconds"], 3),
                              "device": res.config["device_used"], "best_misfit": res.history["best_loss"][0],
@@ -260,7 +268,7 @@ def create_app(log: AuditLog | None = None):
     except ImportError as exc:  # pragma: no cover - depends on the environment
         raise RuntimeError("The REST API needs FastAPI: pip install fastapi uvicorn") from exc
     log = log if log is not None else AuditLog()
-    app = FastAPI(title="ChronoCell-5D API", version="3.3",
+    app = FastAPI(title="ChronoCell-5D API", version="4.0",
                   description="Chromatin 3D reconstruction. Research use only; not a clinical tool.")
 
     def call(fn, *args):
