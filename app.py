@@ -87,7 +87,8 @@ with _LOCK:
         try:
             from chronocell import (accuracy as ACC, agent as A, domains, features, formats, genes as G, genome,
                                     pdf_report, physics, provenance as PROV, snapshot as SN, states as S, theme as T, viz)
-            from ui import agent_panel, compare, drug_lab, four_d, genes_view, guide, interact, states_panel
+            from ui import (agent_panel, compare, drug_lab, four_d, genes_view, guide, interact, predict_view,
+                            states_panel)
             from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
                                    readout, slot_files, slot_graph, telemetry_row, warning_card)
             break
@@ -760,9 +761,15 @@ if shown == "EGNN reconstruction" and fit is not None and len(fit.coords_nm) == 
 elif shown == "Population model" and ens is not None and len(ens.representative_nm) == hi - lo:
     model_kind = "ensemble"
 using_fit = model_kind is not None
-model_label = {"egnn": "EGNN reconstruction", "ensemble": "Population model · representative of 100 trajectories",
+predicted = model_kind == "ensemble" and predict_view.is_predicted(ens)
+model_label = {"egnn": "EGNN reconstruction",
+               "ensemble": ("Population model · " + predict_view.INPUT_LABEL) if predicted
+               else "Population model · representative of 100 trajectories",
                None: ds.structure_label}[model_kind]
-model_method = {"egnn": "contact embedding + EGNN", "ensemble": "maximum-entropy population model (v3.3)",
+model_method = {"egnn": "contact embedding + EGNN",
+                "ensemble": ("sequence + CTCF prediction (Gate 5 model) -> maximum-entropy population model" if predicted
+                             else "maximum-entropy population model (v4)" if ens is not None
+                             and ens.config.get("model") == "population_v4" else "maximum-entropy population model (v3.3)"),
                 None: "reference model" if ds.is_reference else "input"}[model_kind]
 coords_now = ds.frames[frame_idx]
 sub = {"egnn": fit.coords_nm if fit is not None else None,
@@ -774,6 +781,8 @@ if sub is None:
 def accuracy_scores() -> dict:
     """The two separate accuracy scores for the structure in view (see chronocell.accuracy)."""
     if model_kind == "ensemble":
+        if predicted:                     # no input contacts: no contact-map fit; the Gate 5 benchmark applies
+            return ACC.two_scores("predicted_sequence_ctcf", None)
         name = "population_v4" if ens.config.get("model") == "population_v4" else "ensemble_v3_3"
         return ACC.two_scores(name, ens.config.get("window_contact_fit"))
     fit_val = None
@@ -1199,8 +1208,16 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
         if ss.pop("ens_running", None):
             html('<p class="cc-note"><b>The last population fit was stopped before it finished; nothing was saved.</b></p>')
         n_win_ctc = int(((ds.ci >= lo) & (ds.ci < hi) & (ds.cj >= lo) & (ds.cj < hi)).sum()) if ds.has_contacts else 0
+        pop_input = "Contact data"
+        if TORCH:
+            pop_input = st.segmented_control(
+                "Input", ["Contact data", "Sequence + CTCF (predicted)"], default="Contact data", required=True,
+                key="pop_input", help="Contact data: the validated population model (default). Sequence + CTCF: a "
+                                      "prediction for windows without contact data (Gate 5), labelled predicted.")
         if not TORCH:
             html('<p class="cc-note">Needs PyTorch (<code>pip install torch</code>).</p>')
+        elif pop_input != "Contact data":
+            predict_view.render(ds, lo, hi, fit_key, float(b0))
         elif not ds.has_contacts:
             html('<p class="cc-note">Needs contacts (Data → Graph).</p>')
         elif n_win > POP.MAX_BEADS:
@@ -1277,8 +1294,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             readout([
                 ("Contact-map fit<small>this window · model vs the contacts it was built from · shows convergence, "
                  "not correctness</small>", "—" if cf is None else f"{cf:.3f}", "Spearman ρ"),
-                ("Microscopy accuracy<small>method benchmark on held-out imaging (Bintu 2018) · not measured on this "
-                 "window</small>", "—" if mic is None else f"{mic['overall_percent_of_ceiling']:.1f} %",
+                ("Microscopy accuracy<small>method benchmark on held-out imaging (validation/RESULTS.md) · not measured "
+                 "on this window</small>", "—" if mic is None else f"{mic['overall_percent_of_ceiling']:.1f} %",
                  "of reproducible structure" if mic else "no benchmark for this structure"),
             ])
             if mic:
@@ -1401,7 +1418,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             software=f"{VERSION}", method=method,
             parameters=report["parameters"] | ({"population_model": {k: ens.config.get(k) for k in (
                 "model", "rank", "local_term", "iterations", "learning_rate", "weighting", "p_adjacent_assumed",
-                "r_c_nm", "anchor_b0_nm", "seed")}} if model_kind == "ensemble" else {})
+                "r_c_nm", "anchor_b0_nm", "seed", "input", "predictor", "prediction_inputs") if k in ens.config}}
+                if model_kind == "ensemble" else {})
             | ({"single_structure_fit": {k: fit.config.get(k) for k in (
                 "prefit_epochs", "refine_epochs", "alpha", "d_min", "lambda_smooth", "lambda_steric", "seed")}}
                if model_kind == "egnn" else {}),

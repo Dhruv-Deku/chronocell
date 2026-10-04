@@ -236,5 +236,119 @@
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
   "condition": "untreated"
+ },
+ {
+  "key": "rao2014_imr90",
+  "role": "input (Hi-C)",
+  "cell_line": "IMR90",
+  "assembly": "hg19",
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_IMR90_combined_30.hic",
+  "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+ },
+ {
+  "key": "rao2014_k562",
+  "role": "input (Hi-C)",
+  "cell_line": "K562",
+  "assembly": "hg19",
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic",
+  "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+ },
+ {
+  "key": "rao2014_gm12878",
+  "role": "input (Hi-C)",
+  "cell_line": "GM12878",
+  "assembly": "hg19",
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_GM12878_insitu_primary+replicate_combined_30.hic",
+  "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+ },
+ {
+  "key": "encode_ctcf_imr90",
+  "role": "input (Gate 5 predictor)",
+  "cell_line": "IMR90",
+  "assembly": "GRCh38",
+  "url": "https://www.encodeproject.org/files/ENCFF670ULH/",
+  "experiment": "ENCSR000EFI",
+  "md5": "f0bb4b9b1c16409cf9cc397e91edad0f",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; the consortium asks that the project and experiment be cited. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "encode_ctcf_a549",
+  "role": "input (Gate 5 predictor)",
+  "cell_line": "A549",
+  "assembly": "GRCh38",
+  "url": "https://www.encodeproject.org/files/ENCFF624ZSR/",
+  "experiment": "ENCSR035OXA",
+  "md5": "28df1622fd35c6caacfe9351815c7c9e",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; the consortium asks that the project and experiment be cited. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "encode_ctcf_k562",
+  "role": "input (Gate 5 predictor)",
+  "cell_line": "K562",
+  "assembly": "GRCh38",
+  "url": "https://www.encodeproject.org/files/ENCFF582SNT/",
+  "experiment": "ENCSR000BPJ",
+  "md5": "e5d29f1be4f8bf69ce79686a3b6d13b7",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; the consortium asks that the project and experiment be cited. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "encode_ctcf_hct116",
+  "role": "input (Gate 5 predictor)",
+  "cell_line": "HCT116",
+  "assembly": "GRCh38",
+  "url": "https://www.encodeproject.org/files/ENCFF470EAN/",
+  "experiment": "ENCSR048RGR",
+  "md5": "7899f33fb47d856bdc6531bc2665e08d",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; the consortium asks that the project and experiment be cited. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "ucsc_hg38_chr21",
+  "role": "input (Gate 5 predictor)",
+  "assembly": "hg38",
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr21.fa.gz",
+  "md5": "184df2bd9b812b6e6b6da16c6021369e",
+  "citation": "Genome Reference Consortium GRCh38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002).",
+  "license": "UCSC hg38 (GRCh38) sequence, freely available for download and use; downloaded on demand."
+ },
+ {
+  "key": "ucsc_hg38_chr2",
+  "role": "input (Gate 5 predictor)",
+  "assembly": "hg38",
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr2.fa.gz",
+  "md5": "609cc41e8a44eb99f87839456c6ed333",
+  "citation": "Genome Reference Consortium GRCh38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002).",
+  "license": "UCSC hg38 (GRCh38) sequence, freely available for download and use; downloaded on demand."
+ },
+ {
+  "key": "jaspar_MA0139.1",
+  "role": "input (Gate 5 predictor; bundled as chronocell/data/jaspar_MA0139.1.jaspar)",
+  "url": "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar",
+  "citation": "Rauluseviciute I et al. JASPAR 2024: 20th anniversary of the open-access database of transcription factor binding profiles. Nucleic Acids Res 52, D174-D182 (2024). Matrix MA0139.1 (CTCF).",
+  "license": "CC BY 4.0 (JASPAR)."
+ },
+ {
+  "key": "k562_chr9_deletions",
+  "role": "test (Gate 4, structural variants)",
+  "cell_line": "K562",
+  "assembly": "hg19",
+  "intervals": [
+   [
+    20750000,
+    26590000
+   ],
+   [
+    28560000,
+    31620000
+   ]
+  ],
+  "citation": "Zhou B, Ho SS, Greer SU, et al. Comprehensive, integrated, and phased whole-genome analysis of the primary ENCODE cell line K562. Genome Res 29, 472-484 (2019).",
+  "license": "Published coordinates (no data file is used)."
  }
 ]
