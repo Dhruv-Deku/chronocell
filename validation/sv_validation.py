@@ -20,6 +20,11 @@ any K562 counts on chromosome 9:
   pass       (i) model Spearman > distance shift with the 95 % interval of the difference above 0, and
              (ii) the model's trend-removed Spearman interval above 0
 A check that is not part of the rule: the published deleted bins should have ~no K562 reads.
+
+    python validation/sv_validation.py --diagnose        # -> validation/results_sv_posthoc.json
+Post-hoc diagnostics, run after the verdict and unable to change it: K562 contacts across each
+junction relative to K562's own expectation for a contiguous chain at the same separation (1 = the
+kept runs are joined on every copy, 0 = not joined), and K562 / GM12878 coverage of each kept run.
 """
 
 from __future__ import annotations
@@ -42,6 +47,7 @@ from frozen import SV_VALIDATION as CFG    # noqa: E402
 from chronocell import ensemble as E, perturb as PT, physics, population as P   # noqa: E402
 
 OUT = ROOT / "results_sv.json"
+POSTHOC = ROOT / "results_sv_posthoc.json"
 
 
 def deleted_bins(n: int, start: int, binsize: int, intervals) -> np.ndarray:
@@ -206,7 +212,45 @@ def run() -> dict:
     return out
 
 
+def diagnose() -> dict:
+    """Post hoc (after the verdict): are the kept runs actually joined in K562?"""
+    chrom, start, end, binsize = CFG["chrom"], CFG["start"], CFG["end"], CFG["binsize"]
+    G = D.hic_region(CFG["reference"], chrom, start, end, binsize)
+    K = D.hic_region(CFG["variant"], chrom, start, end, binsize)
+    n = len(G)
+    drop = deleted_bins(n, start, binsize, CFG["deleted"])
+    kept = ~drop
+    runs = np.cumsum(np.r_[0, np.diff(kept.astype(int)) != 0])
+    sep = np.abs(np.subtract.outer(np.arange(n), np.arange(n)))
+    same = (runs[:, None] == runs[None, :]) & kept[:, None] & kept[None, :]
+    seps = (1, 2, 4, 8, 16)
+    e_k = {s: float(K[same & (sep == s)].mean()) for s in seps}
+    junctions = []
+    for a, b in segments(drop):
+        if a == 0 or b == n:
+            continue
+        row = {"left_end_bp": start + a * binsize, "right_start_bp": start + b * binsize, "contiguous_chain_ratio": {}}
+        for s_new in seps:
+            vals = [K[a - 1 - u, b + (s_new - 1 - u)] for u in range(s_new) if a - 1 - u >= 0 and b + s_new - 1 - u < n]
+            row["contiguous_chain_ratio"][str(s_new)] = float(np.mean(vals) / e_k[s_new])
+        junctions.append(row)
+    cov_k, cov_g = K.sum(1), G.sum(1)
+    cov = []
+    for r in np.unique(runs[kept]):
+        m = (runs == r) & kept
+        idx = np.flatnonzero(m)
+        cov.append({"bins": [int(idx[0]), int(idx[-1])], "k562_over_gm12878_coverage": float(np.median(cov_k[m] / cov_g[m]))})
+    return {"note": "Post hoc, after the pre-registered verdict in results_sv.json; cannot change it.",
+            "junctions": junctions, "kept_run_coverage": cov,
+            "run_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}
+
+
 def main() -> None:
+    if "--diagnose" in sys.argv:
+        d = diagnose()
+        POSTHOC.write_text(json.dumps(d, indent=1), encoding="utf-8")
+        print(json.dumps(d, indent=1))
+        return
     out = run()
     OUT.write_text(json.dumps(out, indent=1, default=float), encoding="utf-8")
     print(json.dumps({k: out[k] for k in ("check_deleted_bins", "spanning_pairs", "spearman", "ci95_block_bootstrap",
