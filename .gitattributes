@@ -1,0 +1,10 @@
+# Text files use LF in the repository whatever the platform; binaries are never touched.
+* text=auto eol=lf
+*.png binary
+*.pdf binary
+*.gz binary
+*.npz binary
+*.npy binary
+*.hic binary
+*.cool binary
+*.mcool binary
