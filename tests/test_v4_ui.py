@@ -73,8 +73,10 @@ def test_population_probe_interval_overlay_and_telemetry(app):
     assert "Middle 50 % of cells (model)" in txt and "Mean ± SD across cells (model)" in txt
     tip = next(d for d in _chart(at, "viewport")[1]["data"] if d["type"] == "mesh3d")["hovertemplate"]
     assert "(population model)" in tip and "middle 50 %" in tip            # hover: distance to bead A with interval
-    assert "Middle 50 % of cells, recalibrated" in txt                     # practice-fitted recalibration (Gate 2)
-    assert "Held-out check of these intervals (Gate 2)" in txt              # measured coverage, read from results
+    # the window's population is built from sequencing counts: the imaging recalibration (Gate 2) does not apply,
+    # and the measured Hi-C shortfall (Gate 2b, read from its result file) is stated instead
+    assert "Middle 50 % of cells, recalibrated" not in txt
+    assert "below nominal with sequencing Hi-C input" in txt and "Gate 2b" in txt
     at.select_slider(key="probe_level").set_value("90 %").run()
     assert "Middle 90 % of cells (model)" in _text(at)
     at.toggle(key="unc_on").set_value(True).run()

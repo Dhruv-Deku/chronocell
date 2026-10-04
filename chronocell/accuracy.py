@@ -125,10 +125,12 @@ VALIDATION = RESULTS.parent
 
 
 def interval_evidence() -> dict | None:
-    """How well the population's stated 90 % intervals held on held-out single-cell distances (Gate 2),
-    by input type, read from the result files: imaging-derived contacts (validation/results_calibration.json)
-    and sequencing Hi-C (validation/benchmark/results.json, else the practice run, labelled as such).
-    Ranges are min-max over datasets, in %. None if no calibration test has been run."""
+    """How well the population's stated 90 % intervals held on held-out single-cell distances, by input
+    type, read from the result files: imaging-derived contacts (Gate 2, validation/results_calibration.json)
+    and sequencing Hi-C (Gate 2b, validation/results_calibration_hic.json: raw, with its own practice-fitted
+    recalibration, with the imaging recalibration, and the pre-registered verdict; before Gate 2b was run,
+    the benchmark's raw and imaging-recalibrated coverage). Ranges are min-max over datasets, in %. None
+    if no calibration test has been run."""
     try:
         c = json.loads((VALIDATION / "results_calibration.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -136,7 +138,19 @@ def interval_evidence() -> dict | None:
     raw = [100 * r["coverage"][2] for r in c["rows"]]
     rec = [100 * r["coverage_recalibrated"][2] for r in c["rows"] if r.get("coverage_recalibrated")]
     out = {"imaging_raw_90": (min(raw), max(raw)), "imaging_recalibrated_90": (min(rec), max(rec)) if rec else None,
-           "hic_raw_90": None, "hic_recalibrated_90": None, "hic_source": None}
+           "hic_raw_90": None, "hic_recalibrated_90": None, "hic_source": None, "hic_verdict": None,
+           "hic_imaging_recalibration_90": None}
+    try:                                   # Gate 2b: the pre-registered test of intervals with Hi-C input
+        h = json.loads((VALIDATION / "results_calibration_hic.json").read_text(encoding="utf-8"))
+        hr = [100 * r["coverage"][2] for r in h["rows"]]
+        hc = [100 * r["coverage_recalibrated"][2] for r in h["rows"]]
+        hi = [100 * r["coverage_imaging_recalibration"][2] for r in h["rows"] if r.get("coverage_imaging_recalibration")]
+        out.update(hic_raw_90=(min(hr), max(hr)), hic_recalibrated_90=(min(hc), max(hc)),
+                   hic_imaging_recalibration_90=(min(hi), max(hi)) if hi else None,
+                   hic_source="held-out test, Gate 2b", hic_verdict=h["verdict"])
+        return out
+    except (OSError, ValueError, KeyError):
+        pass
     for fname, label in (("benchmark/results.json", "held-out test"), ("benchmark/results_practice.json", "practice")):
         try:
             b = json.loads((VALIDATION / fname).read_text(encoding="utf-8"))
@@ -150,10 +164,56 @@ def interval_evidence() -> dict | None:
                     if "coverage_recalibrated" in v:
                         hc.append(100 * v["coverage_recalibrated"]["90"])
         if hr:
-            out.update(hic_raw_90=(min(hr), max(hr)), hic_recalibrated_90=(min(hc), max(hc)) if hc else None,
+            out.update(hic_raw_90=(min(hr), max(hr)), hic_imaging_recalibration_90=(min(hc), max(hc)) if hc else None,
                        hic_source=label)
             break
     return out
+
+
+def interval_input_kind(res) -> str:
+    """Which interval test applies to a population result: "hic" (built from sequencing counts),
+    "predicted" (fitted to a sequence + CTCF prediction), "imaging" (imaging-derived frequencies, as in
+    validation) or "other" (another distance map)."""
+    src = str(getattr(res, "config", {}).get("input", ""))
+    if src.startswith("predicted"):
+        return "predicted"
+    if src == "sequencing counts":
+        return "hic"
+    return "other" if src else "imaging"
+
+
+def interval_note(ev: dict | None, kind: str) -> str | None:
+    """The measured coverage of the stated intervals for this input kind (HTML-safe text, numbers from the
+    result files), or None if nothing was measured."""
+    if not ev:
+        return None
+    rng = lambda r: f"{r[0]:.0f}–{r[1]:.0f} %"                              # noqa: E731
+    if kind == "hic":
+        if ev.get("hic_verdict") == "pass":
+            return (f"Held-out test with sequencing Hi-C input (Gate 2b, passed): the recalibrated 90 % interval held "
+                    f"{rng(ev['hic_recalibrated_90'])} of real single-cell distances.")
+        if ev.get("hic_verdict") == "fail":
+            far = ev["hic_recalibrated_90"][1] < 75
+            return (f"<b>Coverage {'far ' if far else ''}below nominal with sequencing Hi-C input.</b> On held-out "
+                    f"data (Gate 2b) a stated 90 % interval held only {rng(ev['hic_raw_90'])} of real single-cell "
+                    f"distances, and {rng(ev['hic_recalibrated_90'])} after a recalibration fitted on practice Hi-C "
+                    "(pre-registered pass: 83–97 %; not met). Sizes from Hi-C are not calibrated in nm (Gate 1b). Read "
+                    "the range as the model's cell-to-cell spread, not as a 90 % range for real cells.")
+        if ev.get("hic_raw_90"):
+            return (f"With sequencing Hi-C input, stated 90 % intervals held {rng(ev['hic_raw_90'])} of real single-cell "
+                    f"distances ({ev['hic_source']}): far below nominal. Read the range as the model's cell-to-cell "
+                    "spread, not as a 90 % range for real cells.")
+        return None
+    if kind == "predicted":
+        return ("These intervals belong to a population fitted to a prediction from sequence + CTCF; their coverage was "
+                "not tested (Gate 5 tested the median distances only).")
+    if kind == "imaging":
+        note = (f"Held-out check of these intervals (Gate 2): with imaging-derived contacts, stated 90 % intervals held "
+                f"{rng(ev['imaging_raw_90'])} of real single-cell distances")
+        if ev.get("imaging_recalibrated_90"):
+            note += f", {rng(ev['imaging_recalibrated_90'])} recalibrated"
+        return note + ". Read the interval as a lower bound on cell-to-cell spread."
+    return None
 
 
 def sv_evidence() -> dict | None:
