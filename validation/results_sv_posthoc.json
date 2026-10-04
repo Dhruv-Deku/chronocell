@@ -1,0 +1,51 @@
+{
+ "note": "Post hoc, after the pre-registered verdict in results_sv.json; cannot change it.",
+ "junctions": [
+  {
+   "left_end_bp": 20750000,
+   "right_start_bp": 26600000,
+   "contiguous_chain_ratio": {
+    "1": 0.0,
+    "2": 0.0,
+    "4": 0.0,
+    "8": 0.0,
+    "16": 0.0026511490549828176
+   }
+  },
+  {
+   "left_end_bp": 28550000,
+   "right_start_bp": 31625000,
+   "contiguous_chain_ratio": {
+    "1": 0.18806973704760105,
+    "2": 0.1604094106398962,
+    "4": 0.18639039786349426,
+    "8": 0.3027456647398844,
+    "16": 0.28632409793814434
+   }
+  }
+ ],
+ "kept_run_coverage": [
+  {
+   "bins": [
+    0,
+    189
+   ],
+   "k562_over_gm12878_coverage": 0.10137133612291548
+  },
+  {
+   "bins": [
+    424,
+    501
+   ],
+   "k562_over_gm12878_coverage": 0.07425826040263131
+  },
+  {
+   "bins": [
+    625,
+    799
+   ],
+   "k562_over_gm12878_coverage": 0.1566790881928358
+  }
+ ],
+ "run_utc": "2026-10-04T10:47:23+00:00"
+}
