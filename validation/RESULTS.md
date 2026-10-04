@@ -1,46 +1,331 @@
-# ChronoCell-5D: accuracy against real microscopy
+# ChronoCell-5D: what was tested against real data, and how it came out
 
-**Real data.** The ground truth is Bintu et al., *Science* 2018 (chromatin tracing). It gives the
-measured 3D position, in nanometres, of every 30 kb piece of DNA, in thousands of individual human
-cells. Public data: github.com/BogdanBintu/ChromatinImaging.
+This file records every held-out test of ChronoCell-5D, including the ones it failed. Every number
+in a table is generated from a result file by `python validation/report.py`. The text explains
+them.
 
-**Rerun:**
-- `python validation/validate_tracing.py` runs the test datasets (about 2 minutes).
-- `python validation/validate_tracing.py --practice` runs the tuning datasets.
+**Research software, not a diagnostic.** Nothing here is a clinical or regulatory validation.
 
-On the first run the data downloads into `validation/data/`, which is not committed. Raw numbers are
-in `validation/results.json` and `validation/results_practice.json`.
+## Rules every test follows
 
-## How it was measured
+- **Two scores, never mixed.**
+  - *Contact-map fit* compares the model with its own input. It shows the fit converged and is not
+    evidence of accuracy.
+  - *Microscopy accuracy* compares the model's distances with measurements it never saw.
+  - The population's cell-to-cell spread is reported as *ensemble consistency*, never as accuracy.
+- **Held out.** Imaged chromosome copies are split at random into halves A and B. The model sees
+  only half A's contact frequencies (or sequencing Hi-C). Half B's measured median distances are
+  the answer key.
+- **Score.** Trend-removed Spearman ρ (agreement beyond "further along the DNA = further apart")
+  as a percentage of the *ceiling*, which is how well half A's own medians agree with half B.
+  Raw Spearman, Lin's concordance (CCC, absolute size in nm) and the median size ratio are also
+  given.
+- **Practice vs test.** Every setting was chosen on practice datasets
+  (`validation/datasets.py`, role `practice`) and frozen in `validation/frozen.py` before the test
+  datasets were run once. The tuning record is `validation/TUNING.md`.
+- **Synthetic data** (the reference chr22 model, demo patients) are never used for an accuracy
+  claim. They appear only in cost measurements and are labelled there.
 
-1. **Split** the cells of each experiment at random into half A and half B.
-2. **Input:** from half A, keep only how often each pair of DNA pieces touches (closer than 150 nm).
-   This is the same kind of information Hi-C gives. Every distance in half A is thrown away.
-3. **Build:** ChronoCell-5D builds its 3D model from those touch frequencies alone.
-4. **Answer key:** half B's measured median distance between every pair of pieces. The model never
-   saw half B.
-5. **Score (microscopy accuracy):** rank agreement with the answer key (Spearman ρ) after removing
-   the obvious "further along the DNA = further apart" trend. It is expressed as a fraction of the
-   **ceiling**, which is how well the two halves of the real experiment agree with each other.
-   - Three datasets × three random splits.
-   - **Overall = Σ model / Σ ceiling.** This rule was fixed before any tuning, so the noisy
-     low-structure dataset cannot dominate.
+## Data
 
-## Two scores, never mixed
+| Data | Role | Cell line | Source and citation | Licence |
+|---|---|---|---|---|
+| Chromatin tracing, chr21 2–2.5 Mb regions, 30 kb steps | practice and test (see roles) | IMR-90, A549, K562, HCT116 (± auxin) | Bintu et al., *Science* 362, eaau1783 (2018); github.com/BogdanBintu/ChromatinImaging | no licence file (all rights reserved by default): downloaded on demand, not redistributed |
+| Sequential-hybridisation tracing, chr21 (651 loci) and chr2 (935 loci); genome-scale DNA-MERFISH (1,041 loci) | chr2: practice; chr21 and genome: test | IMR-90 | Su et al., *Cell* 182, 1641 (2020); Zenodo 3928890 | CC-BY-4.0, downloaded on demand |
+| In situ Hi-C (MAPQ ≥ 30) | input (with the tracing truth); GM12878 and K562 for the SV test | IMR-90, K562, GM12878 | Rao et al., *Cell* 159, 1665 (2014); GEO GSE63525 (read remotely by region) | public GEO data, citation required |
+| CTCF ChIP-seq IDR peaks (GRCh38) | Gate 5 input | IMR-90, A549, K562, HCT116 | ENCODE (ENCFF670ULH, ENCFF624ZSR, ENCFF582SNT, ENCFF470EAN); ENCODE Project Consortium, *Nature* 583, 699 (2020) | public ENCODE data, citation requested |
+| hg38 sequence (chr2, chr21) | Gate 5 input | — | UCSC hg38 (GRCh38) | freely available |
+| CTCF motif MA0139.1 | Gate 5 input | — | JASPAR 2024, *Nucleic Acids Res* 52, D174 (2024) | CC BY 4.0 |
 
-| Score | What it compares | What it proves |
-|---|---|---|
-| **Contact-map fit** | the model's contacts vs the **input** (half A) | the fit converged. It is *not* evidence of accuracy: any good optimiser scores high here. |
-| **Microscopy accuracy** | the model's distances vs **unseen** measurements (half B) | whether the 3D model is right |
+Every downloaded file is checked against the checksum its source publishes, and recorded with its
+SHA-256 in `validation/data_manifest.json`. The data themselves are not committed.
 
-## Held-out protocol (why the number is credible)
+## Summary
 
-- **Tuning used only practice datasets:** K562 28–30 Mb, HCT116 28–30 Mb (untreated and 6 h auxin),
-  and HCT116 34–37 Mb.
-- **The three test datasets below played no part in any design choice.** They were run once, after
-  the settings were frozen (see `UPDATES.md`, 28 September 2026).
+| Gate | Question | Result | Verdict |
+|---|---|---|---|
+| 1 | Does the whole-chromosome model at least match the windowed v3.3 model on the same regions? | Su chr21, 651 loci: 94.4 vs 94.4 % of the ceiling, and 96.2 vs 96.7 % on the replicate. It also predicts the cross-window pairs (89–93 %) that v3.3 cannot. | **Matches**, but slightly below: by 0.05–0.06 and 0.47–0.54 points, in every split |
+| 1b | Do sequencing Hi-C contacts give the right distances? | Ranks: 80–85 % of the ceiling. Absolute sizes: no (CCC 0.22–0.33). | **Ranks yes, nanometres no** |
+| 2 | Are the stated intervals honest? | Raw 90 % intervals cover 71–84 %. After recalibration fitted on practice data: 83–91 %. Short separations are worst. Per-bead reliability does not predict error. | **Recalibrated intervals usable for imaging-derived input; not for Hi-C input; no per-bead reliability** |
+| 3 | Benchmark against baselines and published tools | see below | see below |
+| 4 | Does the cohesin-loss prediction match real RAD21 depletion? | Held-out region: change agreement 0.868 vs 0.336 for a trend-only shift | **Pass, on one region** |
+| 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
+| 5 | Can sequence + CTCF predict distances with no contact data? | see below | see below |
 
-## Results on the held-out test datasets (mean over 3 splits)
+## Gate 1 — whole chromosome at once (Pillar 1)
+
+**Question.** v3.3 fits a population model to windows of at most 400 beads. Does the v4 model,
+which fits a whole chromosome at once (`chronocell/population.py`), at least match it on the same
+regions?
+
+**Test** (`python validation/gate1.py --test`, run once after `GATE1` was frozen). Su et al. chr21,
+651 loci at 50 kb, IMR-90, held out, plus its replicate; 3 random splits each. The windowed model
+fits the fewest equal tiles of ≤ 400 loci. "Within tiles" compares the two models on the same
+pairs. "Cross tiles" pairs can only be predicted by the whole-chromosome model.
+
+<!-- BEGIN generated:gate1 -->
+**su_chr21** (651 loci, 7541 copies; mean over 3 splits; test)
+
+| Input | Pairs | Model | % of ceiling | Raw ρ | CCC (nm) | Size ratio |
+|---|---|---|---|---|---|---|
+| imaging | within tiles | windowed_v3_3 | 94.4 % | 0.967 | 0.934 | 0.93 |
+| imaging | within tiles | whole_v4 | 94.4 % | 0.967 | 0.933 | 0.93 |
+| imaging | within tiles | no_3d_direct_inversion | 92.2 % | 0.955 | 0.927 | 0.94 |
+| imaging | within tiles | genomic_distance_only | -0.1 % | 0.731 | 0.751 | 1.00 |
+| imaging | cross tiles | whole_v4 | 89.2 % | 0.906 | 0.833 | 0.94 |
+| imaging | cross tiles | no_3d_direct_inversion | 82.8 % | 0.848 | 0.789 | 0.95 |
+| imaging | cross tiles | genomic_distance_only | -0.0 % | 0.568 | 0.577 | 1.00 |
+| imaging | all pairs | whole_v4 | 91.7 % | 0.954 | 0.921 | 0.93 |
+| imaging | all pairs | no_3d_direct_inversion | 87.5 % | 0.929 | 0.901 | 0.94 |
+| imaging | all pairs | genomic_distance_only | -0.1 % | 0.749 | 0.796 | 1.00 |
+| hic | within tiles | windowed_v3_3[literature_b0] | 81.1 % | 0.909 | 0.287 | 0.53 |
+| hic | within tiles | whole_v4[literature_b0] | 81.3 % | 0.909 | 0.286 | 0.53 |
+| hic | within tiles | windowed_v3_3[practice_calibrated_b0] | 81.1 % | 0.909 | 0.306 | 1.68 |
+| hic | within tiles | whole_v4[practice_calibrated_b0] | 81.3 % | 0.909 | 0.306 | 1.68 |
+| hic | cross tiles | whole_v4[literature_b0] | 90.2 % | 0.928 | 0.218 | 0.61 |
+| hic | cross tiles | whole_v4[practice_calibrated_b0] | 90.2 % | 0.928 | 0.121 | 1.93 |
+| hic | all pairs | whole_v4[literature_b0] | 84.7 % | 0.930 | 0.328 | 0.57 |
+| hic | all pairs | whole_v4[practice_calibrated_b0] | 84.7 % | 0.930 | 0.244 | 1.80 |
+
+Whole − windowed, imaging input, within tiles, per split: -0.06, -0.05, -0.06 points.
+
+**su_chr21_rep** (651 loci, 4539 copies; mean over 3 splits; test)
+
+| Input | Pairs | Model | % of ceiling | Raw ρ | CCC (nm) | Size ratio |
+|---|---|---|---|---|---|---|
+| imaging | within tiles | windowed_v3_3 | 96.7 % | 0.977 | 0.924 | 0.93 |
+| imaging | within tiles | whole_v4 | 96.2 % | 0.974 | 0.920 | 0.93 |
+| imaging | within tiles | no_3d_direct_inversion | 95.6 % | 0.971 | 0.922 | 0.93 |
+| imaging | within tiles | genomic_distance_only | -0.0 % | 0.682 | 0.696 | 1.02 |
+| imaging | cross tiles | whole_v4 | 93.1 % | 0.920 | 0.781 | 0.91 |
+| imaging | cross tiles | no_3d_direct_inversion | 89.5 % | 0.880 | 0.772 | 0.91 |
+| imaging | cross tiles | genomic_distance_only | -0.0 % | 0.501 | 0.492 | 0.98 |
+| imaging | all pairs | whole_v4 | 94.7 % | 0.960 | 0.892 | 0.92 |
+| imaging | all pairs | no_3d_direct_inversion | 92.7 % | 0.945 | 0.886 | 0.92 |
+| imaging | all pairs | genomic_distance_only | -0.0 % | 0.702 | 0.745 | 1.00 |
+| hic | within tiles | windowed_v3_3[literature_b0] | 75.6 % | 0.875 | 0.259 | 0.53 |
+| hic | within tiles | whole_v4[literature_b0] | 75.7 % | 0.875 | 0.258 | 0.53 |
+| hic | within tiles | windowed_v3_3[practice_calibrated_b0] | 75.6 % | 0.875 | 0.283 | 1.67 |
+| hic | within tiles | whole_v4[practice_calibrated_b0] | 75.7 % | 0.875 | 0.283 | 1.67 |
+| hic | cross tiles | whole_v4[literature_b0] | 87.9 % | 0.906 | 0.221 | 0.62 |
+| hic | cross tiles | whole_v4[practice_calibrated_b0] | 87.9 % | 0.906 | 0.112 | 1.95 |
+| hic | all pairs | whole_v4[literature_b0] | 80.4 % | 0.907 | 0.312 | 0.58 |
+| hic | all pairs | whole_v4[practice_calibrated_b0] | 80.4 % | 0.907 | 0.223 | 1.81 |
+
+Whole − windowed, imaging input, within tiles, per split: -0.54, -0.47, -0.48 points.
+<!-- END generated:gate1 -->
+
+**Reading.**
+- **Gate 1 passes in substance, not strictly.** Within tiles the whole-chromosome model is
+  0.05–0.06 points below the windowed model on chr21 and 0.47–0.54 points below on the replicate.
+  It is below in every split. The gap is small and consistent. We report it as "matches, slightly
+  below", not "beats".
+- **What the whole-chromosome fit adds** is the cross-window pairs: 89.2 % and 93.1 % of the
+  ceiling, where v3.3 has no prediction. It also beats inverting each contact frequency on its own
+  (no 3D) on every pair set.
+- **Hi-C input (Gate 1b).** Sequencing Hi-C, binned on the imaged loci, gives the right ranks:
+  80–85 % of the ceiling on all pairs, against 92–95 % from imaging-derived contacts. It does not
+  give the right nanometres. With the literature b₀ the model is about 0.57× the measured size.
+  With an anchor calibrated on practice data it is 1.8×, overcorrected. CCC is 0.22–0.33 either
+  way. **Absolute distances from Hi-C input are not calibrated, and the app says so.**
+- **Ensemble consistency** (cell-to-cell CV of the model, 0.43 on chr21) is reported next to these
+  numbers and is not an accuracy.
+
+## Gate 2 — are the stated intervals honest? (Pillar 2)
+
+**What is stated.** For every pair of loci the population predicts a distribution of distances
+across cells: a Maxwell law with per-axis σ_ij, exact from the fitted ensemble. Hence a mean, SD,
+median and central 50 / 80 / 90 % interval (`population.pair_summary`), shown in the app's distance
+probe.
+
+**Test** (`python validation/calibration.py --test`, run once). Does the stated interval contain
+that share of half B's *single-copy* distances? Recalibration (Kuleshov et al., ICML 2018, quantile
+recalibration on the PIT histogram) was fitted on the six practice datasets, each weighted equally.
+It was frozen in `chronocell/data/calibration.json` before this run. The last column is the Spearman
+correlation between the per-bead reliability score (input-only) and minus the bead's held-out
+error.
+
+<!-- BEGIN generated:gate2 -->
+test (run once; recalibration frozen); recalibration fitted on bintu_k562_28_30, bintu_hct116_28_30, bintu_hct116_28_30_auxin, bintu_hct116_34_37, su_chr2, su_chr2_parm_rep.
+
+| Test dataset | Loci | Model | Stated 50 / 80 / 90 %: raw | Recalibrated | Reliability vs error (ρ) |
+|---|---|---|---|---|---|
+| bintu_imr90_28_30 | 65 | ensemble_v3_3 | 46 / 75 / 84 % | 52 / 82 / 91 % | +0.04 |
+| bintu_imr90_18_20 | 65 | ensemble_v3_3 | 35 / 60 / 71 % | 41 / 71 / 83 % | -0.16 |
+| bintu_a549_28_30 | 65 | ensemble_v3_3 | 42 / 69 / 79 % | 48 / 78 / 88 % | +0.14 |
+| bintu_hct116_34_37_auxin | 83 | ensemble_v3_3 | 42 / 70 / 81 % | 49 / 79 / 90 % | +0.17 |
+| su_chr21 | 651 | population_v4 | 43 / 71 / 82 % | 50 / 80 / 90 % | +0.02 |
+| su_chr21_rep | 651 | population_v4 | 42 / 69 / 80 % | 49 / 79 / 90 % | +0.28 |
+
+Coverage of the stated 90 % interval by genomic separation (raw → recalibrated):
+
+| Test dataset | 0–0.1 Mb | 0.1–0.3 Mb | 0.3–1 Mb | 1–3 Mb | 3–10 Mb | 10–300 Mb |
+|---|---|---|---|---|---|---|
+| bintu_imr90_28_30 | 72 → 81 % | 80 → 88 % | 86 → 92 % | 90 → 94 % | — | — |
+| bintu_imr90_18_20 | 64 → 76 % | 71 → 83 % | 72 → 84 % | 71 → 84 % | — | — |
+| bintu_a549_28_30 | 72 → 80 % | 76 → 86 % | 81 → 90 % | 80 → 89 % | — | — |
+| bintu_hct116_34_37_auxin | 75 → 84 % | 83 → 91 % | 83 → 91 % | 78 → 89 % | — | — |
+| su_chr21 | 67 → 74 % | 71 → 79 % | 76 → 84 % | 81 → 89 % | 82 → 90 % | 82 → 91 % |
+| su_chr21_rep | 65 → 74 % | 70 → 79 % | 75 → 84 % | 81 → 89 % | 81 → 90 % | 80 → 90 % |
+<!-- END generated:gate2 -->
+
+**Reading.**
+- **The raw intervals are too narrow on every test set.** A stated 90 % interval holds 71–84 % of
+  real single-cell distances. Real cells vary more than a Gaussian population allows.
+- **Recalibration helps, and its parameters were fitted only on practice data.** The 90 % interval
+  then holds 83–91 %, and the 50 % interval 41–52 %. It is applied in the app (probe interval)
+  only to imaging-like contact input.
+- **Where the intervals cannot be trusted:**
+  - close pairs (< 100 kb): 74–84 % even after recalibration;
+  - the low-structure IMR-90 18–20 Mb region: 83 % at the 90 % level;
+  - **Hi-C input**: coverage is far below nominal (benchmark, Gate 3).
+- **Per-bead reliability does not predict per-bead error** on test data (ρ from −0.16 to +0.28).
+  The score is shown only as "fit consistency" and is not offered as a reliability.
+
+## Gate 3 — benchmark (Pillar 3)
+
+**Harness.** One command, `python -m validation.benchmark.run` (test) or `--practice`. Every
+method gets the same input for a split and is scored against the same held-out truth, with 95 %
+intervals from resampling half B's copies.
+
+- **Baselines:** genomic distance only (a power law fitted on half A's *measured* medians, which
+  the other methods never see); no 3D (each frequency inverted on its own).
+- **ChronoCell:** v3.2 single structure; v3.3 windowed; v4 whole chromosome.
+- **Published tools that run here:** PASTIS 0.4.0 (MDS and PM2; Varoquaux et al., *Bioinformatics*
+  2014), its own code run unmodified from the official source distribution (SHA-256 checked).
+- **Not run, with reasons** (no numbers are claimed for them):
+  - ShRec3D: MATLAB only;
+  - Chrom3D: C++ with Boost, needs lamina data;
+  - 3DMax / LorDG: Java, no runtime here;
+  - C.Origami: needs pyBigWig, which has no build on this Windows machine, and was trained on
+    IMR-90 Hi-C including chr21, so an IMR-90 chr21 comparison would be in-sample.
+
+<!-- BEGIN generated:gate3 -->
+_validation/benchmark/results.json: not run (python -m validation.benchmark.run)._
+<!-- END generated:gate3 -->
+
+_Reading: pending (the held-out benchmark run had not finished when this was written)._
+
+## Gate 4 — perturbations and variants (Pillar 4)
+
+**Cohesin depletion** (`chronocell/perturb.py`, `validation/perturbation.py`). Parameters were
+fitted on one practice pair (HCT116 chr21:28–30 Mb, untreated → 6 h auxin, RAD21 degraded;
+`validation/TUNING.md` §8). They were tested once on the held-out region chr21:34–37 Mb. Input:
+untreated half-A contacts. Truth: the auxin cells' measured medians.
+
+**Structural variants** (`validation/sv_validation.py`, pre-registered in `frozen.SV_VALIDATION`).
+K562 has two chr9 regions lost entirely, which include CDKN2A/CDKN2B (Zhou et al., *Genome Res*
+2019). The test fits the population model to GM12878 (normal karyotype) Hi-C, applies the deletions,
+and predicts K562's Hi-C counts for pairs that span the deletions. Nothing is fitted on K562.
+
+<!-- BEGIN generated:gate4 -->
+Cohesin depletion — bintu_hct116_34_37 -> bintu_hct116_34_37_auxin; test (held out; run once with frozen parameters).
+
+| Prediction | Change agreement (Spearman) | Change RMSE (log) | CCC vs auxin (nm) | Raw ρ vs auxin | % of auxin ceiling |
+|---|---|---|---|---|---|
+| full model | 0.868 | 0.077 | 0.923 | 0.965 | 74.2 % |
+| trend only | 0.336 | 0.145 | 0.827 | 0.899 | 74.5 % |
+| no change | — | 0.298 | 0.724 | 0.908 | 74.5 % |
+| data only reference | 0.336 | 0.145 | 0.888 | 0.910 | 77.6 % |
+
+Structural variants — Zhou et al., Genome Res 29:472-484 (2019), K562: two chr9 regions lost entirely; window chr9:16,000,000-36,000,000 (800 bins of 25 kb); 6,475 pairs across the deletions (new separation 50 kb – 2 Mb).
+
+| Prediction of K562 counts | Spearman [95 % block-bootstrap interval] |
+|---|---|
+| model | +0.083 [-0.068, +0.228] |
+| distance shift | +0.149 [-0.018, +0.311] |
+| no change | +0.424 [+0.329, +0.512] |
+| model minus distance shift | -0.066 [-0.187, +0.052] |
+| model trend removed | -0.068 [-0.233, +0.078] |
+
+Check: K562 reads on the published deleted bins = 0.0004 of the kept bins (GM12878: 0.63). Verdict: **not validated (mechanism simulator)**.
+
+Post hoc (after the verdict; cannot change it): K562 contacts across each junction as a fraction of a contiguous chain at the same separation (1 = joined on every copy):
+
+| Junction (kept end – kept start) | s′ = 1 | 2 | 4 | 8 | 16 bins |
+|---|---|---|---|---|---|
+| 20.75 – 26.60 Mb | 0.000 | 0.000 | 0.000 | 0.000 | 0.003 |
+| 28.55 – 31.62 Mb | 0.188 | 0.160 | 0.186 | 0.303 | 0.286 |
+<!-- END generated:gate4 -->
+
+**Reading.**
+- **Cohesin loss: pass on the held-out region.** The predicted change agrees with the measured
+  change far better than a separation-only shift (0.868 vs 0.336). The absolute auxin map is closer
+  too (CCC 0.923 vs 0.724 with no change). The caveat is in TUNING.md §8: on its own practice pair
+  the domain term did *not* help (0.112 vs 0.312). The effect is region-dependent, and one test
+  region is not a general validation.
+- **Structural variants: not validated.**
+  - The published deletions are real in the data: K562 reads on the deleted bins are 0.04 % of the
+    flanks.
+  - The prediction is worse than a plain genomic-distance shift. Both lose to "no change".
+  - The post hoc check shows why. Across the first junction, K562 has *no* contacts, so the kept
+    pieces are not joined there. Across the second junction, contacts are 16–30 % of a contiguous
+    chain, consistent with a join on only some copies.
+  - The simulator assumes the variant list fully describes how the pieces are joined. A list of
+    deleted intervals does not.
+  - In the app the SV tools are labelled "mechanism simulator, not validated", with these numbers.
+- **Drug-lab mechanisms** (loop-extrusion, compaction and similar what-ifs) have no matching
+  perturbation data here and stay labelled "not validated".
+
+## Gate 5 — prediction without contact data (Pillar 5)
+
+**Model** (`chronocell/predict.py`). CTCF peaks of the same cell line (ENCODE), oriented by the
+JASPAR CTCF motif, plus GC per locus give 12 pair features. A ridge regression on the trend-removed
+log distance was fitted on the four untreated practice datasets (TUNING.md §11). It uses no
+contact data from the target region. **Baseline:** the same training trend in genomic separation,
+with no features. **Pass rule** (pre-registered): on ≥ 3 of 5 test datasets, % of ceiling > 0 with
+its 95 % interval above 0, *and* raw Spearman above the baseline. The cohesin-depleted set is a
+control (CTCF-anchored loops need cohesin) and is not in the rule.
+
+<!-- BEGIN generated:gate5 -->
+_results_predictor.json: not run._
+<!-- END generated:gate5 -->
+
+_Reading: pending (the Gate 5 test run had not finished when this was written)._
+
+## Cost (Pillar 1): runtime and peak memory against bead count
+
+`python validation/scale_benchmark.py`: each run in its own process. Input: windows of the
+**synthetic** reference chr22 contact map, up to the whole chromosome (5,082 beads at 10 kb). These
+rows measure cost only, not accuracy.
+
+<!-- BEGIN generated:scale -->
+_validation/scale_benchmark.json: not run (python validation/scale_benchmark.py)._
+<!-- END generated:scale -->
+
+## Per-chromosome runtime (Pillar 6)
+
+<!-- BEGIN generated:per_chromosome -->
+_validation/chromosome_runtime.json: not run (python validation/chromosome_runtime.py)._
+<!-- END generated:per_chromosome -->
+
+## What is new here, and what is not
+
+- **Not new:**
+  - the maximum-entropy Gaussian polymer ensemble (HIPPS / DIMES: Shi & Thirumalai, *Phys Rev X*
+    2019; *Nat Commun* 2023);
+  - the tracing data (Bintu et al. 2018; Su et al. 2020) and the Hi-C (Rao et al. 2014);
+  - quantile recalibration (Kuleshov et al. 2018);
+  - CTCF-orientation features (the convergent-CTCF loop rule: Rao et al. 2014; Fudenberg et al.,
+    *Cell Rep* 2016).
+- **New in this repository:**
+  - a low-rank-plus-random-walk parameterisation with exact block gradients, so the ensemble fits
+    a whole chromosome (6,000 beads) on a CPU;
+  - per-pair intervals with a held-out calibration test;
+  - an exact covariance-space construction for rearranged chromosomes;
+  - one harness that scores all of it, and published baselines, against held-out imaging, with
+    the failures kept.
+
+---
+
+# v3.3 baseline (September 2026)
+
+The v3.3 test results below were obtained with `python validation/validate_tracing.py`. They remain
+valid for the windowed model (Bintu et al. 2018 regions, 150 nm contact radius, 3 splits).
+Two limits listed at the end of this section are addressed above: the whole-chromosome
+model (Gate 1) and the direct Hi-C → imaging test (Gate 1b).
+
+## v3.3 results on the held-out test datasets (mean over 3 splits)
 
 | Dataset (cells) | v3.2 single structure | **v3.3 population model** | 100 sampled trajectories | No 3D (direct inversion) | Ceiling ρ |
 |---|---|---|---|---|---|
@@ -75,7 +360,7 @@ Practice datasets, for comparison (Σ/Σ over 4 datasets × 3 splits): v3.2 48 %
   100 sampled trajectories, which give the same score.
 - Code: `chronocell/ensemble.py`; tests: `tests/test_v33.py`.
 
-## Honest reading
+## Honest reading (v3.3)
 
 - **On regions with real structure the target is met.** The model recovers 88–91 % of the structure
   the experiment itself can reproduce, up from 39–54 % in v3.2.
