@@ -344,6 +344,20 @@ def fmt(x, nd: int = 1) -> str:
     return "—" if not math.isfinite(x) else f"{x:,.{nd}f}"
 
 
+def telemetry_row(model: str, g_lo: int, g_hi: int, n: int, stage: str, seconds: float, device: str,
+                  energy: float | None, contact_fit: float | None, consistency: float | None = None) -> dict:
+    """One measured row of the execution-telemetry table. Microscopy accuracy needs imaging ground truth,
+    which a user's window does not have, so it is never filled in here (the method's held-out benchmark is
+    shown separately under Accuracy)."""
+    ok = lambda v: v is not None and np.isfinite(v)  # noqa: E731
+    return {"Model": model, "Window": f"{g_lo:,}–{g_hi - 1:,}", "Beads": n, "Stage": stage,
+            "Time (s)": round(float(seconds), 2), "ms / bead": round(1000 * float(seconds) / max(n, 1), 2),
+            "Device": device, "Contact-map fit": round(float(contact_fit), 3) if ok(contact_fit) else None,
+            "Microscopy accuracy": None,
+            "Ensemble consistency (CV)": round(float(consistency), 3) if ok(consistency) else None,
+            "Energy (final objective)": round(float(energy), 5) if ok(energy) else None}
+
+
 def banner(text: str, kind: str = "warn") -> None:
     html(f'<div class="cc-banner {kind}">{text}</div>')
 

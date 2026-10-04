@@ -14,8 +14,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from chronocell import formats, genome, scenarios as SC, snapshot as SN, theme as T, viz
-from ui.common import Dataset, banner, clamp_window, fmt, html, readout
+from chronocell import formats, genome, scenarios as SC, snapshot as SN, svio, theme as T, viz
+from ui import variant_impact as VI
+from ui.common import Dataset, banner, clamp_window, esc, fmt, html, readout
 
 OPERATIONS = ("deletion", "duplication", "inversion", "translocation")
 KIND_NAMES = ("native", "duplicated copy", "translocation partner", "inverted")
@@ -43,18 +44,65 @@ def _hover(traj: SC.Trajectory, res: int) -> list[str]:
     return out
 
 
+@st.cache_data(show_spinner=False, max_entries=8)
+def _read_variants(data: bytes | str, name: str, assembly: str) -> svio.VariantFile:
+    return svio.read_any(data, name, lambda c: genome.normalize_chrom(c, assembly))
+
+
+def _file_scenario(ds: Dataset) -> tuple[str, dict, str, str] | None:
+    """A structural variant from a VCF / BEDPE file (or pasted lines), mapped onto the loaded window."""
+    ch = ds.chrom
+    up = st.file_uploader("Variant file (VCF or BEDPE; .gz accepted)", type=["vcf", "bedpe", "gz", "txt", "tsv"],
+                          key="sc_vfile")
+    text = st.text_area("…or paste VCF / BEDPE lines", key="sc_vtext", height=80,
+                        placeholder="chr22  23180000  23180100  chr22  23320000  23320100  del1  0  +  -")
+    if up is not None:
+        data, name = up.getvalue(), up.name
+    elif text.strip():
+        data, name = text, "pasted"
+    else:
+        html(f'<p class="cc-note">VCF (SVTYPE DEL / DUP / INV / BND, symbolic or breakend ALTs) or BEDPE (strands or a '
+             f'type column), on {ch.genome.short}. Any chromosome naming works (chr9, 9, NC_000009.12).</p>')
+        return None
+    vf = _read_variants(data, name, ch.assembly)
+    partners = tuple(genome.main_chromosomes(ch.assembly))
+    usable, reasons = [], []
+    for v in vf.variants:
+        sc = svio.to_scenario(v, ch.name, ch.resolution, ds.bin0, ds.n, partners)
+        if isinstance(sc, tuple):
+            usable.append((v, sc))
+        else:
+            reasons.append(f"{svio.label(v)}: {sc}")
+    dels = svio.deletion_segments(vf.variants, ch.name, ch.resolution, ds.bin0, ds.n)
+    st.session_state.setdefault("sc_file_deletions", {})[ds.key] = dels
+    html(f'<p class="cc-note">{vf.format}: {len(vf.variants)} variants read, {len(usable)} on the loaded window'
+         f'{f", {len(vf.skipped)} lines skipped" if vf.skipped else ""}.</p>')
+    if reasons or vf.skipped:
+        items = "".join(f"<li>{esc(x)}</li>" for x in (reasons + vf.skipped)[:50])
+        html(f'<details class="cc-note"><summary>Not applied ({len(reasons) + len(vf.skipped)})</summary><ul>{items}</ul></details>')
+    if not usable:
+        return None
+    k = st.selectbox("Variant", list(range(len(usable))), format_func=lambda t: svio.label(usable[t][0]), key="sc_vpick")
+    v, (op, params) = usable[k]
+    return op, params, f"{v.kind} from a variant file", f"{svio.label(v)}, read from {name}."
+
+
 def _scenario_controls(ds: Dataset, b0: float) -> tuple[str, dict, str, str] | None:
-    """Preset or custom structural variant; every numeric input is clamped to the loaded data."""
+    """Preset, custom or file-based structural variant; every numeric input is clamped to the loaded data."""
     ch = ds.chrom
     presets = [p for p in SC.PRESETS.values() if p.assembly == ch.assembly]       # gene anchors are per assembly
     here = [p for p in presets if p.chrom == ch.name]
     elsewhere = [p for p in presets if p.chrom != ch.name]
-    options = [p.key for p in here] + ["custom"]
-    names = {p.key: p.title for p in here} | {"custom": "Custom structural variant"}
+    options = [p.key for p in here] + ["custom", "file"]
+    names = {p.key: p.title for p in here} | {"custom": "Custom structural variant",
+                                              "file": "From a variant file (VCF / BEDPE)"}
     choice = st.selectbox("Scenario", options, format_func=lambda k: names[k], key=f"sc_choice_{ch.name}")
     if elsewhere:
         html('<p class="cc-note">Other presets: ' + " · ".join(f"{p.title} ({p.chrom})" for p in elsewhere) +
              ' — switch chromosome to use them.</p>')
+    if choice == "file":
+        return _file_scenario(ds)
+    st.session_state.get("sc_file_deletions", {}).pop(ds.key, None)
     size_mb = ch.size / 1e6
     lo_mb, hi_mb = float(ch.bin_start(ds.bin0)) / 1e6, float(ch.bin_end(ds.bin0 + ds.n - 1)) / 1e6
 
@@ -123,6 +171,7 @@ def render(ds: Dataset, conditions: list[Dataset], b0: float, frame: int) -> Non
                                     key=f"fourd_mode_{ds.key}")
 
     col_view, col_insp = st.columns([2.2, 1], gap="large")
+    spec = None
     with col_insp, st.container(height=900, key="inspector", border=False):
         with st.expander("01   Scenario & frames", expanded=True):
             if mode == "Simulated scenario":
@@ -216,6 +265,10 @@ def render(ds: Dataset, conditions: list[Dataset], b0: float, frame: int) -> Non
             if have:
                 c2.download_button("Animated GIF", st.session_state.fourd_gif[1], f"{stem}.gif", "image/gif",
                                    width="stretch", icon=":material/animation:", key="fourd_gif_dl")
+
+        if mode == "Simulated scenario" and spec is not None:
+            with st.expander("04   Variant impact · contacts, genes, E–P pairs", expanded=False):
+                VI.render(ds, frame, float(b0), spec[0], dict(spec[1]), spec[2])
 
     # ---- title + stage ----------------------------------------------------------------------
     with head_l:

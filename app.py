@@ -89,7 +89,7 @@ with _LOCK:
                                     pdf_report, physics, provenance as PROV, snapshot as SN, states as S, theme as T, viz)
             from ui import agent_panel, compare, drug_lab, four_d, genes_view, guide, states_panel
             from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
-                                   readout, slot_files, slot_graph, warning_card)
+                                   readout, slot_files, slot_graph, telemetry_row, warning_card)
             break
         except (KeyError, ImportError):
             # A file saved while this run was importing: the watcher unloaded a module mid-import.
@@ -195,20 +195,6 @@ def population_rmsf(view_key: str, _population) -> np.ndarray:
 @st.cache_data(show_spinner=False)
 def equivariance_report() -> dict:
     return egnn.equivariance_check(n=300, seed=0)
-
-
-def telemetry_row(model: str, g_lo: int, g_hi: int, n: int, stage: str, seconds: float, device: str,
-                  energy: float | None, contact_fit: float | None, consistency: float | None = None) -> dict:
-    """One measured row of the execution-telemetry table. Microscopy accuracy needs imaging ground truth,
-    which a user's window does not have, so it is never filled in here (the method's held-out benchmark is
-    shown separately under Accuracy)."""
-    ok = lambda v: v is not None and np.isfinite(v)  # noqa: E731
-    return {"Model": model, "Window": f"{g_lo:,}–{g_hi - 1:,}", "Beads": n, "Stage": stage,
-            "Time (s)": round(float(seconds), 2), "ms / bead": round(1000 * float(seconds) / max(n, 1), 2),
-            "Device": device, "Contact-map fit": round(float(contact_fit), 3) if ok(contact_fit) else None,
-            "Microscopy accuracy": None,
-            "Ensemble consistency (CV)": round(float(consistency), 3) if ok(consistency) else None,
-            "Energy (final objective)": round(float(energy), 5) if ok(energy) else None}
 
 
 def best_fit_window(ds: Dataset, width: int = 800) -> tuple[int, int]:
