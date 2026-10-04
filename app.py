@@ -647,7 +647,7 @@ if workspace == "Compare":
     healthy = state_datasets.get(S.HEALTHY)
     left_i = keys.index(healthy.key) if healthy is not None and healthy.key in keys and healthy.key != ds.key else 0
     right_i = cur if cur != left_i else (1 if len(options) > 1 and left_i == 0 else 0)
-    compare.render(options, left_i, right_i, float(b0))
+    compare.render(options, left_i, right_i, float(b0), populations=ss.get("ensembles", {}))
     status_bar()
     st.stop()
 
