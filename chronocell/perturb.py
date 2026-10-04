@@ -137,7 +137,27 @@ class Piece:
     kind: int                # NATIVE | COPY | PARTNER | INVERTED
 
 
+def deletion_pieces(n: int, segments) -> tuple[list[Piece], str]:
+    """Kept runs between one or more deleted half-open bead intervals [a, b), in order."""
+    drop = np.zeros(n, bool)
+    for a, b in segments:
+        a, b = max(0, int(a)), min(n, int(b))
+        if b > a:
+            drop[a:b] = True
+    if not drop.any():
+        raise ValueError("Empty deletion.")
+    if drop.all():
+        raise ValueError("The deletion removes every bead.")
+    keep = np.flatnonzero(~drop)
+    runs = np.split(keep, np.flatnonzero(np.diff(keep) > 1) + 1)
+    edges = np.flatnonzero(np.diff(np.r_[0, drop.astype(np.int8), 0]))
+    spans = ", ".join(f"{a}-{b - 1}" for a, b in zip(edges[::2], edges[1::2]))
+    return [Piece(r, "native", NATIVE) for r in runs], f"deletion of beads {spans}"
+
+
 def pieces_for(op: str, n: int, params: dict) -> tuple[list[Piece], str]:
+    if op == "deletion" and "segments" in params:
+        return deletion_pieces(n, params["segments"])
     if op == "deletion":
         a, b = max(1, int(params["a"])), min(n - 1, int(params["b"]))
         if b <= a:

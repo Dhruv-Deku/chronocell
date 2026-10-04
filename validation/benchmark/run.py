@@ -335,7 +335,8 @@ def main() -> None:
                                                    "not_run": M.NOT_RUN, "rows": rows}, indent=1, default=float))
     md = table_md(summ, "Benchmark: practice datasets (tuning allowed; in-sample)" if a.practice else
                   "Benchmark: held-out test datasets", losses, M.NOT_RUN, meta)
-    (HERE / ("RESULTS_TABLE_practice.md" if a.practice else "RESULTS_TABLE.md")).write_text(md, encoding="utf-8")
+    md_name = f"{a.out}.md" if a.out else ("RESULTS_TABLE_practice.md" if a.practice else "RESULTS_TABLE.md")
+    (HERE / md_name).write_text(md, encoding="utf-8")
     print(f"-> {HERE / (stem + '.json')} ({meta['seconds']:.0f} s); {len(losses)} 'where we lose' entries")
 
 
