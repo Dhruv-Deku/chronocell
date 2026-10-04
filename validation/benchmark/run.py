@@ -3,6 +3,9 @@ Benchmark harness (Pillar 3), one command:
 
     python -m validation.benchmark.run                 # test datasets  -> validation/benchmark/results.json + RESULTS_TABLE.md
     python -m validation.benchmark.run --practice      # practice datasets -> results_practice.json + RESULTS_TABLE_practice.md
+    python -m validation.benchmark.run --datasets A B --out part_x   # a subset of the plan -> part_x.json
+    python -m validation.benchmark.run --merge part_x part_y [--not-finished '{"unit": "why"}']
+                                                       # parts -> results.json + RESULTS_TABLE.md
 
 Every method (validation/benchmark/methods.py) gets the same input for a split and is scored the same
 way against the same held-out truth (validation/protocol.py):
@@ -304,6 +307,32 @@ def table_md(summ: dict, title: str, losses: list[str], not_run: dict, meta: dic
     return "\n".join(lines)
 
 
+def merge(parts: list[str], practice: bool, not_finished: dict[str, str]) -> None:
+    """Combine runs made on subsets of the plan (--datasets / --methods, each with its own --out) into
+    results.json and RESULTS_TABLE.md, recomputing the summary from their rows. not_finished records units
+    that were started but stopped before finishing (unit -> reason)."""
+    rows, metas = [], []
+    for stem in parts:
+        d = json.loads((HERE / f"{stem}.json").read_text())
+        if d["meta"]["practice"] != practice:
+            sys.exit(f"{stem} is a {'practice' if d['meta']['practice'] else 'test'} run; refusing to mix roles")
+        rows += d["rows"]
+        metas.append({"part": stem, **d["meta"]})
+    summ = summarise(rows)
+    losses = where_we_lose(summ)
+    meta = {"utc": max(m["utc"] for m in metas), "practice": practice, "seconds": sum(m["seconds"] for m in metas),
+            "methods": list(dict.fromkeys(x for m in metas for x in m["methods"])),
+            "plan": [p for m in metas for p in m["plan"]], "parts": metas, "not_finished": not_finished}
+    stem = "results_practice" if practice else "results"
+    (HERE / f"{stem}.json").write_text(json.dumps({"meta": meta, "summary": summ, "where_we_lose": losses,
+                                                   "not_run": M.NOT_RUN, "not_finished": not_finished, "rows": rows},
+                                                  indent=1, default=float))
+    md = table_md(summ, "Benchmark: practice datasets (tuning allowed; in-sample)" if practice else
+                  "Benchmark: held-out test datasets", losses, dict(M.NOT_RUN, **not_finished), meta)
+    (HERE / ("RESULTS_TABLE_practice.md" if practice else "RESULTS_TABLE.md")).write_text(md, encoding="utf-8")
+    print(f"-> {HERE / (stem + '.json')} from {len(parts)} parts; {len(losses)} 'where we lose' entries")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--practice", action="store_true")
@@ -311,7 +340,12 @@ def main() -> None:
     ap.add_argument("--methods", nargs="*", default=list(M.METHODS))
     ap.add_argument("--splits", type=int, default=None)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--merge", nargs="*", help="combine the named part runs (their --out stems) into results.json")
+    ap.add_argument("--not-finished", default="{}", help='with --merge: JSON {"unit": "reason"} for stopped units')
     a = ap.parse_args()
+    if a.merge:
+        merge(a.merge, a.practice, json.loads(a.not_finished))
+        return
     plan = PRACTICE if a.practice else TEST
     if a.datasets:
         plan = [(k, s) for k, s in plan if k in a.datasets]
