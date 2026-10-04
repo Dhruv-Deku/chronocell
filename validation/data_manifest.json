@@ -1,0 +1,82 @@
+{
+ "data/A549_chr21-28-30Mb.csv": {
+  "sha256": "2880c861c0b2655f4cf45886995c606f6b9b3ee5c4721f6bc0d933356d94729a",
+  "bytes": 6278287,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/A549_chr21-28-30Mb.csv"
+ },
+ "data/HCT116_chr21-28-30Mb_6h auxin.csv": {
+  "sha256": "a737658afec6454ef53e897a1540f7813e2ebfb8eb503ed0aadc9345eee6297f",
+  "bytes": 11786694,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/HCT116_chr21-28-30Mb_6h%20auxin.csv"
+ },
+ "data/HCT116_chr21-28-30Mb_untreated.csv": {
+  "sha256": "abb6214dcbd975daa145c9fda9e7e1a2c7dc4293a12d886e93dff01ea7f6deca",
+  "bytes": 3122111,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/HCT116_chr21-28-30Mb_untreated.csv"
+ },
+ "data/HCT116_chr21-34-37Mb_6h auxin.csv": {
+  "sha256": "f26a006e9bcadb55b4d99b641302a2b64df234ca3d875101d1a0401e313ae6a0",
+  "bytes": 19454286,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/HCT116_chr21-34-37Mb_6h%20auxin.csv"
+ },
+ "data/HCT116_chr21-34-37Mb_untreated.csv": {
+  "sha256": "b6f4b9b6f4c881a487fda80cf5d7323b274cf2d6c2e534d41aea6bc7d6ff4a99",
+  "bytes": 24183026,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/HCT116_chr21-34-37Mb_untreated.csv"
+ },
+ "data/IMR90_chr21-18-20Mb.csv": {
+  "sha256": "aa8f82cd0f8087d5b75d2b14b8f7a80b5932b2ce8e79e16f0d42870a4df32538",
+  "bytes": 2004967,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/IMR90_chr21-18-20Mb.csv"
+ },
+ "data/IMR90_chr21-28-30Mb.csv": {
+  "sha256": "1dfeb57a71227d457bb78e3bb6e936911c371ab20dfd18bbeca8c19a233adfeb",
+  "bytes": 7795158,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/IMR90_chr21-28-30Mb.csv"
+ },
+ "data/IMR90_chr21-28-30Mb_cell cycle.csv": {
+  "sha256": "5347d9217f743a1aaf4c141cbb666806479b75f42c35d12658775c8c96618783",
+  "bytes": 2727307,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/IMR90_chr21-28-30Mb_cell%20cycle.csv"
+ },
+ "data/K562_chr21-28-30Mb.csv": {
+  "sha256": "5dd6bc64c8a5756a959d8a418861fd4dca0cf31ad98efa1fee338c32bdd2e557",
+  "bytes": 20080720,
+  "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/K562_chr21-28-30Mb.csv"
+ },
+ "data/hic_cache/rao2014_imr90_chr21_20000000_21950032_5000.npz": {
+  "sha256": "aba5d6673d57a9aa1b7d7f18a885ee5d7858a3e4897869395c015ddc09a12e80",
+  "bytes": 89675,
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_IMR90_combined_30.hic"
+ },
+ "data/hic_cache/rao2014_imr90_chr21_29370000_31322390_5000.npz": {
+  "sha256": "7f9f3c9e21e74739aa94eee07ddb499daa9de57c6bbc34a681f4656f0e731da5",
+  "bytes": 95512,
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_IMR90_combined_30.hic"
+ },
+ "data/hic_cache/rao2014_k562_chr21_29370000_31322390_5000.npz": {
+  "sha256": "090e9f6e2f81ac9638255c2a2b320381e4a4ff14db18b3807d9728109a245c3c",
+  "bytes": 97843,
+  "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic"
+ },
+ "data/su2020/Hi-C_contacts_chromosome2.tsv": {
+  "sha256": "bc8aa014200d2615ec00af48d181498f0b0b53dffcc8e4c9b84d2b0c4d34f611",
+  "bytes": 1844954,
+  "url": "https://zenodo.org/records/3928890/files/Hi-C_contacts_chromosome2.tsv?download=1"
+ },
+ "data/su2020/Hi-C_contacts_genome-scale.tsv": {
+  "sha256": "462b36f50a16c3b8c1b0693e38c7a2fb66cf1b6b7c07abc0dcbdc8cb35d56533",
+  "bytes": 2846153,
+  "url": "https://zenodo.org/records/3928890/files/Hi-C_contacts_genome-scale.tsv?download=1"
+ },
+ "data/su2020/chromosome2.tsv": {
+  "sha256": "c276ddf7e1bbd090e3df28c8954901c4afa67af19947de02028a745845d3f8e7",
+  "bytes": 130300276,
+  "url": "https://zenodo.org/records/3928890/files/chromosome2.tsv?download=1"
+ },
+ "data/su2020/chromosome2_p-arm_replicate.tsv": {
+  "sha256": "ca5f166de1c7ccb01c58de4d9d44788f3eb0e1a9da53826ef70b59b93d582618",
+  "bytes": 77496415,
+  "url": "https://zenodo.org/records/3928890/files/chromosome2_p-arm_replicate.tsv?download=1"
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "cohesin_loss": {
+  "lam": 0.4484099519439994,
+  "c": [
+   -2.34617528957838,
+   0.9520534846027794,
+   -0.08629262910996613
+  ],
+  "log_sep_range": [
+   4.477121254719663,
+   6.283301228703549
+  ],
+  "fitted_on": "bintu_hct116_28_30 -> bintu_hct116_28_30_auxin",
+  "fitted_utc": "2026-10-04T06:30:07+00:00",
+  "note": "Fitted by validation/perturbation.py --practice on Bintu et al. 2018 HCT116 chr21:28-30 Mb, untreated vs 6 h auxin (practice pair), pooled over 3 splits. Not a first-principles constant."
+ },
+ "cohesin_loss_trend_only": {
+  "lam": 0.0,
+  "c": [
+   -2.3461752895784134,
+   0.9520534846027963,
+   -0.08629262910996789
+  ],
+  "log_sep_range": [
+   4.477121254719663,
+   6.283301228703549
+  ],
+  "fitted_on": "bintu_hct116_28_30 -> bintu_hct116_28_30_auxin",
+  "fitted_utc": "2026-10-04T06:30:07+00:00",
+  "note": "Baseline: separation-dependent shift only."
+ }
+}

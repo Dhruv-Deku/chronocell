@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -166,6 +167,36 @@ def chrom(name: str = "chr22", resolution: int | None = None) -> Chrom:
 
 def chrom_for_beads(name: str, n_beads: int) -> Chrom:
     return chrom(name, resolution_for_beads(name, n_beads))
+
+
+_REFSEQ_HUMAN = {f"NC_{i:06d}": f"chr{i}" for i in range(1, 23)} | {"NC_000023": "chrX", "NC_000024": "chrY",
+                                                                    "NC_012920": "chrM"}
+
+
+def normalize_chrom(name: str) -> str:
+    """Any common spelling of a chromosome name -> the UCSC style used here ('chr9', 'chrX', 'chrM').
+
+    Accepts 'chr9', 'Chr9', 'CHR9', '9', 'X', 'chrx', 'M', 'MT', 'chrMT' and human RefSeq accessions
+    (NC_000009.12 -> chr9). Unknown names raise KeyError with the name in the message.
+    """
+    raw = str(name).strip()
+    if not raw:
+        raise KeyError("empty chromosome name")
+    acc = raw.split(".")[0].upper()
+    if acc in _REFSEQ_HUMAN:
+        return _REFSEQ_HUMAN[acc]
+    core = raw[3:] if raw.lower().startswith("chr") else raw
+    core = core.strip().upper()
+    if core in ("M", "MT"):
+        return "chrM"
+    if core in ("X", "Y"):
+        return f"chr{core}"
+    if core.isdigit() and 1 <= int(core) <= 99:
+        return f"chr{int(core)}"
+    if "_" in core and re.fullmatch(r"([0-9]+|X|Y|UN)_[A-Z0-9]+(V\d+)?(_ALT|_RANDOM|_FIX)?", core):
+        rest = raw[3:] if raw.lower().startswith("chr") else raw      # alt / random / unplaced contigs keep their case
+        return "chr" + rest
+    raise KeyError(f"Unrecognised chromosome name '{name}'.")
 
 
 # ---- chr22 at 10 kb: backwards-compatible module API --------------------------------------
