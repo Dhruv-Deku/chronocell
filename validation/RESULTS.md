@@ -50,7 +50,7 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | 3 | Benchmark against baselines and published tools | see below | see below |
 | 4 | Does the cohesin-loss prediction match real RAD21 depletion? | Held-out region: change agreement 0.868 vs 0.336 for a trend-only shift | **Pass, on one region** |
 | 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
-| 5 | Can sequence + CTCF predict distances with no contact data? | see below | see below |
+| 5 | Can sequence + CTCF predict distances with no contact data? | 12–27 % of the ceiling on 4 of 5 test sets (0.5 % on the weak-structure set). Raw ρ gains over the separation baseline are ≤ 0.005. | **Pass (pre-registered rule), modest: a prior, not a substitute for contacts** |
 
 ## Gate 1 — whole chromosome at once (Pillar 1)
 
@@ -278,10 +278,38 @@ its 95 % interval above 0, *and* raw Spearman above the baseline. The cohesin-de
 control (CTCF-anchored loops need cohesin) and is not in the rule.
 
 <!-- BEGIN generated:gate5 -->
-_results_predictor.json: not run._
+| Dataset | Role | Predictor: % of ceiling [95 %] | raw ρ | CCC | Baseline (trend, no data): raw ρ | Pass |
+|---|---|---|---|---|---|---|
+| bintu_imr90_28_30 | test | 26.7 [25.9, 28.7] | 0.933 | 0.856 | 0.930 | yes |
+| bintu_imr90_18_20 | test | 0.5 [-13.4, 14.5] | 0.961 | 0.865 | 0.962 | no |
+| bintu_a549_28_30 | test | 12.2 [9.0, 15.1] | 0.915 | 0.884 | 0.915 | yes |
+| su_chr21 | test | 20.2 [18.7, 20.0] | 0.750 | 0.805 | 0.748 | yes |
+| su_chr21_rep | test | 22.6 [21.1, 22.8] | 0.710 | 0.764 | 0.705 | yes |
+| bintu_hct116_34_37_auxin | control | 26.8 [23.8, 28.6] | 0.973 | 0.769 | 0.973 | — |
+
+4 of 5 test datasets pass both criteria (needed: 3). Verdict: **pass**.
 <!-- END generated:gate5 -->
 
-_Reading: pending (the Gate 5 test run had not finished when this was written)._
+**Reading.**
+- **Pass, by the pre-registered rule, 4 of 5, but modest.**
+  - With no contact data at all, sequence + CTCF recover 12–27 % of the reproducible distance
+    pattern beyond the separation trend on IMR-90 and A549 chr21:28–30 Mb, Su chr21 and its
+    replicate. Contact data give 88–95 % (Gate 1, v3.3).
+  - On the weak-structure IMR-90 18–20 Mb region it recovers nothing: 0.5 %, interval −13 to
+    +14 %.
+- **Overall rank agreement barely moves.** Raw ρ exceeds the separation-only baseline by
+  0.000–0.005 (A549: 0.9150 vs 0.9148), so criterion (ii) is met only literally. The predictor's
+  value is the pattern beyond the trend.
+- **Absolute size** is reasonable (CCC 0.76–0.88), because the trend was learned from imaging.
+- **The control did not behave as expected.** On cohesin-depleted cells the predictor scores
+  26.8 %, as high as on untreated cells. Its signal is therefore not mainly loop extrusion: the
+  CTCF-orientation coefficients are small (TUNING.md §11), and GC similarity and CTCF density
+  between loci carry it. Read it as a compartment and insulation-level prior, not a loop predictor.
+- **Intervals.** They are computed on a 20,000-pair subsample with resampled copies. For the
+  651-locus sets the interval can sit just beside the all-pairs value (20.2 vs [18.7, 20.0]).
+- **In the app** it is offered only where a window has no contact data, labelled "predicted from
+  sequence + CTCF (no contact data)", with these numbers. When contacts are present the
+  data-driven model is used. Blending prediction and data was not tested and is not offered.
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
