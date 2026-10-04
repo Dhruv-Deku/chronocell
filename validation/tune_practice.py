@@ -170,12 +170,53 @@ def whole_variants(key: str = "su_chr2", split: int = 0) -> None:
               f"fit {r.config['fit_seconds']:.0f}s", flush=True)
 
 
+def reliability_variants(keys=("bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_28_30_auxin",
+                                "bintu_hct116_34_37", "su_chr2", "su_chr2_parm_rep"), split: int = 0) -> None:
+    """Which per-bead reliability score, computed from the input alone, ranks held-out per-bead error?
+    Candidates: (a) misfit-based (population.bead_reliability); (b) input sampling noise: the mean binomial
+    standard error of log f over the bead's pairs, sqrt((1 - f) / (N f)); (c) both multiplied."""
+    for key in keys:
+        tr = _practice(key)
+        a, b = PR.split(tr.n_copies, split)
+        r_c = 150.0 if D.REGISTRY[key].kind == "bintu_csv" else None
+        ha = PR.half_stats(tr.xyz[a], r_c)
+        r_c = ha.adjacent_median if r_c is None else r_c
+        hb = PR.half_stats(tr.xyz[b], r_c)
+        n = tr.n_loci
+        if n <= 400:
+            res = E.fit_ensemble(ha.freq, ha.seen, r_c_nm=r_c, cfg=E.EnsembleConfig(seed=split))
+        else:
+            from frozen import WHOLE_CHROMOSOME
+            res = P.fit_population(ha.freq, ha.seen, r_c_nm=r_c, cfg=P.PopulationConfig(seed=split, replicas=20, frames=2,
+                                                                                            **WHOLE_CHROMOSOME))
+        err = np.abs(np.log(np.where(res.median_distance_nm > 0, res.median_distance_nm, np.nan)) -
+                     np.log(np.where(hb.median > 0, hb.median, np.nan)))
+        np.fill_diagonal(err, np.nan)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            bead_err = np.nanmedian(err, axis=1)
+            f = np.clip(ha.freq, 0.5 / np.maximum(ha.seen, 1), 1 - 0.5 / np.maximum(ha.seen, 1))
+            se = np.sqrt((1 - f) / (np.maximum(ha.seen, 1) * f))
+            np.fill_diagonal(se, np.nan)
+            noise = np.nanmean(se, axis=1)
+        misfit_rel = P.bead_reliability(res, ha.freq, ha.seen)
+        noise_rel = 1.0 / (1.0 + noise)
+        scores = {"a_misfit": PR.spearman(misfit_rel, -bead_err), "b_sampling_noise": PR.spearman(noise_rel, -bead_err),
+                  "c_product": PR.spearman(misfit_rel * noise_rel, -bead_err)}
+        _log({"experiment": "bead_reliability", "dataset": key, "split": split, "spearman_vs_neg_error": scores})
+        print(key, {k: round(v, 3) for k, v in scores.items()}, flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=["hic", "whole"])
+    ap.add_argument("what", choices=["hic", "whole", "reliability"])
     ap.add_argument("--dataset", default="su_chr2")
     ap.add_argument("--split", type=int, default=0)
     a = ap.parse_args()
+    if a.what == "reliability":
+        reliability_variants(split=a.split)
+        return
     {"hic": hic_variants, "whole": whole_variants}[a.what](a.dataset, a.split)
 
 
