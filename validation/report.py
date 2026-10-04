@@ -351,8 +351,9 @@ def readme_accuracy() -> str:
     rr = _load("results_reliability.json")
     if rr:
         v = rr["verdict"]
-        rows.append(f"| Gate 2c: does a per-pair score from the input say which distances are wrong? | "
-                    + "; ".join(f"{k.replace('_', ' ')}: {x['passing']} of {x['datasets']} sets reach the pre-registered bar"
+        rows.append(f"| Gate 2c: does a per-pair score from the input say which distances are wrong? | test sets reaching "
+                    f"the pre-registered bar (ρ ≥ {rr['rule']['min_spearman']:.2f}): "
+                    + "; ".join(f"{k.replace('_', ' ').replace('hic', 'Hi-C')} {x['passing']} of {x['datasets']}"
                                 for k, x in v.items())
                     + f" | {'usable' if any(x['verdict'] == 'pass' for x in v.values()) else 'no usable reliability score'} |")
     b = _load("benchmark/results.json")

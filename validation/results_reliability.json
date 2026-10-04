@@ -1,0 +1,259 @@
+{
+ "mode": "test (run once; score and rule frozen in validation/frozen.py RELIABILITY)",
+ "rule": {
+  "score": "misfit",
+  "min_spearman": 0.2,
+  "strata": 10,
+  "bootstrap": 200,
+  "split": 0,
+  "test_imaging": [
+   "bintu_imr90_28_30",
+   "bintu_imr90_18_20",
+   "bintu_a549_28_30",
+   "bintu_hct116_34_37_auxin",
+   "su_chr21",
+   "su_chr21_rep"
+  ],
+  "test_hic": [
+   "bintu_imr90_28_30",
+   "bintu_imr90_18_20",
+   "su_chr21",
+   "su_chr21_rep"
+  ]
+ },
+ "rows": [
+  {
+   "dataset": "bintu_imr90_28_30",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.11240079485867477,
+    "pair_ci95": [
+     0.0185,
+     0.2158
+    ],
+    "bead_spearman": 0.3288024475524476,
+    "bead_ci95": [
+     0.0758,
+     0.5806
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.08059099153406087,
+    "pair_ci95": [
+     -0.0074,
+     0.1349
+    ],
+    "bead_spearman": 0.24812062937062937,
+    "bead_ci95": [
+     0.0134,
+     0.4513
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.17493704095413917,
+    "pair_ci95": [
+     0.0027,
+     0.2728
+    ],
+    "bead_spearman": 0.37277097902097905,
+    "bead_ci95": [
+     0.0973,
+     0.5673
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "input": "imaging",
+   "loci": 83,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.07220596799695442,
+    "pair_ci95": [
+     0.0071,
+     0.1305
+    ],
+    "bead_spearman": -0.032534318458503,
+    "bead_ci95": [
+     -0.2039,
+     0.1866
+    ],
+    "pairs": 3403,
+    "beads": 83
+   }
+  },
+  {
+   "dataset": "su_chr21",
+   "input": "imaging",
+   "loci": 651,
+   "split": 0,
+   "model": "population_v4",
+   "misfit": {
+    "pair_stratified_spearman": 0.1303071022624893,
+    "pair_ci95": [
+     0.1015,
+     0.1546
+    ],
+    "bead_spearman": 0.2447055062491437,
+    "bead_ci95": [
+     0.1699,
+     0.3119
+    ],
+    "pairs": 211575,
+    "beads": 651
+   }
+  },
+  {
+   "dataset": "su_chr21_rep",
+   "input": "imaging",
+   "loci": 651,
+   "split": 0,
+   "model": "population_v4",
+   "misfit": {
+    "pair_stratified_spearman": 0.19462890480176173,
+    "pair_ci95": [
+     0.1632,
+     0.2206
+    ],
+    "bead_spearman": 0.4520256272522254,
+    "bead_ci95": [
+     0.3834,
+     0.5202
+    ],
+    "pairs": 211575,
+    "beads": 651
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "input": "hic",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.017127117828256492,
+    "pair_ci95": [
+     -0.0696,
+     0.0966
+    ],
+    "bead_spearman": 0.10747377622377623,
+    "bead_ci95": [
+     -0.1435,
+     0.3567
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "input": "hic",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "misfit": {
+    "pair_stratified_spearman": 0.026469774731533894,
+    "pair_ci95": [
+     -0.0388,
+     0.1061
+    ],
+    "bead_spearman": -0.016083916083916083,
+    "bead_ci95": [
+     -0.285,
+     0.2629
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "su_chr21",
+   "input": "hic",
+   "loci": 651,
+   "split": 0,
+   "model": "population_v4",
+   "misfit": {
+    "pair_stratified_spearman": -0.0425239191697432,
+    "pair_ci95": [
+     -0.0633,
+     -0.0218
+    ],
+    "bead_spearman": -0.09921482831437314,
+    "bead_ci95": [
+     -0.1857,
+     -0.0002
+    ],
+    "pairs": 211575,
+    "beads": 651
+   }
+  },
+  {
+   "dataset": "su_chr21_rep",
+   "input": "hic",
+   "loci": 651,
+   "split": 0,
+   "model": "population_v4",
+   "misfit": {
+    "pair_stratified_spearman": -0.05117743515391007,
+    "pair_ci95": [
+     -0.0751,
+     -0.027
+    ],
+    "bead_spearman": -0.04920175806777826,
+    "bead_ci95": [
+     -0.1371,
+     0.046
+    ],
+    "pairs": 211575,
+    "beads": 651
+   }
+  }
+ ],
+ "verdict": {
+  "imaging_pair": {
+   "passing": 0,
+   "datasets": 6,
+   "verdict": "fail"
+  },
+  "imaging_bead": {
+   "passing": 5,
+   "datasets": 6,
+   "verdict": "fail"
+  },
+  "hic_pair": {
+   "passing": 0,
+   "datasets": 4,
+   "verdict": "fail"
+  },
+  "hic_bead": {
+   "passing": 0,
+   "datasets": 4,
+   "verdict": "fail"
+  }
+ },
+ "run_utc": "2026-10-04T18:49:36+00:00"
+}
