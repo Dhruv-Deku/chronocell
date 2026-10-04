@@ -304,6 +304,13 @@ def load_dataset(chrom_name: str, seed: int, b0: float | None, source: tuple, un
 # ======================================================================================
 # HTML helpers
 # ======================================================================================
+def inject_theme() -> None:
+    """Add the design-token stylesheet (chronocell.theme.CSS) to the page. It lives here, not in
+    chronocell, so the numerics package never imports Streamlit."""
+    from chronocell import theme
+    st.markdown(theme.CSS, unsafe_allow_html=True)
+
+
 def html(markup: str) -> None:
     st.markdown(markup, unsafe_allow_html=True)
 
