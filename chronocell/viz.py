@@ -601,6 +601,42 @@ def drug_bar_chart(df, height: int = 200) -> go.Figure:
     return fig
 
 
+def decay_fit_chart(s: np.ndarray, d: np.ndarray, gamma: float, window: tuple[int, int], b: float,
+                    resolution: int | None = None, height: int = 240) -> go.Figure:
+    """Mean distance per separation (log-log) with the OLS power law over the scaling window."""
+    x = s * (resolution / 1000.0) if resolution else s
+    xlabel = "Genomic separation (kb)" if resolution else "Separation |i - j| (beads)"
+    fig = go.Figure(go.Scatter(x=x, y=d, mode="markers", marker=dict(size=5, color=T.INK_2),
+                               hovertemplate="%{x:,.0f}<br>%{y:,.0f} nm<extra></extra>"))
+    if np.isfinite(gamma) and len(s):
+        sw = np.geomspace(max(1, window[0]), max(window[0] + 1, window[1]), 20)
+        k = float(np.exp(np.mean(np.log(d[(s >= window[0]) & (s <= window[1])])) -
+                         gamma * np.mean(np.log(s[(s >= window[0]) & (s <= window[1])])))) \
+            if ((s >= window[0]) & (s <= window[1])).any() else b
+        fig.add_trace(go.Scatter(x=sw * (resolution / 1000.0) if resolution else sw, y=k * sw ** gamma, mode="lines",
+                                 line=dict(color=T.ACCENT, width=2.5), hoverinfo="skip"))
+    fig.update_layout(**T.plot_layout(height, margin=dict(l=56, r=12, t=6, b=40),
+                                      xaxis=dict(type="log", title=xlabel), yaxis=dict(type="log", title="Distance (nm)")))
+    return fig
+
+
+def density_z_chart(z: np.ndarray, spike_z: float, runs: list[tuple[int, int]], height: int = 200) -> go.Figure:
+    """Robust z-score of local density along the chain; spikes above the threshold and anomaly runs marked."""
+    idx = np.arange(len(z))
+    fig = go.Figure(go.Scatter(x=idx, y=z, mode="lines", line=dict(color=T.INK_2, width=1),
+                               hovertemplate="bead %{x:,}<br>z %{y:.2f}<extra></extra>"))
+    hot = z > spike_z
+    if hot.any():
+        fig.add_trace(go.Scatter(x=idx[hot], y=z[hot], mode="markers", marker=dict(size=6, color=T.TERRACOTTA),
+                                 hovertemplate="spike · bead %{x:,}<extra></extra>"))
+    fig.add_hline(y=spike_z, line=dict(color=T.TERRACOTTA, dash="dash", width=1))
+    for a, b in runs[:30]:
+        fig.add_vrect(x0=a, x1=b, fillcolor=T.ACCENT_SOFT, line_width=0, layer="below")
+    fig.update_layout(**T.plot_layout(height, margin=dict(l=56, r=12, t=6, b=40),
+                                      xaxis=dict(title="Bead along the chain"), yaxis=dict(title="Density z (robust)")))
+    return fig
+
+
 def expression_scatter(tab, height: int = 300) -> go.Figure:
     colors = {"Hyper-accessible (predicted active)": T.TERRACOTTA, "Intermediate": T.RULE_STRONG,
               "Buried (predicted silenced)": "#2438C9"}

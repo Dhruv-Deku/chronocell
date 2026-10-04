@@ -46,7 +46,19 @@ def _peaks(v: np.ndarray, k: int = 5, spacing: int = 30) -> list[int]:
     return out
 
 
-def render(options: list[tuple[str, Dataset]], default_left: int, default_right: int, b0: float) -> None:
+def render(options: list[tuple[str, Dataset]], default_left: int, default_right: int, b0: float,
+           populations: dict | None = None) -> None:
+    """Page 03. The first tab is the original side-by-side comparison (shown by default); the second
+    is the Self-Math PDB State Evaluator (ui/pdb_eval_view.py)."""
+    side, evaluator = st.tabs(["Side by side", "Self-Math PDB State Evaluator"])
+    with side:
+        _side_by_side(options, default_left, default_right, b0)
+    with evaluator:
+        from ui import pdb_eval_view
+        pdb_eval_view.render(options, populations)
+
+
+def _side_by_side(options: list[tuple[str, Dataset]], default_left: int, default_right: int, b0: float) -> None:
     if len(options) < 2:
         warning_card("Only one structure is available",
                      "Compare needs two: add files for another biological state in the sidebar, switch on "
