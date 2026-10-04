@@ -94,6 +94,7 @@ class EnsembleResult:
     history: dict[str, list[float]]
     seconds: float
     config: dict = field(default_factory=dict)
+    model: object | None = None       # v4: the fitted chronocell.population.GaussianChain (None for v3.3 fits)
 
     @property
     def frames_nm(self) -> np.ndarray:
