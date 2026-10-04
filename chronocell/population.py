@@ -299,42 +299,41 @@ def _loss_grad(A: torch.Tensor, phi: torch.Tensor | None, T: torch.Tensor, W: to
     s_ij = |a_i - a_j|^2 + |C_j - C_i|, C = cumsum(exp(phi)). With e_ij = dL/ds_ij (symmetric):
         dL/dA     = 2 (diag(E 1) - E) A
         dL/dv_k   = sum_{i <= k < j} e_ij          (pairs whose path crosses bond k)
+                  = sum_{i <= k} rowsum_i - 2 sum_{j <= k} c_j,   c_j = sum_{i < j} e_ij
         dL/dphi_k = v_k dL/dv_k
-    Memory beyond A, T and W is one block x N slab.
+    (the second form of dL/dv: rows <= k, all columns, minus the k x k corner, which is twice the
+    upper-triangle column sums). Memory beyond A, T and W is one block x N slab.
     """
     n = A.shape[0]
     dev, dtype = A.device, A.dtype
     use_v = phi is not None
     g = (A * A).sum(1)
     cum = torch.cat([torch.zeros(1, dtype=dtype, device=dev), torch.cumsum(torch.exp(phi), 0)]) if use_v else None
-    gradA = torch.zeros_like(A)
-    R = torch.zeros(n - 1, dtype=dtype, device=dev) if use_v else None
-    carry = torch.zeros(n, dtype=dtype, device=dev) if use_v else None
-    idx = torch.arange(n, device=dev)
+    gradA = torch.empty_like(A)
+    rowsum = torch.empty(n, dtype=dtype, device=dev)
+    colup = torch.zeros(n, dtype=dtype, device=dev) if use_v else None
     loss = torch.zeros((), dtype=torch.float64, device=dev)
     for a in range(0, n, block):
         b = min(n, a + block)
         Ab = A[a:b]
-        s = g[a:b, None] + g[None, :] - 2.0 * (Ab @ A.T)
+        s = (Ab @ A.T).mul_(-2.0).add_(g[a:b, None]).add_(g[None, :])
         if use_v:
-            s = s + (cum[None, :] - cum[a:b, None]).abs()
-        s = torch.clamp(s, min=1e-9)
-        res = torch.log(s) - T[a:b]
-        wb = W[a:b]
-        loss += (wb * res * res).sum(dtype=torch.float64)
-        E = (2.0 / P) * wb * res / s                           # dL/ds_ij for this row block (both triangles)
-        E[torch.arange(b - a, device=dev), idx[a:b]] = 0.0
-        gradA[a:b] = 2.0 * (E.sum(1, keepdim=True) * Ab - E @ A)    # dL/da_i = sum_j e_ij 2 (a_i - a_j)
-        if use_v:                                              # running column sums over the rows seen so far
-            U = torch.triu(E, diagonal=1 + a)                  # local row r is global row a + r
-            Sb = carry[None, :] + torch.cumsum(U, 0)
-            rows = torch.arange(a, b, device=dev)
-            Rb = (Sb * (idx[None, :] > rows[:, None])).sum(1)
-            last = rows < n - 1
-            R[rows[last]] = Rb[last]
-            carry = Sb[-1]
+            s.add_((cum[None, :] - cum[a:b, None]).abs_())
+        s.clamp_(min=1e-9)
+        res = torch.log(s).sub_(T[a:b])
+        E = res * W[a:b]
+        loss += (E * res).sum(dtype=torch.float64)
+        E.div_(s).mul_(2.0 / P)                                # dL/ds_ij for this row block (both triangles)
+        E.diagonal(offset=a).zero_()
+        rowsum[a:b] = E.sum(1)
+        gradA[a:b] = 2.0 * (rowsum[a:b, None] * Ab - E @ A)    # dL/da_i = sum_j e_ij 2 (a_i - a_j)
+        if use_v:
+            colup += torch.triu(E, diagonal=1 + a).sum(0)       # local row r is global row a + r
     val = float(loss.item()) / (2.0 * P)                        # each pair appears in both triangles
-    return val, gradA, (R * torch.exp(phi) if use_v else None)
+    if not use_v:
+        return val, gradA, None
+    R = (torch.cumsum(rowsum, 0) - 2.0 * torch.cumsum(colup, 0))[:-1]
+    return val, gradA, R * torch.exp(phi)
 
 
 def _adam_fit(log_t: np.ndarray, w: np.ndarray, A0: np.ndarray, v0: np.ndarray | None, iterations: int, lr: float,

@@ -216,11 +216,20 @@ def _aggregate(i: np.ndarray, j: np.ndarray, c: np.ndarray, n: int):
 
 
 def read_hic(data: bytes, chrom: genome.Chrom):
+    """Observed counts of one chromosome from a .hic file: hic-straw when installed, otherwise the
+    built-in reader (chronocell.hicfile, format versions 6-9)."""
     try:
         import hicstraw  # optional
-    except ImportError as exc:
-        raise ValueError(".hic needs the optional package hic-straw (pip install hic-straw); or convert it with "
-                         "hic2cool and upload the .cool / .mcool.") from exc
+    except ImportError:
+        import struct
+        import zlib
+        from . import hicfile
+        try:
+            i, j, c = hicfile.read_counts(data, chrom.name, chrom.resolution)
+        except (ValueError, KeyError, struct.error, zlib.error, OSError) as exc:
+            raise ValueError(f"Could not read this .hic file at {chrom.resolution:,} bp: {exc}") from exc
+        ci, cj, cm, notes = canonical_contacts(i, j, c, chrom.n_bins)
+        return ci, cj, cm, ["hic observed counts (built-in reader)"] + notes
     with tempfile.NamedTemporaryFile(suffix=".hic", delete=False) as fh:
         fh.write(data)
         path = fh.name
