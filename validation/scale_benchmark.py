@@ -43,6 +43,12 @@ def _peak_bytes() -> int:
     return int(r) if sys.platform == "darwin" else int(r) * 1024
 
 
+def _system_load() -> float:
+    """Whole-machine CPU use (%) over 2 s just before a run: other work on the machine slows the timings."""
+    import psutil
+    return float(psutil.cpu_percent(interval=2.0))
+
+
 def run_one(method: str, n: int, iterations: int | None) -> dict:
     import numpy as np
     import psutil
@@ -96,6 +102,7 @@ def main() -> None:
             cmd = [sys.executable, str(Path(__file__).resolve()), "--one", method, str(n)]
             if a.iterations:
                 cmd += ["--iterations", str(a.iterations)]
+            load = _system_load()
             t0 = time.time()
             out = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT.parent)
             if out.returncode != 0:
@@ -103,10 +110,14 @@ def main() -> None:
                              "wall_seconds": round(time.time() - t0, 1)})
             else:
                 rows.append(json.loads(out.stdout.strip().splitlines()[-1]))
+            rows[-1]["system_cpu_percent_before"] = load
             print(json.dumps(rows[-1]), flush=True)
+    import psutil
     meta = {"machine": {"platform": platform.platform(), "processor": platform.processor(), "cpus": os.cpu_count(),
-                        "torch": torch.__version__, "cuda": torch.cuda.is_available()},
-            "note": "Synthetic input: cost only, not accuracy. Each row ran in its own process."}
+                        "ram_gb": round(psutil.virtual_memory().total / 2 ** 30, 1), "python": platform.python_version(),
+                        "torch": torch.__version__, "cuda": torch.cuda.is_available(),
+                        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None},
+            "note": ("Synthetic input: cost only, not accuracy. Each row ran in its own process, one at a time; the last column is the whole-machine CPU load measured just before the row (other work slows timings).")}
     Path(a.out).write_text(json.dumps({"meta": meta, "rows": rows}, indent=1))
     print(f"-> {a.out}")
 

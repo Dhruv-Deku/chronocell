@@ -271,18 +271,18 @@ def scale() -> str:
     r = _load("scale_benchmark.json")
     if not r:
         return "_validation/scale_benchmark.json: not run (python validation/scale_benchmark.py)._"
-    m = r["meta"]["machine"]
-    out = [f"Machine: {m['platform']}, {m['cpus']} logical CPUs, torch {m['torch']}, CUDA {m['cuda']}. "
-           f"{r['meta']['note']}", "",
-           "| Beads | Model | Fit (s) | Sampling (s) | Total (s) | Peak memory (MB) | Device | Rank |", "|---|---|---|---|---|---|---|---|"]
+    out = [_machine(r["meta"]["machine"]) + " " + r["meta"]["note"], "",
+           "| Beads | Model | Fit (s) | Sampling (s) | Total (s) | Peak memory (MB) | Device | Rank | CPU load before |",
+           "|---|---|---|---|---|---|---|---|---|"]
     for row in r["rows"]:
         if "skipped" in row:
-            out.append(f"| {row['n_beads']:,} | {row['method']} | — | — | — | — | — | {row['skipped']} |")
+            out.append(f"| {row['n_beads']:,} | {row['method']} | — | — | — | — | — | {row['skipped']} | |")
         elif "error" in row:
-            out.append(f"| {row['n_beads']:,} | {row['method']} | failed | | | | | {row['error'][-80:]} |")
+            out.append(f"| {row['n_beads']:,} | {row['method']} | failed | | | | | {row['error'][-80:]} | |")
         else:
             out.append(f"| {row['n_beads']:,} | {row['method']} | {row['seconds_fit']:.1f} | {row['seconds_sampling']:.1f} | "
-                       f"{row['seconds_total']:.1f} | {row['peak_memory_mb']:,.0f} | {row['device']} | {row['rank']} |")
+                       f"{row['seconds_total']:.1f} | {row['peak_memory_mb']:,.0f} | {row['device']} | {row['rank']} | "
+                       f"{_cpu_load(row)} |")
     return "\n".join(out)
 
 
@@ -290,15 +290,41 @@ def per_chromosome() -> str:
     r = _load("chromosome_runtime.json")
     if not r:
         return "_validation/chromosome_runtime.json: not run (python validation/chromosome_runtime.py)._"
-    out = [r["meta"]["note"], "", "| Assembly | Chromosome | Bins | Beads fitted | Fit (s) | Total (s) | Peak memory (MB) |",
-           "|---|---|---|---|---|---|---|"]
+    out = [_machine(r["meta"]["machine"]) + " " + r["meta"]["note"], "",
+           "| Assembly | Chromosome | Resolution | Bins | Assembled beads | Model | Fit (s) | Total (s) | Peak memory (MB) | CPU load before |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
     for row in r["rows"]:
         if "error" in row:
-            out.append(f"| {row['assembly']} | {row['chrom']} | {row.get('bins', '—')} | failed: {row['error'][-60:]} | | | |")
+            out.append(f"| {row['assembly']} | {row['chrom']} | | {row.get('bins', '—')} | failed: {row['error'][-60:]} | | | | | |")
         else:
-            out.append(f"| {row['assembly']} | {row['chrom']} | {row['bins']:,} | {row['beads']:,} | {row['seconds_fit']:.1f} | "
-                       f"{row['seconds_total']:.1f} | {row['peak_memory_mb']:,.0f} |")
+            out.append(f"| {row['assembly']} | {row['chrom']} | {row['resolution_bp'] // 1000} kb | {row['bins']:,} | "
+                       f"{row['beads']:,} | {row['model']} | {row['seconds_fit']:.1f} | {row['seconds_total']:.1f} | "
+                       f"{row['peak_memory_mb']:,.0f} | {_cpu_load(row)} |")
+    ok = [row for row in r["rows"] if "error" not in row]
+    if ok:
+        out += ["", f"{len(ok)} chromosomes; total {sum(x['seconds_total'] for x in ok) / 60:.1f} min of fitting; slowest "
+                    f"{max(x['seconds_total'] for x in ok):.0f} s; largest peak memory {max(x['peak_memory_mb'] for x in ok):,.0f} MB."]
+    planned = [tuple(x) for x in r["meta"].get("planned", [])]
+    have = {(x["assembly"], x["chrom"]) for x in ok}
+    missing = [f"{a} {c}" for a, c in planned if (a, c) not in have]
+    if missing or not r["meta"].get("status", "").startswith("complete"):
+        out += ["", f"**Status: {r['meta'].get('status', 'partial')}.** Not measured yet ({len(missing)} of "
+                    f"{len(planned)}): {', '.join(missing) or '—'}."]
+    for d in r["meta"].get("discarded_rows", []):
+        out.append(f"- Discarded: {d['assembly']} {d['chrom']} ({d['seconds_total']:.0f} s): {d['reason']}.")
     return "\n".join(out)
+
+
+def _cpu_load(row: dict) -> str:
+    v = row.get("system_cpu_percent_before")
+    return "—" if v is None else f"{v:.0f} %"
+
+
+def _machine(m: dict) -> str:
+    gpu = f", GPU {m['gpu']}" if m.get("gpu") else ", no GPU (CPU only)"
+    ram = f", {m['ram_gb']:g} GB RAM" if m.get("ram_gb") else ""
+    return (f"Machine: {m['platform']}, {m.get('processor') or 'CPU'}, {m['cpus']} logical CPUs{ram}{gpu}; "
+            f"torch {m['torch']}" + (f", Python {m['python']}" if m.get("python") else "") + ".")
 
 
 def readme_accuracy() -> str:

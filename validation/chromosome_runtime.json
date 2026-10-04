@@ -1,0 +1,483 @@
+{
+ "meta": {
+  "machine": {
+   "platform": "Windows-10-10.0.26200-SP0",
+   "processor": "AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD",
+   "cpus": 16,
+   "ram_gb": 23.1,
+   "python": "3.10.11",
+   "torch": "2.11.0+cpu",
+   "cuda": false,
+   "gpu": null
+  },
+  "assemblies": [
+   "hg38",
+   "mm39"
+  ],
+  "wall_seconds": 6722.7,
+  "note": "Synthetic input (one planted reference per chromosome at the app's default resolution, at most 6,000 beads), fitted with the app's settings; cost only, not accuracy. Each row ran in its own process, one at a time; the last column is the whole-machine CPU load measured just before the row (other work slows timings).",
+  "discarded_rows": [
+   {
+    "assembly": "hg38",
+    "chrom": "chr1",
+    "resolution_bp": 50000,
+    "bins": 4980,
+    "beads": 4610,
+    "contacts": 86650,
+    "model": "population_v4",
+    "rank": 256,
+    "iterations": 1500,
+    "seconds_fit": 440.52,
+    "seconds_sampling": 25.05,
+    "seconds_total": 471.66,
+    "seconds_synthetic_input": 8.07,
+    "peak_memory_mb": 4280.9,
+    "rss_before_fit_mb": 199.1,
+    "best_misfit": 0.38404543513158457,
+    "device": "cpu",
+    "input": "synthetic reference (planted fractal globule)",
+    "system_cpu_percent_before": 14.2,
+    "reason": "measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it"
+   },
+   {
+    "assembly": "hg38",
+    "chrom": "chr2",
+    "resolution_bp": 50000,
+    "bins": 4844,
+    "beads": 4812,
+    "contacts": 88009,
+    "model": "population_v4",
+    "rank": 256,
+    "iterations": 1500,
+    "seconds_fit": 512.64,
+    "seconds_sampling": 24.17,
+    "seconds_total": 543.89,
+    "seconds_synthetic_input": 7.74,
+    "peak_memory_mb": 3737.2,
+    "rss_before_fit_mb": 201.9,
+    "best_misfit": 0.3661053947886285,
+    "device": "cpu",
+    "input": "synthetic reference (planted fractal globule)",
+    "system_cpu_percent_before": 58.5,
+    "reason": "measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it"
+   },
+   {
+    "assembly": "hg38",
+    "chrom": "chr3",
+    "resolution_bp": 40000,
+    "bins": 4958,
+    "beads": 4952,
+    "contacts": 92894,
+    "model": "population_v4",
+    "rank": 256,
+    "iterations": 1500,
+    "seconds_fit": 454.11,
+    "seconds_sampling": 27.95,
+    "seconds_total": 488.33,
+    "seconds_synthetic_input": 7.81,
+    "peak_memory_mb": 4261.6,
+    "rss_before_fit_mb": 199.9,
+    "best_misfit": 0.3407811763411211,
+    "device": "cpu",
+    "input": "synthetic reference (planted fractal globule)",
+    "system_cpu_percent_before": 31.2,
+    "reason": "measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it"
+   }
+  ],
+  "planned": [
+   [
+    "hg38",
+    "chr1"
+   ],
+   [
+    "hg38",
+    "chr2"
+   ],
+   [
+    "hg38",
+    "chr3"
+   ],
+   [
+    "hg38",
+    "chr4"
+   ],
+   [
+    "hg38",
+    "chr5"
+   ],
+   [
+    "hg38",
+    "chr6"
+   ],
+   [
+    "hg38",
+    "chr7"
+   ],
+   [
+    "hg38",
+    "chr8"
+   ],
+   [
+    "hg38",
+    "chr9"
+   ],
+   [
+    "hg38",
+    "chr10"
+   ],
+   [
+    "hg38",
+    "chr11"
+   ],
+   [
+    "hg38",
+    "chr12"
+   ],
+   [
+    "hg38",
+    "chr13"
+   ],
+   [
+    "hg38",
+    "chr14"
+   ],
+   [
+    "hg38",
+    "chr15"
+   ],
+   [
+    "hg38",
+    "chr16"
+   ],
+   [
+    "hg38",
+    "chr17"
+   ],
+   [
+    "hg38",
+    "chr18"
+   ],
+   [
+    "hg38",
+    "chr19"
+   ],
+   [
+    "hg38",
+    "chr20"
+   ],
+   [
+    "hg38",
+    "chr21"
+   ],
+   [
+    "hg38",
+    "chr22"
+   ],
+   [
+    "hg38",
+    "chrX"
+   ],
+   [
+    "hg38",
+    "chrY"
+   ],
+   [
+    "mm39",
+    "chr1"
+   ],
+   [
+    "mm39",
+    "chr2"
+   ],
+   [
+    "mm39",
+    "chr3"
+   ],
+   [
+    "mm39",
+    "chr4"
+   ],
+   [
+    "mm39",
+    "chr5"
+   ],
+   [
+    "mm39",
+    "chr6"
+   ],
+   [
+    "mm39",
+    "chr7"
+   ],
+   [
+    "mm39",
+    "chr8"
+   ],
+   [
+    "mm39",
+    "chr9"
+   ],
+   [
+    "mm39",
+    "chr10"
+   ],
+   [
+    "mm39",
+    "chr11"
+   ],
+   [
+    "mm39",
+    "chr12"
+   ],
+   [
+    "mm39",
+    "chr13"
+   ],
+   [
+    "mm39",
+    "chr14"
+   ],
+   [
+    "mm39",
+    "chr15"
+   ],
+   [
+    "mm39",
+    "chr16"
+   ],
+   [
+    "mm39",
+    "chr17"
+   ],
+   [
+    "mm39",
+    "chr18"
+   ],
+   [
+    "mm39",
+    "chr19"
+   ],
+   [
+    "mm39",
+    "chrX"
+   ],
+   [
+    "mm39",
+    "chrY"
+   ]
+  ],
+  "status": "partial: the run was stopped at this machine's 2-hour job limit after 13 chromosomes; continue with python validation/chromosome_runtime.py --resume"
+ },
+ "rows": [
+  {
+   "assembly": "hg38",
+   "chrom": "chr4",
+   "resolution_bp": 40000,
+   "bins": 4756,
+   "beads": 4745,
+   "contacts": 85986,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 407.79,
+   "seconds_sampling": 21.71,
+   "seconds_total": 435.61,
+   "seconds_synthetic_input": 7.7,
+   "peak_memory_mb": 4087.6,
+   "rss_before_fit_mb": 200.0,
+   "best_misfit": 0.3711460229470369,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 21.9
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr5",
+   "resolution_bp": 40000,
+   "bins": 4539,
+   "beads": 4532,
+   "contacts": 78469,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 353.89,
+   "seconds_sampling": 21.96,
+   "seconds_total": 381.27,
+   "seconds_synthetic_input": 7.05,
+   "peak_memory_mb": 3914.4,
+   "rss_before_fit_mb": 198.7,
+   "best_misfit": 0.4241416518559395,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 15.2
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr6",
+   "resolution_bp": 40000,
+   "bins": 4271,
+   "beads": 4253,
+   "contacts": 70194,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 299.86,
+   "seconds_sampling": 19.96,
+   "seconds_total": 324.73,
+   "seconds_synthetic_input": 6.53,
+   "peak_memory_mb": 3704.1,
+   "rss_before_fit_mb": 199.4,
+   "best_misfit": 0.340939465684833,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 15.4
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr7",
+   "resolution_bp": 40000,
+   "bins": 3984,
+   "beads": 3974,
+   "contacts": 158764,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 302.94,
+   "seconds_sampling": 21.73,
+   "seconds_total": 329.77,
+   "seconds_synthetic_input": 12.78,
+   "peak_memory_mb": 3554.6,
+   "rss_before_fit_mb": 198.4,
+   "best_misfit": 0.5072820354827792,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 25.3
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr8",
+   "resolution_bp": 25000,
+   "bins": 5806,
+   "beads": 5791,
+   "contacts": 123866,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 615.88,
+   "seconds_sampling": 27.45,
+   "seconds_total": 651.29,
+   "seconds_synthetic_input": 9.88,
+   "peak_memory_mb": 4487.7,
+   "rss_before_fit_mb": 200.7,
+   "best_misfit": 0.39107924100865604,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 14.1
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr9",
+   "resolution_bp": 25000,
+   "bins": 5536,
+   "beads": 4873,
+   "contacts": 89334,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 548.86,
+   "seconds_sampling": 25.48,
+   "seconds_total": 581.86,
+   "seconds_synthetic_input": 9.58,
+   "peak_memory_mb": 4678.9,
+   "rss_before_fit_mb": 200.5,
+   "best_misfit": 0.42888562530646934,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 7.1
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr10",
+   "resolution_bp": 25000,
+   "bins": 5352,
+   "beads": 5332,
+   "contacts": 106776,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 537.57,
+   "seconds_sampling": 27.34,
+   "seconds_total": 571.92,
+   "seconds_synthetic_input": 9.08,
+   "peak_memory_mb": 4578.0,
+   "rss_before_fit_mb": 201.1,
+   "best_misfit": 0.4538433069579395,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 17.8
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr11",
+   "resolution_bp": 25000,
+   "bins": 5404,
+   "beads": 5382,
+   "contacts": 108176,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 541.09,
+   "seconds_sampling": 25.79,
+   "seconds_total": 573.77,
+   "seconds_synthetic_input": 9.06,
+   "peak_memory_mb": 4606.1,
+   "rss_before_fit_mb": 200.6,
+   "best_misfit": 0.4361974917494045,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 20.5
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr12",
+   "resolution_bp": 25000,
+   "bins": 5332,
+   "beads": 5326,
+   "contacts": 105829,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 528.8,
+   "seconds_sampling": 23.95,
+   "seconds_total": 559.79,
+   "seconds_synthetic_input": 8.68,
+   "peak_memory_mb": 4548.7,
+   "rss_before_fit_mb": 199.9,
+   "best_misfit": 0.4340881802644387,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 14.4
+  },
+  {
+   "assembly": "hg38",
+   "chrom": "chr13",
+   "resolution_bp": 20000,
+   "bins": 5719,
+   "beads": 4900,
+   "contacts": 92425,
+   "model": "population_v4",
+   "rank": 256,
+   "iterations": 1500,
+   "seconds_fit": 607.69,
+   "seconds_sampling": 28.78,
+   "seconds_total": 644.1,
+   "seconds_synthetic_input": 10.49,
+   "peak_memory_mb": 4680.4,
+   "rss_before_fit_mb": 199.3,
+   "best_misfit": 0.3148684383832362,
+   "device": "cpu",
+   "input": "synthetic reference (planted fractal globule)",
+   "system_cpu_percent_before": 15.8
+  }
+ ]
+}
