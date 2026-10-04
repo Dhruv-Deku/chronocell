@@ -24,9 +24,9 @@ FILTERS = ("All genes", "Cancer genes", "Neuro-disease genes", "Predicted active
 
 @st.cache_data(show_spinner="Placing genes on the fold…", max_entries=24)
 def _table(key: str, _x: np.ndarray, _sig: np.ndarray, _valid: np.ndarray, b0: float, chrom_name: str, resolution: int,
-           first_bin: int, signal_real: bool, _expr: pd.Series | None, expr_key: str):
+           first_bin: int, signal_real: bool, _expr: pd.Series | None, expr_key: str, assembly: str = "hg38"):
     from chronocell import genome
-    ch = genome.chrom(chrom_name, resolution)
+    ch = genome.chrom(chrom_name, resolution, assembly)
     sc = G.bead_scores(_x, _sig, _valid, b0, signal_real)
     tab = G.accessibility_table(_x, _sig, _valid, b0, ch, first_bin, signal_real, _expr, scores=sc)
     return tab, sc["score"], bool(sc["uses_signal"])
@@ -46,7 +46,7 @@ def expression_from_upload() -> tuple[pd.Series | None, str]:
 
 def render(ds: Dataset, b0: float, frame: int, state_expression: tuple[pd.Series, str] | None) -> None:
     ch = ds.chrom
-    all_genes = G.on_chromosome(ch.name)
+    all_genes = G.on_chromosome(ch.name, ch.assembly)
     g_first, g_last = ds.bin0, ds.bin0 + ds.n
     in_data = all_genes[(all_genes["tss"] // ch.resolution >= g_first) & (all_genes["tss"] // ch.resolution < g_last)]
     names = in_data["name"].tolist()
@@ -80,7 +80,7 @@ def render(ds: Dataset, b0: float, frame: int, state_expression: tuple[pd.Series
     sig, valid = ds.epi[lo:hi], ds.valid[lo:hi]
     expr_key = f"{expr_label}:{len(expr) if expr is not None else 0}"
     tab, score, uses_signal = _table(f"{ds.key}:{frame}:{lo}:{hi}:{expr_key}", x, sig, valid, float(b0), ch.name,
-                                     ch.resolution, ds.bin0 + lo, not ds.signal_is_placeholder, expr, expr_key)
+                                     ch.resolution, ds.bin0 + lo, not ds.signal_is_placeholder, expr, expr_key, ch.assembly)
     s = G.summary(tab)
     ss.genes_last = {"ds_key": ds.key, "lo": lo, "hi": hi, "table": tab, "summary": s}
 
@@ -176,6 +176,6 @@ def render(ds: Dataset, b0: float, frame: int, state_expression: tuple[pd.Series
                                 "category": st.column_config.TextColumn("flag")})
     st.download_button("Gene table (CSV)", view[show_cols].to_csv(index=False), f"chronocell_genes_{ch.name}.csv",
                        "text/csv", icon=":material/download:", key="genes_csv")
-    html(f'<p class="cc-note">Gene annotation: {esc(G.source_note())}. Status is a <b>prediction</b> from how crowded each '
+    html(f'<p class="cc-note">Gene annotation: {esc(G.source_note(ch.assembly))}. Status is a <b>prediction</b> from how crowded each '
          'promoter is in 3D and how strong its activity mark is, relative to the region shown; flags mark curated '
          'cancer and neuro-disease genes.</p>')

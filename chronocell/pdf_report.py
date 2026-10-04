@@ -195,7 +195,7 @@ def build(ctx: A.AgentContext, analysis_md: str, engine: str, query: str = "", i
     d.heading("1. Sample and provenance")
     d.table([["Field", "Value"],
              ["Biological state", ctx.state + ("" if ctx.state_has_data else " (no files for this state; another source shown)")],
-             ["Chromosome · assembly", f"{ctx.chrom} · {genome.ASSEMBLY} · {ctx.resolution / 1000:g} kb beads"],
+             ["Chromosome · assembly", f"{ctx.chrom} · {ctx.assembly} · {ctx.resolution / 1000:g} kb beads"],
              ["Region", f"{ctx.region} · {ctx.locus}"],
              ["Structure", ctx.structure + (" (EGNN reconstruction)" if ctx.reconstruction else "")],
              ["Signal / tracks", ctx.tracks],

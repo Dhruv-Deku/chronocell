@@ -171,6 +171,7 @@ class Preset:
     operation: str
     summary: str
     reference: str
+    assembly: str = "hg38"                     # gene anchors are hg38 coordinates
 
 
 PRESETS: dict[str, Preset] = {p.key: p for p in (

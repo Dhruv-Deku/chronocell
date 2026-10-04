@@ -59,7 +59,7 @@ def main() -> None:
                                chrom=chrom)
     formats.write_bundle(stem + "_bundle.npz", formats.StructureBundle(
         chrom=chrom.name, resolution=chrom.resolution, frames=res.coords_nm[None], times=np.zeros(1),
-        labels=["fit"], condition="fit", source=a.graph, start_bin=lo))
+        labels=["fit"], condition="fit", source=a.graph, start_bin=lo, assembly=chrom.assembly))
     with open(stem + ".pdb", "w") as fh:
         fh.write(pdb)
     fit = physics.distance_scaling(res.coords_nm)

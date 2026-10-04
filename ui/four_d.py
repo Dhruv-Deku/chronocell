@@ -46,8 +46,9 @@ def _hover(traj: SC.Trajectory, res: int) -> list[str]:
 def _scenario_controls(ds: Dataset, b0: float) -> tuple[str, dict, str, str] | None:
     """Preset or custom structural variant; every numeric input is clamped to the loaded data."""
     ch = ds.chrom
-    here = [p for p in SC.PRESETS.values() if p.chrom == ch.name]
-    elsewhere = [p for p in SC.PRESETS.values() if p.chrom != ch.name]
+    presets = [p for p in SC.PRESETS.values() if p.assembly == ch.assembly]       # gene anchors are per assembly
+    here = [p for p in presets if p.chrom == ch.name]
+    elsewhere = [p for p in presets if p.chrom != ch.name]
     options = [p.key for p in here] + ["custom"]
     names = {p.key: p.title for p in here} | {"custom": "Custom structural variant"}
     choice = st.selectbox("Scenario", options, format_func=lambda k: names[k], key=f"sc_choice_{ch.name}")
@@ -78,10 +79,10 @@ def _scenario_controls(ds: Dataset, b0: float) -> tuple[str, dict, str, str] | N
         bp_mb = st.number_input("Breakpoint on this chromosome (Mb)", min_value=round(lo_mb, 2),
                                 max_value=round(hi_mb, 2), value=round((lo_mb + hi_mb) / 2, 2), step=0.1,
                                 key="sc_bp")
-        partners = [c for c in genome.MAIN_CHROMOSOMES if c != ch.name]
+        partners = [c for c in genome.main_chromosomes(ch.assembly) if c != ch.name]
         partner = st.selectbox("Partner chromosome", partners, index=partners.index("chr9") if "chr9" in partners else 0,
                                key="sc_partner")
-        p_size = genome.chromosome_size(partner) / 1e6
+        p_size = genome.chromosome_size(partner, ch.assembly) / 1e6
         p_mb = st.number_input(f"Partner segment starts at (Mb, fused through to {partner} qter)", min_value=0.0,
                                max_value=round(p_size - 0.5, 2), value=round(max(p_size - 8.0, 0.0), 2), step=0.5,
                                key="sc_pstart")

@@ -2,8 +2,9 @@
 Genes on the 3D fold: annotation, accessibility and (optional) expression.
 
 Annotation: RefSeq Select / MANE (one transcript per gene, 19,386 genes on chr1-22, X, Y),
-downloaded from the UCSC Genome Browser REST API (hg38 track `ncbiRefSeqSelect`) into
-`chronocell/data/genes_hg38.json.gz`. Coordinates are 0-based, half-open.
+downloaded from the UCSC Genome Browser REST API (track `ncbiRefSeqSelect`) into the assembly's genome
+folder (hg38: `chronocell/data/genes_hg38.json.gz`; others: chronocell/data/genomes/<assembly>/genes.json.gz,
+see chronocell.genome_fetch). Coordinates are 0-based, half-open.
 
 Accessibility of a gene is read at its promoter bead (the bead holding the transcription start
 site), relative to the region being viewed:
@@ -61,36 +62,40 @@ def category(name: str) -> str:
     return ""
 
 
-@lru_cache(maxsize=1)
-def table() -> pd.DataFrame:
-    """All annotated genes: name, chrom, start, end, strand, biotype, tss."""
-    with gzip.open(Path(__file__).with_name("data") / "genes_hg38.json.gz", "rt", encoding="utf-8") as fh:
+@lru_cache(maxsize=4)
+def table(assembly: str | None = None) -> pd.DataFrame:
+    """All annotated genes of an assembly (default hg38): name, chrom, start, end, strand, biotype, tss."""
+    path = genome.genes_path(assembly)
+    if path is None or not path.exists():
+        return pd.DataFrame(columns=["name", "chrom", "start", "end", "strand", "biotype", "tss"])
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
         meta = json.load(fh)
     df = pd.DataFrame(meta["genes"], columns=meta["fields"])
     df["tss"] = np.where(df["strand"] == "+", df["start"], df["end"] - 1)
     return df.sort_values(["chrom", "start"]).reset_index(drop=True)
 
 
-def source_note() -> str:
-    return "RefSeq Select / MANE (UCSC hg38 ncbiRefSeqSelect)"
+def source_note(assembly: str | None = None) -> str:
+    asm = genome.assembly(assembly)
+    return f"RefSeq Select{' / MANE' if asm.name == 'hg38' else ''} (UCSC {asm.name} ncbiRefSeqSelect)"
 
 
-def on_chromosome(chrom_name: str) -> pd.DataFrame:
-    df = table()
+def on_chromosome(chrom_name: str, assembly: str | None = None) -> pd.DataFrame:
+    df = table(assembly)
     return df[df["chrom"] == chrom_name].reset_index(drop=True)
 
 
-def in_region(chrom_name: str, start: int, end: int) -> pd.DataFrame:
-    df = on_chromosome(chrom_name)
+def in_region(chrom_name: str, start: int, end: int, assembly: str | None = None) -> pd.DataFrame:
+    df = on_chromosome(chrom_name, assembly)
     return df[(df["start"] < end) & (df["end"] > start)].reset_index(drop=True)
 
 
-def find(name: str) -> pd.Series | None:
+def find(name: str, assembly: str | None = None) -> pd.Series | None:
     """Gene by symbol (case-insensitive exact match, then unique prefix)."""
     q = (name or "").strip().upper()
     if not q:
         return None
-    df = table()
+    df = table(assembly)
     hit = df[df["name"].str.upper() == q]
     if hit.empty:
         hit = df[df["name"].str.upper().str.startswith(q)]
@@ -143,7 +148,7 @@ def accessibility_table(coords: np.ndarray, signal: np.ndarray, valid: np.ndarra
     sc = scores or bead_scores(coords, signal, valid, b0, signal_real)
     start_bp = int(chrom.bin_start(first_bin))
     end_bp = int(chrom.bin_end(first_bin + n - 1))
-    g = in_region(chrom.name, start_bp, end_bp)
+    g = in_region(chrom.name, start_bp, end_bp, chrom.assembly)
     g = g[(g["tss"] >= start_bp) & (g["tss"] < end_bp)].copy()
     if g.empty:
         return pd.DataFrame(columns=["gene", "locus", "bead", "biotype", "category", "crowding", "signal", "score",

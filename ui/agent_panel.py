@@ -108,14 +108,16 @@ def sidebar_settings() -> AgentSettings:
 # ======================================================================================
 @st.cache_resource(show_spinner=False, max_entries=96)
 def metrics_for(coords: np.ndarray, signal: np.ndarray, valid: np.ndarray, b0: float, chrom_name: str,
-                resolution: int, first_bin: int, label: str, placeholder: bool) -> A.Metrics:
-    return A.compute_metrics(coords, signal, valid, b0, genome.chrom(chrom_name, resolution), first_bin, label,
+                resolution: int, first_bin: int, label: str, placeholder: bool,
+                assembly: str = genome.DEFAULT_ASSEMBLY) -> A.Metrics:
+    return A.compute_metrics(coords, signal, valid, b0, genome.chrom(chrom_name, resolution, assembly), first_bin, label,
                              placeholder)
 
 
 def dataset_metrics(ds: Dataset, coords: np.ndarray, lo: int, hi: int, b0: float) -> A.Metrics:
     return metrics_for(np.ascontiguousarray(coords, dtype=np.float64), ds.epi[lo:hi], ds.valid[lo:hi], float(b0),
-                       ds.chrom.name, ds.chrom.resolution, ds.bin0 + lo, ds.signal_label, ds.signal_is_placeholder)
+                       ds.chrom.name, ds.chrom.resolution, ds.bin0 + lo, ds.signal_label, ds.signal_is_placeholder,
+                       ds.chrom.assembly)
 
 
 def comparisons_for(ds: Dataset, lo: int, hi: int, b0: float, others: dict[str, Dataset]) -> tuple[A.Comparison, ...]:
@@ -145,9 +147,9 @@ def build_context(ds: Dataset, coords: np.ndarray, lo: int, hi: int, b0: float, 
         locus=f"{ch.name}:{start + 1:,}-{end:,}", structure=ds.structure_label, tracks=ds.tracks_label,
         is_reference=ds.is_reference, reconstruction=reconstruction, b0=float(b0),
         metrics=dataset_metrics(ds, coords, lo, hi, b0),
-        genes=tuple(g.name for g in genome.genes_in(ch.name, start, end)),
+        genes=tuple(g.name for g in genome.genes_in(ch.name, start, end, ch.assembly)),
         comparisons=comparisons_for(ds, lo, hi, b0, {s: d for s, d in others.items() if s != state}),
-        extras=extras or {})
+        extras=extras or {}, assembly=ch.genome.display)
 
 
 # ======================================================================================

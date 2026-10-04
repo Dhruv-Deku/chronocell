@@ -38,9 +38,18 @@ CONTACT_BINARY = (".cool", ".mcool", ".hic")
 TEXT_TABLE = (".tsv", ".txt", ".csv", ".pairs", ".gz")
 
 
-def _norm_chrom(v: str) -> str:
-    v = str(v)
-    return v if v.startswith("chr") else f"chr{v}"
+def _norm_chrom(v: str, assembly: str | None = None) -> str:
+    """Chromosome names in any common spelling ('22', 'chr22', 'NC_000022.11', 'CM000684.2', ...) -> UCSC style."""
+    try:
+        return genome.normalize_chrom(v, assembly)
+    except KeyError:
+        v = str(v)
+        return v if v.startswith("chr") else f"chr{v}"
+
+
+def _norm_series(s: pd.Series, assembly: str | None) -> pd.Series:
+    lut = {u: _norm_chrom(u, assembly) for u in pd.unique(s.astype(str))}
+    return s.astype(str).map(lut)
 
 
 def _read_table(data: bytes) -> pd.DataFrame:
@@ -146,7 +155,7 @@ def read_track(data: bytes, name: str, chrom: genome.Chrom) -> tuple[np.ndarray,
     df = _read_table(data)
     if df.shape[1] < 3:
         raise ValueError("BED/bedGraph needs at least chrom, start, end columns.")
-    chroms = df[0].map(_norm_chrom)
+    chroms = _norm_series(df[0], chrom.assembly)
     sub = df[chroms == chrom.name]
     if sub.empty:
         raise ValueError(f"No intervals on {chrom.name} (found {', '.join(sorted(chroms.unique())[:6])}).")
@@ -185,7 +194,7 @@ def read_cool(data: bytes, chrom: genome.Chrom) -> tuple[np.ndarray, np.ndarray,
     with h5py.File(io.BytesIO(data), "r") as f:
         g, binsize = _cool_group(f, chrom.resolution)
         names = [v.decode() if isinstance(v, bytes) else str(v) for v in g["chroms"]["name"][:]]
-        norm = [_norm_chrom(v) for v in names]
+        norm = [_norm_chrom(v, chrom.assembly) for v in names]
         if chrom.name not in norm:
             raise ValueError(f"{chrom.name} not in the cooler ({', '.join(names[:6])}...).")
         cid = norm.index(chrom.name)
@@ -261,7 +270,7 @@ def read_contact_table(data: bytes, chrom: genome.Chrom):
             c1, p1, c2, p2, cn = 0, 1, 3, 4, (6 if k >= 7 else None)
         else:
             raise ValueError(f"Unrecognised contact table with {k} columns.")
-        same = (df[c1].map(_norm_chrom) == chrom.name) & (df[c2].map(_norm_chrom) == chrom.name)
+        same = (_norm_series(df[c1], chrom.assembly) == chrom.name) & (_norm_series(df[c2], chrom.assembly) == chrom.name)
         sub = df[same]
         if sub.empty:
             raise ValueError(f"No {chrom.name} cis contacts in the table.")

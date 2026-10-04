@@ -177,7 +177,7 @@ def _side_by_side(options: list[tuple[str, Dataset]], default_left: int, default
         for p in peaks:
             start = int(ch.bin_start(gb[max(0, p - 5)]))
             end = int(ch.bin_end(gb[min(len(gb) - 1, p + 5)]))
-            names = G.in_region(ch.name, start, end)["name"].head(5).tolist()
+            names = G.in_region(ch.name, start, end, ch.assembly)["name"].head(5).tolist()
             rows.append({"Locus": f"{ch.name}:{pos_mb[p]:.2f} Mb", "Moved (nm)": round(float(pair["smooth"][lo:hi][p])),
                          "Genes there": ", ".join(names) or "—"})
         if rows:

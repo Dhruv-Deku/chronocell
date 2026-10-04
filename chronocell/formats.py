@@ -129,7 +129,8 @@ def write_pdb(coords_nm: np.ndarray, start_bin: int, gc: np.ndarray, epi: np.nda
 
     lines = [
         _pad(f"HEADER    {'CHROMATIN STRUCTURE':<40s}{stamp:>9s}   CC5D"),
-        _pad(f"TITLE     CHRONOCELL-5D MODEL OF HUMAN {chrom.name.upper()} (GRCH38) AT {kb} KB"),
+        _pad(f"TITLE     CHRONOCELL-5D MODEL OF {(chrom.genome.common or 'THE').upper()} {chrom.name.upper()} "
+             f"({chrom.genome.short.upper()}) AT {kb} KB"[:PDB_WIDTH]),
         _pad("REMARK   2"),
         _pad("REMARK   2 RESOLUTION. NOT APPLICABLE."),
         _pad("REMARK 250"),
@@ -504,6 +505,7 @@ class StructureBundle:
     source: str = ""
     time_unit: str = "frame"
     start_bin: int = 0
+    assembly: str = genome.DEFAULT_ASSEMBLY
     gc: np.ndarray | None = None
     epi: np.ndarray | None = None
     valid: np.ndarray | None = None
@@ -528,9 +530,14 @@ class StructureBundle:
             raise ValueError("frames contain NaN or infinite values.")
         if len(self.times) != self.n_frames or len(self.labels) != self.n_frames:
             raise ValueError("times and labels must have one entry per frame.")
-        if self.chrom not in genome.MAIN_CHROMOSOMES:
-            raise ValueError(f"Unknown chromosome '{self.chrom}'; expected one of chr1..chr22, chrX, chrY.")
-        n_bins = genome.chrom(self.chrom, self.resolution).n_bins
+        try:
+            mains = genome.main_chromosomes(self.assembly)
+        except KeyError as exc:
+            raise ValueError(str(exc)) from exc
+        if self.chrom not in mains:
+            raise ValueError(f"Unknown chromosome '{self.chrom}' for {self.assembly}; expected one of "
+                             f"{mains[0]}..{mains[-1]}.")
+        n_bins = genome.chrom(self.chrom, self.resolution, self.assembly).n_bins
         if self.start_bin < 0 or self.start_bin + self.n_beads > n_bins:
             raise ValueError(f"Bins {self.start_bin}..{self.start_bin + self.n_beads - 1} fall outside "
                              f"{self.chrom} at {self.resolution:,} bp ({n_bins:,} bins).")
@@ -541,7 +548,8 @@ def write_bundle(path_or_buffer, b: StructureBundle) -> None:
     arrays = dict(frames=b.frames.astype(np.float32), times=np.asarray(b.times, float),
                   labels=np.array(b.labels), chrom=np.array(b.chrom), resolution=np.array(b.resolution),
                   condition=np.array(b.condition), source=np.array(b.source), time_unit=np.array(b.time_unit),
-                  units_nm=np.array(1.0), start_bin=np.array(b.start_bin), format=np.array("chronocell-bundle-1"))
+                  units_nm=np.array(1.0), start_bin=np.array(b.start_bin), format=np.array("chronocell-bundle-1"),
+                  assembly=np.array(b.assembly))
     for k in ("gc", "epi", "valid", "ci", "cj", "cm"):
         v = getattr(b, k)
         if v is not None:
@@ -570,7 +578,8 @@ def _scalar(z, key, default):
 
 
 def read_bundle(data: bytes, name: str, chrom_hint: str = genome.CHROM, trusted: bool = False,
-                unit: str = "Auto", b0: float | None = None) -> tuple[StructureBundle, list[str]]:
+                unit: str = "Auto", b0: float | None = None,
+                assembly: str | None = None) -> tuple[StructureBundle, list[str]]:
     """Any supported coordinate file -> StructureBundle (+ notes about conversions applied).
 
     Bundle .npz files carry chromosome, resolution and units. Single-structure files (.pdb,
@@ -586,11 +595,16 @@ def read_bundle(data: bytes, name: str, chrom_hint: str = genome.CHROM, trusted:
         frames = np.asarray(z["frames"], dtype=np.float64)
         if frames.ndim == 2:
             frames = frames[None]
+        asm = str(_scalar(z, "assembly", assembly or genome.DEFAULT_ASSEMBLY))
         chrom_name = str(_scalar(z, "chrom", chrom_hint))
+        try:
+            chrom_name = genome.normalize_chrom(chrom_name, asm)
+        except KeyError:
+            pass
         t = frames.shape[0]
         b = StructureBundle(
-            chrom=chrom_name,
-            resolution=int(_scalar(z, "resolution", genome.resolution_for_beads(chrom_name, frames.shape[1]))),
+            chrom=chrom_name, assembly=asm,
+            resolution=int(_scalar(z, "resolution", genome.resolution_for_beads(chrom_name, frames.shape[1], asm))),
             frames=frames * float(_scalar(z, "units_nm", 1.0)),
             times=np.asarray(z.get("times", np.arange(t)), float),
             labels=[str(v) for v in z.get("labels", [f"t{k}" for k in range(t)])],
@@ -605,9 +619,10 @@ def read_bundle(data: bytes, name: str, chrom_hint: str = genome.CHROM, trusted:
             chrom_name, start_bin, res = hint
             notes.append(f"Region read from file header: {chrom_name}, bin {start_bin:,}, {res:,} bp.")
         else:
-            chrom_name, start_bin, res = chrom_hint, 0, genome.resolution_for_beads(chrom_hint, len(coords))
+            chrom_name, start_bin, res = chrom_hint, 0, genome.resolution_for_beads(chrom_hint, len(coords), assembly)
         b = StructureBundle(chrom=chrom_name, resolution=res, frames=coords[None].astype(np.float64),
-                            times=np.zeros(1), labels=["t0"], condition="uploaded", source=name, start_bin=start_bin)
+                            times=np.zeros(1), labels=["t0"], condition="uploaded", source=name, start_bin=start_bin,
+                            assembly=assembly or genome.DEFAULT_ASSEMBLY)
     b.validate()
     if not (unit == "nm" or (unit == "Auto" and declared == "nm")):
         if unit == "Å":
@@ -621,7 +636,7 @@ def read_bundle(data: bytes, name: str, chrom_hint: str = genome.CHROM, trusted:
                 raise ValueError("Cannot calibrate units: median bond length is zero.")
             b.frames = b.frames * (b0 / med)
             notes.append(f"Unknown coordinate unit: rescaled ×{b0 / med:.4g} so the median bond equals b₀ = {b0:.0f} nm.")
-    n_expected = genome.chrom(b.chrom, b.resolution).n_bins
+    n_expected = genome.chrom(b.chrom, b.resolution, b.assembly).n_bins
     if b.n_beads != n_expected:
         notes.append(f"Window of {b.n_beads:,} beads: bins {b.start_bin:,}–{b.start_bin + b.n_beads - 1:,} of "
                      f"{n_expected:,} ({b.chrom} at {b.resolution:,} bp).")

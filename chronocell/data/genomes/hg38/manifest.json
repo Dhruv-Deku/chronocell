@@ -1,0 +1,45 @@
+{
+ "assembly": "hg38",
+ "display": "GRCh38/hg38",
+ "species": "Homo sapiens",
+ "common": "human",
+ "main_chromosomes": [
+  "chr1",
+  "chr2",
+  "chr3",
+  "chr4",
+  "chr5",
+  "chr6",
+  "chr7",
+  "chr8",
+  "chr9",
+  "chr10",
+  "chr11",
+  "chr12",
+  "chr13",
+  "chr14",
+  "chr15",
+  "chr16",
+  "chr17",
+  "chr18",
+  "chr19",
+  "chr20",
+  "chr21",
+  "chr22",
+  "chrX",
+  "chrY"
+ ],
+ "files": {
+  "chromosomes": "../../hg38.json",
+  "genes": "../../genes_hg38.json.gz",
+  "aliases": "chromAlias.tsv"
+ },
+ "sources": {
+  "annotation": "UCSC Genome Browser REST API: chromosomes, cytoBand, gap, centromeres (retrieved 2026-09-27)",
+  "genes": "NCBI RefSeq Select / MANE via UCSC ncbiRefSeqSelect (retrieved 2026-09-27)",
+  "aliases": "hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromAlias.txt"
+ },
+ "licence": "UCSC Genome Browser data: free for academic, non-profit and personal use; RefSeq: public NCBI data.",
+ "citation": "Kent WJ et al., Genome Res 12:996 (2002); O'Leary NA et al., Nucleic Acids Res 44:D733 (2016)",
+ "retrieved": "2026-09-27"
+}
