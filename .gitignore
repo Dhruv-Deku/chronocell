@@ -1,0 +1,11 @@
+# secrets: your own API keys live here and must never be committed
+.streamlit/secrets.toml
+# caches and generated files
+.chronocell_cache/
+static/plotly-*.min.js
+__pycache__/
+*.pyc
+demo_states/
+colab/chronocell_code.zip
+# third-party validation data (downloaded on demand by validation/validate_tracing.py)
+validation/data/
