@@ -49,7 +49,7 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | 2 | Are the stated intervals honest? | Raw 90 % intervals cover 71–84 %. After recalibration fitted on practice data: 83–91 %. Short separations are worst. Per-bead reliability does not predict error. | **Recalibrated intervals usable for imaging-derived input; not for Hi-C input; no per-bead reliability** |
 | 2b | Are they honest with sequencing Hi-C input? | Stated 90 % intervals hold 23–51 %; 43–73 % after a recalibration fitted on practice Hi-C | **Fail: with Hi-C input the range is the model's spread, not a 90 % range** |
 | 2c | Can a per-pair score from the input say which distances are wrong? | Imaging input: weak (pairs +0.07 to +0.20, below the 0.20 bar); Hi-C input: none (−0.05 to +0.03) | **Fail: no reliability score in the app** |
-| 3 | Benchmark against baselines and published tools | see below | see below |
+| 3 | Benchmark against baselines and published tools | Imaging input: best or tied best on 27 of 28 units (PASTIS PM2 ahead only on the weak IMR-90 18–20 Mb set). Hi-C input: best on 18 of 26; no-3D or PASTIS ahead on 7 genome-scale chromosomes and the 18–20 Mb set | **Ahead with imaging-derived input; mixed with Hi-C input**; PASTIS PM2 on the 651-locus sets not finished |
 | 4 | Does the cohesin-loss prediction match real RAD21 depletion? | Held-out region: change agreement 0.868 vs 0.336 for a trend-only shift | **Pass, on one region** |
 | 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
 | 5 | Can sequence + CTCF predict distances with no contact data? | 12–27 % of the ceiling on 4 of 5 test sets (0.5 % on the weak-structure set). Raw ρ gains over the separation baseline are ≤ 0.005. | **Pass (pre-registered rule), modest: a prior, not a substitute for contacts** |
@@ -308,10 +308,111 @@ intervals from resampling half B's copies.
     IMR-90 Hi-C including chr21, so an IMR-90 chr21 comparison would be in-sample.
 
 <!-- BEGIN generated:gate3 -->
-_validation/benchmark/results.json: not run (python -m validation.benchmark.run)._
+Run 2026-10-04T21:00:02+00:00 (2.5 h). All pairs, mean over splits; brackets: 95 % interval (resampling half B, split 0). Full tables: `validation/benchmark/RESULTS_TABLE.md`.
+
+**Input: imaging-derived contacts** — % of ceiling (raw ρ)
+
+| Dataset | genomic_distance_only | no_3d | v3_2_single | v3_3_windowed | v4_whole | pastis_mds | pastis_pm2 |
+|---|---|---|---|---|---|---|---|
+| bintu_imr90_28_30 | 0.6 [1.4, 1.8] (0.930) | 81.4 [82.5, 84.7] (0.962) | 44.3 [41.1, 43.7] (0.872) | 88.2 [89.1, 91.8] (0.976) | 88.2 [89.1, 91.8] (0.976) | 54.9 [55.2, 57.8] (0.911) | 76.7 [73.9, 76.9] (0.962) |
+| bintu_imr90_18_20 | 0.4 [-3.4, 5.8] (0.962) | 43.0 [19.4, 65.5] (0.815) | 37.7 [13.5, 76.6] (0.523) | 55.4 [32.3, 88.1] (0.868) | 55.4 [32.3, 88.1] (0.868) | 51.0 [23.6, 69.1] (0.654) | 67.9 [28.6, 97.8] (0.848) |
+| bintu_a549_28_30 | -1.0 [-2.9, -1.8] (0.915) | 87.9 [86.8, 91.0] (0.939) | 54.4 [48.4, 54.6] (0.827) | 91.2 [90.5, 95.0] (0.952) | 91.2 [90.5, 95.0] (0.952) | 61.9 [59.3, 66.1] (0.852) | 73.1 [70.6, 76.6] (0.906) |
+| bintu_hct116_34_37_auxin | -0.1 [-0.2, 0.3] (0.973) | 66.5 [63.3, 65.9] (0.944) | 30.0 [28.6, 32.6] (0.752) | 79.7 [75.1, 78.8] (0.968) | 79.7 [75.1, 78.8] (0.968) | 34.2 [29.7, 34.3] (0.780) | 47.4 [37.9, 43.3] (0.862) |
+| su_chr21 | -0.2 [-0.2, -0.2] (0.748) | 87.4 [86.9, 87.7] (0.929) | 37.2 [36.0, 37.2] (0.621) | — | 91.7 [91.3, 92.1] (0.954) | 65.6 [65.1, 66.2] (0.815) | — |
+| su_chr21_rep | -0.0 [0.2, 0.2] (0.705) | 92.6 [92.2, 92.9] (0.943) | 37.9 [36.9, 37.8] (0.586) | — | 94.6 [94.4, 95.1] (0.959) | 64.4 [63.8, 64.6] (0.799) | — |
+| su_genome:chr1 | 1.8 [1.1, 2.1] (0.775) | 92.9 [92.2, 93.6] (0.963) | 36.6 [35.0, 38.2] (0.668) | 94.1 [93.3, 94.9] (0.968) | 94.1 [93.3, 94.9] (0.968) | 57.5 [56.3, 59.1] (0.842) | 83.5 [81.9, 86.1] (0.938) |
+| su_genome:chr3 | 2.1 [1.2, 2.6] (0.878) | 91.8 [90.9, 92.9] (0.957) | 38.0 [36.2, 40.3] (0.672) | 93.3 [92.4, 94.4] (0.961) | 93.3 [92.4, 94.4] (0.961) | 53.6 [52.1, 55.9] (0.810) | 82.1 [80.5, 84.1] (0.935) |
+| su_genome:chr4 | -2.2 [-3.0, -1.5] (0.926) | 93.8 [92.9, 95.0] (0.976) | 28.8 [27.1, 30.1] (0.637) | 95.6 [94.7, 96.9] (0.980) | 95.6 [94.7, 96.9] (0.980) | 54.1 [52.2, 55.7] (0.827) | 84.0 [82.4, 86.0] (0.954) |
+| su_genome:chr5 | 0.1 [-0.3, 0.7] (0.913) | 89.8 [88.5, 91.8] (0.974) | 32.1 [30.1, 34.2] (0.632) | 91.4 [90.1, 93.4] (0.976) | 91.4 [90.1, 93.4] (0.976) | 55.2 [53.1, 57.2] (0.832) | 84.4 [82.7, 85.8] (0.965) |
+| su_genome:chr6 | 0.7 [0.4, 1.3] (0.889) | 90.9 [90.0, 91.7] (0.964) | 34.0 [32.4, 36.1] (0.640) | 91.7 [90.8, 92.6] (0.967) | 91.7 [90.8, 92.6] (0.967) | 53.1 [51.8, 54.9] (0.819) | 85.8 [84.4, 86.7] (0.957) |
+| su_genome:chr7 | -0.7 [-1.2, -0.3] (0.906) | 94.9 [93.6, 96.2] (0.977) | 35.8 [33.6, 37.8] (0.643) | 95.6 [94.3, 96.9] (0.979) | 95.6 [94.3, 96.9] (0.979) | 54.5 [53.0, 56.3] (0.816) | 84.5 [83.1, 86.3] (0.961) |
+| su_genome:chr8 | -0.4 [-1.2, 0.4] (0.928) | 94.2 [92.9, 95.7] (0.983) | 33.8 [32.0, 36.2] (0.635) | 95.1 [93.9, 96.7] (0.984) | 95.1 [93.9, 96.7] (0.984) | 46.2 [44.5, 48.1] (0.817) | 79.8 [77.8, 81.9] (0.959) |
+| su_genome:chr9 | -0.1 [-0.7, 0.3] (0.874) | 96.0 [95.5, 96.8] (0.970) | 34.8 [32.9, 37.1] (0.630) | 96.7 [96.2, 97.5] (0.973) | 96.7 [96.2, 97.5] (0.973) | 48.3 [46.7, 50.4] (0.796) | 81.3 [80.2, 83.0] (0.944) |
+| su_genome:chr10 | -0.1 [-0.9, 0.6] (0.910) | 92.9 [91.9, 93.8] (0.974) | 28.5 [26.5, 32.3] (0.604) | 93.4 [92.4, 94.4] (0.975) | 93.4 [92.4, 94.4] (0.975) | 55.2 [53.8, 57.5] (0.810) | 84.0 [82.4, 85.7] (0.961) |
+| su_genome:chr11 | -2.0 [-2.8, -1.7] (0.882) | 94.7 [93.8, 95.7] (0.976) | 36.3 [34.6, 38.6] (0.667) | 95.3 [94.3, 96.2] (0.978) | 95.3 [94.3, 96.2] (0.978) | 58.8 [57.4, 60.8] (0.822) | 84.5 [83.3, 85.8] (0.955) |
+| su_genome:chr12 | -0.4 [-0.9, 0.3] (0.902) | 93.8 [92.8, 94.8] (0.979) | 28.8 [26.2, 30.8] (0.661) | 94.3 [93.3, 95.2] (0.980) | 94.3 [93.3, 95.2] (0.980) | 53.9 [52.2, 56.1] (0.810) | 86.4 [84.6, 88.5] (0.961) |
+| su_genome:chr13 | -0.2 [-1.6, 1.0] (0.894) | 89.9 [88.0, 93.9] (0.971) | 20.1 [17.0, 23.1] (0.594) | 89.9 [88.0, 93.9] (0.971) | 89.9 [88.0, 93.9] (0.971) | 58.5 [56.1, 61.9] (0.799) | 86.3 [83.7, 89.2] (0.952) |
+| su_genome:chr14 | -1.2 [-3.0, -0.2] (0.837) | 95.5 [94.1, 96.8] (0.964) | 43.2 [41.9, 46.1] (0.581) | 95.6 [94.3, 96.9] (0.964) | 95.6 [94.3, 96.9] (0.964) | 63.3 [62.6, 67.0] (0.770) | 81.4 [80.3, 84.6] (0.917) |
+| su_genome:chr15 | 0.2 [-1.2, 1.3] (0.720) | 96.2 [95.1, 97.6] (0.948) | 45.9 [43.6, 48.6] (0.642) | 96.2 [95.1, 97.6] (0.948) | 96.2 [95.1, 97.6] (0.948) | 68.2 [66.0, 70.3] (0.793) | 90.9 [88.8, 92.7] (0.930) |
+| su_genome:chr16 | -2.6 [-3.5, -1.9] (0.782) | 95.2 [94.5, 96.6] (0.956) | 43.2 [42.1, 45.2] (0.683) | 95.3 [94.6, 96.7] (0.956) | 95.3 [94.6, 96.7] (0.956) | 67.4 [66.1, 68.5] (0.817) | 85.9 [84.5, 86.9] (0.934) |
+| su_genome:chr17 | -1.1 [-1.7, -0.6] (0.644) | 96.2 [95.5, 96.8] (0.952) | 41.3 [39.5, 43.0] (0.600) | 96.2 [95.5, 96.8] (0.952) | 96.2 [95.5, 96.8] (0.952) | 65.6 [64.5, 66.4] (0.761) | 92.1 [91.1, 92.6] (0.931) |
+| su_genome:chr18 | -5.9 [-7.1, -5.3] (0.698) | 95.0 [94.4, 95.9] (0.955) | 35.1 [33.7, 37.7] (0.598) | 95.4 [94.7, 96.3] (0.956) | 95.4 [94.7, 96.3] (0.956) | 55.4 [53.9, 56.5] (0.739) | 88.7 [87.2, 89.9] (0.939) |
+| su_genome:chr19 | 0.0 [-1.2, 1.0] (0.523) | 96.0 [95.2, 96.5] (0.953) | 52.3 [50.4, 54.0] (0.611) | 96.1 [95.3, 96.7] (0.954) | 96.1 [95.3, 96.7] (0.954) | 74.4 [73.3, 75.8] (0.812) | 91.0 [90.0, 92.1] (0.931) |
+| su_genome:chr20 | 1.6 [0.8, 2.5] (0.731) | 95.4 [94.3, 96.9] (0.969) | 45.8 [44.0, 48.0] (0.667) | 95.5 [94.3, 97.0] (0.969) | 95.5 [94.3, 97.0] (0.969) | 66.1 [64.9, 67.5] (0.829) | 86.0 [84.7, 87.9] (0.929) |
+| su_genome:chr21 | -6.0 [-6.6, -5.3] (0.619) | 95.0 [94.5, 95.8] (0.967) | 47.7 [46.5, 49.0] (0.621) | 95.1 [94.7, 95.9] (0.967) | 95.1 [94.7, 95.9] (0.967) | 70.3 [69.5, 70.9] (0.793) | 89.6 [88.8, 90.3] (0.913) |
+| su_genome:chr22 | 0.8 [-0.5, 1.0] (0.520) | 97.2 [96.6, 97.7] (0.964) | 63.8 [63.1, 65.1] (0.677) | 97.3 [96.7, 97.8] (0.964) | 97.3 [96.7, 97.8] (0.964) | 86.6 [86.0, 87.3] (0.887) | 94.2 [93.8, 95.0] (0.944) |
+| su_genome:chrX | 0.5 [-0.4, 1.0] (0.921) | 90.8 [89.3, 93.1] (0.975) | 33.5 [31.5, 35.8] (0.640) | 90.9 [89.4, 93.1] (0.975) | 90.9 [89.4, 93.1] (0.975) | 41.7 [40.7, 45.1] (0.765) | 81.4 [79.6, 84.9] (0.950) |
+
+**Input: sequencing Hi-C (Rao et al. 2014)** — % of ceiling (raw ρ)
+
+| Dataset | no_3d | v3_2_single | v3_3_windowed | v4_whole | pastis_mds | pastis_pm2 |
+|---|---|---|---|---|---|---|
+| bintu_imr90_28_30 | 80.8 [79.8, 81.2] (0.968) | 67.8 [66.6, 68.4] (0.953) | 92.5 [91.2, 92.8] (0.987) | 92.5 [91.2, 92.8] (0.987) | 74.5 [72.5, 74.4] (0.963) | 85.1 [84.8, 86.8] (0.978) |
+| bintu_imr90_18_20 | -18.5 [-54.2, 16.2] (0.839) | -1.6 [-44.5, 22.5] (0.564) | -24.2 [-64.7, 29.1] (0.882) | -24.2 [-64.8, 29.0] (0.882) | 0.5 [-21.2, 46.2] (0.688) | -10.5 [-51.8, 27.8] (0.806) |
+| su_chr21 | 70.1 [69.3, 70.1] (0.852) | 56.0 [54.9, 56.1] (0.790) | — | 84.9 [84.0, 85.1] (0.931) | 72.8 [71.2, 72.2] (0.870) | — |
+| su_chr21_rep | 66.9 [66.0, 67.0] (0.831) | 52.6 [51.5, 52.9] (0.766) | — | 80.5 [79.5, 80.9] (0.908) | 67.7 [66.3, 67.7] (0.841) | — |
+| su_genome:chr1 | 45.4 [44.4, 48.2] (0.801) | 32.0 [30.0, 34.5] (0.789) | 53.1 [51.7, 56.2] (0.874) | 53.1 [51.7, 56.2] (0.874) | 39.3 [37.3, 42.0] (0.793) | 48.9 [47.6, 52.2] (0.854) |
+| su_genome:chr3 | 50.3 [47.7, 52.4] (0.805) | 36.4 [33.5, 38.8] (0.804) | 61.9 [59.3, 64.3] (0.905) | 61.9 [59.3, 64.3] (0.905) | 42.6 [39.9, 44.9] (0.775) | 54.2 [50.7, 56.8] (0.845) |
+| su_genome:chr4 | 41.0 [39.3, 43.3] (0.866) | 28.5 [26.6, 30.0] (0.875) | 57.2 [55.4, 59.7] (0.942) | 57.2 [55.4, 59.7] (0.942) | 36.0 [34.5, 37.9] (0.866) | 48.4 [46.4, 50.1] (0.929) |
+| su_genome:chr5 | 43.3 [41.7, 45.5] (0.892) | 26.8 [24.7, 28.8] (0.854) | 55.7 [53.9, 58.1] (0.934) | 55.7 [53.9, 58.1] (0.934) | 34.5 [32.0, 36.8] (0.875) | 45.4 [43.9, 48.0] (0.938) |
+| su_genome:chr6 | 39.0 [37.2, 40.6] (0.811) | 26.8 [24.3, 29.0] (0.780) | 45.8 [44.0, 47.5] (0.871) | 45.8 [44.0, 47.5] (0.871) | 33.3 [31.6, 35.3] (0.784) | 43.4 [41.3, 44.9] (0.867) |
+| su_genome:chr7 | 36.5 [33.9, 39.3] (0.718) | 23.7 [20.7, 27.3] (0.750) | 42.7 [40.2, 45.4] (0.807) | 42.7 [40.2, 45.4] (0.807) | 29.6 [26.9, 32.5] (0.679) | 36.2 [33.2, 39.6] (0.761) |
+| su_genome:chr8 | 22.6 [20.9, 25.2] (0.755) | 13.5 [11.1, 15.9] (0.815) | 40.7 [38.5, 43.1] (0.911) | 40.7 [38.5, 43.1] (0.911) | 14.3 [12.2, 17.1] (0.716) | 23.0 [21.1, 25.5] (0.777) |
+| su_genome:chr9 | 19.0 [16.3, 21.0] (0.576) | 21.8 [19.1, 23.9] (0.736) | 28.5 [25.1, 30.3] (0.711) | 28.4 [25.1, 30.2] (0.711) | 18.4 [15.6, 20.4] (0.548) | 18.7 [15.8, 20.7] (0.565) |
+| su_genome:chr10 | 37.0 [33.9, 40.0] (0.678) | 26.5 [24.0, 29.5] (0.805) | 47.1 [44.4, 49.5] (0.865) | 47.1 [44.4, 49.5] (0.865) | 34.2 [31.0, 37.3] (0.662) | 43.9 [41.1, 46.7] (0.736) |
+| su_genome:chr11 | 36.7 [35.8, 38.7] (0.707) | 37.2 [35.5, 39.4] (0.766) | 49.2 [47.7, 51.5] (0.857) | 49.2 [47.7, 51.5] (0.857) | 32.9 [31.7, 34.9] (0.681) | 42.5 [40.3, 44.5] (0.770) |
+| su_genome:chr12 | 36.3 [33.3, 39.1] (0.768) | 28.3 [25.7, 30.0] (0.802) | 50.5 [47.6, 52.9] (0.883) | 50.5 [47.6, 52.9] (0.884) | 33.1 [30.1, 35.7] (0.738) | 39.2 [36.3, 42.4] (0.793) |
+| su_genome:chr13 | 36.9 [30.7, 43.5] (0.833) | 25.1 [18.8, 29.2] (0.788) | 36.2 [29.7, 41.2] (0.854) | 36.2 [29.8, 41.3] (0.854) | 33.2 [28.0, 39.3] (0.799) | 37.5 [31.6, 44.9] (0.843) |
+| su_genome:chr14 | 62.0 [59.0, 67.7] (0.834) | 31.1 [28.1, 35.6] (0.734) | 53.2 [48.8, 58.7] (0.815) | 53.3 [48.9, 58.7] (0.816) | 58.1 [55.1, 63.1] (0.790) | 57.8 [54.3, 62.8] (0.816) |
+| su_genome:chr15 | 54.5 [51.4, 57.9] (0.747) | 56.5 [53.9, 59.8] (0.781) | 56.3 [52.6, 59.3] (0.767) | 56.3 [52.6, 59.3] (0.766) | 60.1 [56.4, 63.8] (0.768) | 63.9 [60.3, 67.4] (0.805) |
+| su_genome:chr16 | 59.8 [58.5, 61.8] (0.761) | 27.8 [26.5, 29.6] (0.608) | 64.4 [62.6, 66.3] (0.755) | 64.4 [62.6, 66.4] (0.755) | 58.5 [56.9, 60.5] (0.721) | 62.3 [60.4, 63.9] (0.747) |
+| su_genome:chr17 | 42.7 [41.3, 43.9] (0.644) | 47.9 [46.3, 49.8] (0.710) | 57.8 [55.9, 59.2] (0.737) | 57.8 [55.9, 59.2] (0.737) | 40.8 [39.2, 42.1] (0.604) | 46.3 [44.7, 47.8] (0.650) |
+| su_genome:chr18 | 47.6 [45.3, 50.0] (0.708) | 31.6 [29.1, 33.9] (0.619) | 56.1 [54.0, 58.1] (0.785) | 56.1 [54.1, 58.1] (0.785) | 43.0 [40.9, 45.3] (0.666) | 51.0 [48.5, 53.4] (0.747) |
+| su_genome:chr19 | 80.5 [79.0, 82.9] (0.847) | 68.2 [66.4, 69.5] (0.745) | 71.1 [69.7, 72.2] (0.754) | 71.1 [69.7, 72.2] (0.754) | 80.1 [78.5, 82.3] (0.819) | 82.4 [80.9, 84.5] (0.838) |
+| su_genome:chr20 | 56.8 [55.0, 60.5] (0.651) | 47.4 [44.8, 51.3] (0.693) | 59.8 [57.4, 62.5] (0.713) | 59.7 [57.3, 62.4] (0.713) | 57.1 [55.3, 60.9] (0.652) | 60.0 [58.5, 63.7] (0.704) |
+| su_genome:chr21 | 84.3 [82.9, 85.4] (0.919) | 68.4 [67.5, 69.5] (0.812) | 84.0 [82.6, 85.3] (0.896) | 84.0 [82.6, 85.3] (0.896) | 81.4 [79.8, 82.7] (0.897) | 82.8 [81.0, 83.9] (0.906) |
+| su_genome:chr22 | 83.0 [81.9, 84.3] (0.887) | 60.7 [59.5, 61.9] (0.706) | 68.5 [67.1, 69.8] (0.767) | 68.7 [67.3, 69.9] (0.768) | 84.3 [83.2, 85.0] (0.876) | 84.6 [83.3, 85.5] (0.881) |
+| su_genome:chrX | 0.0 [-2.0, 1.5] (0.753) | 3.4 [-0.1, 6.7] (0.744) | 11.9 [8.1, 14.3] (0.879) | 11.9 [8.1, 14.3] (0.879) | -2.5 [-5.3, 0.3] (0.687) | 0.5 [-2.8, 2.9] (0.756) |
+
+- Not finished: **su_chr21 · pastis_pm2**: started twice, never finished: stopped after 60 min of wall time on the imaging input (split 0), and earlier after about 53 min inside the first, interrupted full run (PASTIS 0.4.0 PM2, single-threaded, max_iter 5000, 651 loci). Not attempted on su_chr21_rep (the same 651 loci). PM2 ran on every other test unit.
+
+'Where we lose' entries: 610 (listed in RESULTS_TABLE.md).
 <!-- END generated:gate3 -->
 
-_Reading: pending (the held-out benchmark run had not finished when this was written)._
+**How it was run.** The single run of the whole plan was stopped at this machine's 2-hour job
+limit, while PASTIS PM2 was still fitting Su chr21. That run writes its result file only at the end,
+so nothing from it is used. The plan was then run as four parts (Bintu sets; Su chr21; its
+replicate; genome-scale), each with the harness unchanged (`--datasets`, `--out`). The parts were
+merged by `--merge`, which recomputes every summary from the parts' rows. Where the first run had
+finished a unit, the parts reproduce its numbers exactly (fixed seeds). PM2 on the two 651-locus
+sets is the one thing not measured (above).
+
+**Reading.**
+- **Imaging-derived input: the population models are best, or tied best, on 27 of 28 test units.**
+  - The exception is the weak-structure IMR-90 18–20 Mb region: PASTIS PM2 67.9 % against 55.4 %.
+    The 95 % intervals overlap almost entirely there (32–88 % and 29–98 %).
+  - PASTIS ranges 47–94 % (PM2) and 34–87 % (MDS); the v3.2 single structure 20–64 %.
+  - The population model's gain over inverting each frequency on its own (no 3D) is 2–13 points on
+    the chr21 regions. On the genome-scale loci (3 Mb apart) it is 0.0–1.8 points: at that spacing
+    the 3D model adds almost nothing to the input.
+- **Sequencing Hi-C input: best on 18 of 26 units, beaten on 8.**
+  - On the IMR-90 18–20 Mb region every method is near or below zero, and ours is lowest (−24 %,
+    interval −65 to +29 %).
+  - On seven genome-scale chromosomes (chr13, 14, 15, 19, 20, 21, 22) the no-3D inversion or PASTIS
+    is higher. The largest gap is chr22: 68.7 % against 84.6 % for PASTIS PM2. The 3D fit loses
+    most on the small, gene-dense chromosomes at genome scale.
+  - Absolute size (CCC, nm) with Hi-C input is often better with PASTIS PM2 or the no-3D inversion
+    (53 of the 610 "where we lose" entries), as expected from Gate 1b.
+- **Intervals, and how this relates to Gate 2 / 2b.** Most of the 610 entries are interval coverage.
+  - With imaging-derived input the raw 90 % intervals hold 70–85 %, and 83–91 % after the Gate 2
+    recalibration.
+  - With Hi-C input they hold 23–51 % raw and 36–70 % with that recalibration, on every Hi-C unit,
+    the genome-scale ones included.
+  - This is the same failure Gate 2b measured with its own pre-registered test. The benchmark adds
+    that it holds at genome scale too.
+- **Intervals in brackets** come from split 0 on a 20,000-pair subsample, while the point value is
+  the mean over splits. On the Bintu sets the bracket can sit beside the point value; read them as
+  the size of the truth noise, not as a range around the mean.
 
 ## Gate 4 — perturbations and variants (Pillar 4)
 

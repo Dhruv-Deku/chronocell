@@ -189,6 +189,10 @@ def gate3() -> str:
                 cells.append(f"{v['percent_of_ceiling']:.1f}{_ci(ci)} ({v['raw_spearman']:.3f})")
             out.append(f"| {ds} | " + " | ".join(cells) + " |")
         out.append("")
+    for unit, why in (b.get("not_finished") or {}).items():
+        out.append(f"- Not finished: **{unit}**: {why}")
+    if b.get("not_finished"):
+        out.append("")
     out += [f"'Where we lose' entries: {len(b['where_we_lose'])} (listed in RESULTS_TABLE.md).", ""]
     return "\n".join(out)
 
