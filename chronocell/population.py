@@ -198,6 +198,19 @@ class PopulationConfig:
     seed: int = 0
 
 
+# Whole-chromosome defaults, chosen on practice data only and frozen in validation/frozen.py
+# (WHOLE_CHROMOSOME); tests/test_v4_population.py checks the two stay identical.
+WHOLE_CHROMOSOME_DEFAULTS = {"rank_cap": 256, "local_term": True, "iterations": 1500, "learning_rate": 0.01,
+                             "weighting": "binomial", "dtype": "float32", "init": "auto"}
+V33_MAX_BEADS = 400        # up to this size the app keeps the validated v3.3 fit (chronocell.ensemble)
+MAX_BEADS = 6000           # largest population the app builds (the default resolution keeps chromosomes below it)
+
+
+def config_for(n: int, **overrides) -> PopulationConfig:
+    """The app's population-model settings for an n-bead window (frozen whole-chromosome defaults)."""
+    return PopulationConfig(**(WHOLE_CHROMOSOME_DEFAULTS | overrides))
+
+
 def _device(name: str) -> torch.device:
     if name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -501,14 +514,15 @@ def _langevin(model: GaussianChain, cfg: PopulationConfig, rng: np.random.Genera
                 out[f, a:b] = (x.transpose(1, 0, 2) * r_c).astype(np.float32)
     else:
         out = model.sample(cfg.replicas, rng).astype(np.float32)[None]
-    # finite-sample check and spread on a pair subset (all pairs when small)
+    # finite-sample check and spread on a pair subset (all pairs when small); <= 5e7 floats (~200 MB, as v3.3)
     iu = np.triu_indices(n, 1)
     sel = np.arange(len(iu[0]))
     if sel.size > 200_000:
         sel = rng.choice(sel, 200_000, replace=False)
     ii, jj = iu[0][sel], iu[1][sel]
     flat = out.reshape(-1, n, 3)
-    take = flat[:: max(1, len(flat) // 2000)]
+    budget = max(cfg.replicas, int(5e7 // max(len(ii), 1)))
+    take = flat[:: max(1, int(np.ceil(len(flat) / budget)))]
     d = np.linalg.norm(take[:, ii] - take[:, jj], axis=-1)
     sampled = np.zeros((n, n), dtype=np.float32)
     sampled[ii, jj] = np.median(d, axis=0)
