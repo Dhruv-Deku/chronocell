@@ -1,0 +1,825 @@
+[
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "default full rank fp32",
+  "settings": {},
+  "seconds": 35.931147813797,
+  "fit_seconds": 32.087255239486694,
+  "best_misfit": 0.007939230232393391,
+  "contact_fit": 0.9559444786437962,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.87674921977712,
+    "raw": 0.9506673413615996,
+    "ccc": 0.9525819053016372,
+    "scale": 0.9633533455616735
+   },
+   "cross_tiles": {
+    "pct": 78.2010372847246,
+    "raw": 0.8789458867631916,
+    "ccc": 0.8797493616172766,
+    "scale": 0.972788871898257
+   },
+   "all_pairs": {
+    "pct": 80.61617837231339,
+    "raw": 0.9540823068830604,
+    "ccc": 0.9559121442175457,
+    "scale": 0.9693879415228773
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "full rank fp64",
+  "settings": {
+   "dtype": "float64"
+  },
+  "seconds": 76.13549399375916,
+  "fit_seconds": 72.50167274475098,
+  "best_misfit": 0.007939407872010808,
+  "contact_fit": 0.9559429126488573,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.88174506115782,
+    "raw": 0.9506776139196159,
+    "ccc": 0.9525832533254478,
+    "scale": 0.9633473597094914
+   },
+   "cross_tiles": {
+    "pct": 78.20178218981512,
+    "raw": 0.8789494830434408,
+    "ccc": 0.8797425698064095,
+    "scale": 0.9727846749360756
+   },
+   "all_pairs": {
+    "pct": 80.61926418402197,
+    "raw": 0.9540845954441273,
+    "ccc": 0.9559110695573876,
+    "scale": 0.9693806940168024
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "3000 iterations",
+  "settings": {
+   "iterations": 3000
+  },
+  "seconds": 64.80806517601013,
+  "fit_seconds": 61.034056425094604,
+  "best_misfit": 0.007931283454438406,
+  "contact_fit": 0.9559944442628779,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.85602255415805,
+    "raw": 0.9506045675988909,
+    "ccc": 0.952575292933743,
+    "scale": 0.9634063535292466
+   },
+   "cross_tiles": {
+    "pct": 78.16973180427547,
+    "raw": 0.878780024267614,
+    "ccc": 0.8796512668372158,
+    "scale": 0.9728124399946574
+   },
+   "all_pairs": {
+    "pct": 80.5894667247558,
+    "raw": 0.9540129754162618,
+    "ccc": 0.9558790512911176,
+    "scale": 0.969443970129054
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "lr 0.02",
+  "settings": {
+   "learning_rate": 0.02
+  },
+  "seconds": 35.74887704849243,
+  "fit_seconds": 31.999765634536743,
+  "best_misfit": 0.007941678855445135,
+  "contact_fit": 0.9559691809151458,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.84139763789241,
+    "raw": 0.9505753150485952,
+    "ccc": 0.9526275876346177,
+    "scale": 0.9635260773606842
+   },
+   "cross_tiles": {
+    "pct": 78.1775557189805,
+    "raw": 0.8788188421456459,
+    "ccc": 0.8797198164223292,
+    "scale": 0.9728775302507693
+   },
+   "all_pairs": {
+    "pct": 80.58768417669705,
+    "raw": 0.9540225929171681,
+    "ccc": 0.9559090722521549,
+    "scale": 0.9695288881789126
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "rank 256 + random walk",
+  "settings": {
+   "rank_cap": 256
+  },
+  "seconds": 18.74495792388916,
+  "fit_seconds": 14.9976487159729,
+  "best_misfit": 0.00910519486777107,
+  "contact_fit": 0.9537000075496128,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.94981573898217,
+    "raw": 0.9518440614112645,
+    "ccc": 0.9530906251211243,
+    "scale": 0.9631915981588449
+   },
+   "cross_tiles": {
+    "pct": 78.0251253770867,
+    "raw": 0.8793218954084664,
+    "ccc": 0.8820138220874046,
+    "scale": 0.9703843311450704
+   },
+   "all_pairs": {
+    "pct": 80.65495272693049,
+    "raw": 0.9547938812506203,
+    "ccc": 0.9572258357310498,
+    "scale": 0.9678974294215634
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "rank 128 + random walk",
+  "settings": {
+   "rank_cap": 128
+  },
+  "seconds": 15.63787055015564,
+  "fit_seconds": 11.719467401504517,
+  "best_misfit": 0.009119698568093311,
+  "contact_fit": 0.9536279826805115,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.95083098638673,
+    "raw": 0.951804493043468,
+    "ccc": 0.9530865463760511,
+    "scale": 0.9632157363495664
+   },
+   "cross_tiles": {
+    "pct": 78.01059940594382,
+    "raw": 0.8793706841787865,
+    "ccc": 0.8820137311010631,
+    "scale": 0.9704348414604865
+   },
+   "all_pairs": {
+    "pct": 80.64730901207915,
+    "raw": 0.9548025645198898,
+    "ccc": 0.9572227230243764,
+    "scale": 0.9679238860369647
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "coarse start (k=3)",
+  "settings": {
+   "init": "coarse",
+   "coarse_beads": 312
+  },
+  "seconds": 38.01621413230896,
+  "fit_seconds": 34.22668409347534,
+  "best_misfit": 0.007933494424056727,
+  "contact_fit": 0.9559759127044135,
+  "scores": {
+   "within_tiles": {
+    "pct": 84.86122198331877,
+    "raw": 0.950617581958861,
+    "ccc": 0.9525407808348784,
+    "scale": 0.9633209274142895
+   },
+   "cross_tiles": {
+    "pct": 78.17946545130461,
+    "raw": 0.8788490376745625,
+    "ccc": 0.8796451259926512,
+    "scale": 0.9727618412517658
+   },
+   "all_pairs": {
+    "pct": 80.59717579408951,
+    "raw": 0.9540378466774692,
+    "ccc": 0.955870677838694,
+    "scale": 0.9693904462176122
+   }
+  }
+ },
+ {
+  "experiment": "whole_chromosome_fit",
+  "dataset": "su_chr2",
+  "split": 0,
+  "variant": "uniform weights",
+  "settings": {
+   "weighting": "uniform"
+  },
+  "seconds": 36.062339782714844,
+  "fit_seconds": 32.25478768348694,
+  "best_misfit": 0.02038127555660804,
+  "contact_fit": 0.9592686467597076,
+  "scores": {
+   "within_tiles": {
+    "pct": 82.78761450149474,
+    "raw": 0.9426571304191609,
+    "ccc": 0.950694177388457,
+    "scale": 0.9718806681664258
+   },
+   "cross_tiles": {
+    "pct": 76.94603716654481,
+    "raw": 0.8738615557805194,
+    "ccc": 0.8782983009787702,
+    "scale": 0.9930527358071861
+   },
+   "all_pairs": {
+    "pct": 79.0433151758307,
+    "raw": 0.9515110999178995,
+    "ccc": 0.9546432854698825,
+    "scale": 0.9854949356330608
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "clip",
+  "p_adjacent": 0.3,
+  "ice_note": "",
+  "seconds": 96.70519995689392,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 38.74213023098372,
+     "raw": 0.7916062693976696,
+     "ccc": 0.17405514036011902,
+     "scale": 1.8254427888032005
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 38.574925309286854,
+     "raw": 0.7678425323159501,
+     "ccc": 0.1675265228493457,
+     "scale": 1.8240515342821224
+    },
+    "cross_tiles": {
+     "pct": 22.277107086104685,
+     "raw": 0.6325092183794954,
+     "ccc": 0.060139081677892385,
+     "scale": 1.8479926352858143
+    },
+    "all_pairs": {
+     "pct": 29.23711463592483,
+     "raw": 0.8389221047738888,
+     "ccc": 0.18002739985424696,
+     "scale": 1.8427425525291754
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "clip",
+  "p_adjacent": 0.5,
+  "ice_note": "",
+  "seconds": 94.05099391937256,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 33.4802817853721,
+     "raw": 0.7613901163776977,
+     "ccc": 0.11912647592786246,
+     "scale": 2.13358949534672
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 28.077026078629636,
+     "raw": 0.6620875999836378,
+     "ccc": 0.0978320252561809,
+     "scale": 2.20284716659992
+    },
+    "cross_tiles": {
+     "pct": -16.546512413492643,
+     "raw": 0.38076879115721324,
+     "ccc": 0.03207110074390614,
+     "scale": 2.070908456071209
+    },
+    "all_pairs": {
+     "pct": 3.9300282471939645,
+     "raw": 0.7221015717642232,
+     "ccc": 0.11216874688712561,
+     "scale": 2.0993195486851444
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "clip",
+  "p_adjacent": 0.7,
+  "ice_note": "",
+  "seconds": 93.01102662086487,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 35.292381245790736,
+     "raw": 0.8027772045229401,
+     "ccc": 0.09557903784049793,
+     "scale": 2.403034394559072
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 31.266078019029656,
+     "raw": 0.727432984429459,
+     "ccc": 0.08259294300838976,
+     "scale": 2.4381445138224094
+    },
+    "cross_tiles": {
+     "pct": -10.460111219441043,
+     "raw": 0.43808477737759205,
+     "ccc": 0.02588175955613648,
+     "scale": 2.288215728804645
+    },
+    "all_pairs": {
+     "pct": 8.558488467997725,
+     "raw": 0.7643654933365535,
+     "ccc": 0.09159285707862044,
+     "scale": 2.322165923270383
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "clip",
+  "p_adjacent": 0.9,
+  "ice_note": "",
+  "seconds": 94.0941436290741,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 38.54063302283402,
+     "raw": 0.8367426783335856,
+     "ccc": 0.07224951588286951,
+     "scale": 2.8041126055961008
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 37.76620542270959,
+     "raw": 0.8075807260905608,
+     "ccc": 0.0684232899762228,
+     "scale": 2.7794947793524756
+    },
+    "cross_tiles": {
+     "pct": -2.380986505253192,
+     "raw": 0.5512530625554216,
+     "ccc": 0.01997107726291801,
+     "scale": 2.677851927898306
+    },
+    "all_pairs": {
+     "pct": 16.450145047795782,
+     "raw": 0.8308310142358303,
+     "ccc": 0.07196022715496875,
+     "scale": 2.701867840524492
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.3,
+  "ice_note": "",
+  "seconds": 96.65419030189514,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 44.84895522002123,
+     "raw": 0.8291592207004511,
+     "ccc": 0.20126243610036912,
+     "scale": 1.7444120299599082
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 45.25022695816378,
+     "raw": 0.8239889865654508,
+     "ccc": 0.20053693595417488,
+     "scale": 1.739033803301961
+    },
+    "cross_tiles": {
+     "pct": 20.812080162162147,
+     "raw": 0.5993979241264574,
+     "ccc": 0.0747331286573656,
+     "scale": 1.6278138443891192
+    },
+    "all_pairs": {
+     "pct": 32.00980259405205,
+     "raw": 0.8364542687708305,
+     "ccc": 0.22591068090941155,
+     "scale": 1.6544577091660329
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.5,
+  "ice_note": "",
+  "seconds": 95.95324897766113,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 40.87420662266229,
+     "raw": 0.826610937489129,
+     "ccc": 0.15055274208630406,
+     "scale": 1.9406694212544868
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 36.058536206258374,
+     "raw": 0.7903010634803938,
+     "ccc": 0.1398395703726594,
+     "scale": 1.9590842657872167
+    },
+    "cross_tiles": {
+     "pct": -8.188259075112112,
+     "raw": 0.45863203019628995,
+     "ccc": 0.04650130129507372,
+     "scale": 1.791174705347823
+    },
+    "all_pairs": {
+     "pct": 12.192331068319236,
+     "raw": 0.787979705158636,
+     "ccc": 0.15935171571477133,
+     "scale": 1.832066840641305
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.7,
+  "ice_note": "",
+  "seconds": 93.38850808143616,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 43.71476270655487,
+     "raw": 0.8488602880327805,
+     "ccc": 0.11821915278138398,
+     "scale": 2.1479779697321923
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 41.89457437068219,
+     "raw": 0.8452307368674166,
+     "ccc": 0.11756564241307041,
+     "scale": 2.1469605678747548
+    },
+    "cross_tiles": {
+     "pct": -6.338077934146529,
+     "raw": 0.4998660728845334,
+     "ccc": 0.03569476260138614,
+     "scale": 1.9692764815829444
+    },
+    "all_pairs": {
+     "pct": 16.003262063667346,
+     "raw": 0.8157579114281107,
+     "ccc": 0.12798810865408547,
+     "scale": 2.015096104846402
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "raw",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.9,
+  "ice_note": "",
+  "seconds": 100.36797547340393,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 53.43381930460645,
+     "raw": 0.8892519089356287,
+     "ccc": 0.08781800412824381,
+     "scale": 2.501003336020629
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 47.80118166637614,
+     "raw": 0.884963169780014,
+     "ccc": 0.08770987703062073,
+     "scale": 2.4963603605400713
+    },
+    "cross_tiles": {
+     "pct": 6.444812121577091,
+     "raw": 0.5812661782530509,
+     "ccc": 0.024491563397533077,
+     "scale": 2.31951909125502
+    },
+    "all_pairs": {
+     "pct": 26.083804771282946,
+     "raw": 0.851118101865137,
+     "ccc": 0.09109312338637034,
+     "scale": 2.3682101452257585
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "clip",
+  "p_adjacent": 0.3,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 95.18036198616028,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 29.4354017401065,
+     "raw": 0.7334451541596282,
+     "ccc": 0.15847570171557496,
+     "scale": 1.8356573243982979
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 28.94206045308795,
+     "raw": 0.6859905330898762,
+     "ccc": 0.14493120891883265,
+     "scale": 1.8415322175430358
+    },
+    "cross_tiles": {
+     "pct": 3.6596746383318317,
+     "raw": 0.5208757193742343,
+     "ccc": 0.05264396387248666,
+     "scale": 1.8488810676793732
+    },
+    "all_pairs": {
+     "pct": 14.427795051812007,
+     "raw": 0.7818948764914105,
+     "ccc": 0.16470164219470187,
+     "scale": 1.8473519274100794
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "clip",
+  "p_adjacent": 0.5,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 101.45083022117615,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 28.1455971411968,
+     "raw": 0.7440192217033723,
+     "ccc": 0.11718283467042347,
+     "scale": 2.130788629249568
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 26.43177202906966,
+     "raw": 0.6580529040623192,
+     "ccc": 0.09996800387933488,
+     "scale": 2.1720483871857317
+    },
+    "cross_tiles": {
+     "pct": -19.061307125551995,
+     "raw": 0.3681720464116159,
+     "ccc": 0.03257615852666904,
+     "scale": 2.038963967808444
+    },
+    "all_pairs": {
+     "pct": 1.7211416762032168,
+     "raw": 0.7164282671691761,
+     "ccc": 0.11509100981882259,
+     "scale": 2.0672349277653206
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "clip",
+  "p_adjacent": 0.7,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 94.33949303627014,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 32.06238758139225,
+     "raw": 0.7910018580571758,
+     "ccc": 0.09626701933101324,
+     "scale": 2.364839508558085
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 32.92789550130915,
+     "raw": 0.7325589345563698,
+     "ccc": 0.08400986794190872,
+     "scale": 2.4243986922385155
+    },
+    "cross_tiles": {
+     "pct": -17.80733284472316,
+     "raw": 0.4145858449660333,
+     "ccc": 0.02492871366996886,
+     "scale": 2.2544594882094993
+    },
+    "all_pairs": {
+     "pct": 5.775430013383557,
+     "raw": 0.7562630345620215,
+     "ccc": 0.09225089144706194,
+     "scale": 2.2929864975876693
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "clip",
+  "p_adjacent": 0.9,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 102.28768610954285,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 34.988526461385874,
+     "raw": 0.8243380557744043,
+     "ccc": 0.07228346322694122,
+     "scale": 2.766375192977262
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 38.227528548566475,
+     "raw": 0.7909117783251486,
+     "ccc": 0.06493308099345767,
+     "scale": 2.8038149618971673
+    },
+    "cross_tiles": {
+     "pct": -6.870173660969473,
+     "raw": 0.49889713488668896,
+     "ccc": 0.018824190564137925,
+     "scale": 2.633995683574348
+    },
+    "all_pairs": {
+     "pct": 13.823430352901815,
+     "raw": 0.8031426215737043,
+     "ccc": 0.06920125562866698,
+     "scale": 2.673164499561824
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.3,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 105.68971705436707,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 38.27838233366881,
+     "raw": 0.8174150026049632,
+     "ccc": 0.2005749337132464,
+     "scale": 1.73174218765058
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 37.69752580619277,
+     "raw": 0.8044183875746302,
+     "ccc": 0.1949711546684449,
+     "scale": 1.7401904125568313
+    },
+    "cross_tiles": {
+     "pct": 15.140440126689917,
+     "raw": 0.5817026546366201,
+     "ccc": 0.07692202219841242,
+     "scale": 1.6094933163243477
+    },
+    "all_pairs": {
+     "pct": 25.318660782836268,
+     "raw": 0.8290616646050073,
+     "ccc": 0.2286576449499261,
+     "scale": 1.640186242516111
+    }
+   }
+  }
+ },
+ {
+  "experiment": "hic_to_imaging",
+  "dataset": "su_chr2",
+  "split": 0,
+  "normalisation": "ice",
+  "zero_counts": "unobserved",
+  "p_adjacent": 0.5,
+  "ice_note": "ICE balanced in 14 iterations (converged; row-sum CV 2.4e-03); 10 low-coverage bins masked",
+  "seconds": 108.72217178344727,
+  "scores": {
+   "windowed_v3_3": {
+    "within_tiles": {
+     "pct": 36.88523882891706,
+     "raw": 0.815374886420583,
+     "ccc": 0.15203691106340783,
+     "scale": 1.9174275696214924
+    }
+   },
+   "whole_v4": {
+    "within_tiles": {
+     "pct": 35.38355318747526,
+     "raw": 0.8003732303498117,
+     "ccc": 0.14578537155918075,
+     "scale": 1.9317346530819763
+    },
+    "cross_tiles": {
+     "pct": -5.472560251733878,
+     "raw": 0.4828845496423962,
+     "ccc": 0.049207962838120005,
+     "scale": 1.7529808200705368
+    },
+    "all_pairs": {
+     "pct": 13.362720370435357,
+     "raw": 0.7938363381815975,
+     "ccc": 0.16766822192050082,
+     "scale": 1.7964222581576124
+    }
+   }
+  }
+ }
+]

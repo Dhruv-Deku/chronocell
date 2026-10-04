@@ -57,12 +57,16 @@ def _windowed(freq: np.ndarray, seen: np.ndarray, r_c: float, tiles: list[tuple[
     return out, time.time() - t0
 
 
-def _counts_freq(counts: np.ndarray, p_adjacent: float) -> tuple[np.ndarray, float]:
+def _counts_freq(counts: np.ndarray, p_adjacent: float, zeros: str = "clip") -> tuple[np.ndarray, float]:
+    """Hi-C counts -> contact probabilities (the app's adjacent-pair anchor). zeros = "unobserved"
+    treats zero-count pairs as missing (NaN) instead of "rarer than one in N_eff"."""
     c = np.asarray(counts, dtype=np.float64).copy()
     np.fill_diagonal(c, 0.0)
     p = E.counts_to_probability(c, p_adjacent)
     adj = np.diag(c, 1)
     n_eff = float(np.median(adj[adj > 0])) / p_adjacent
+    if zeros == "unobserved":
+        p = np.where(c > 0, p, np.nan)
     return p, n_eff
 
 
@@ -128,9 +132,9 @@ def run_dataset(key: str, settings: dict, splits: int, log=print) -> dict:
         if hic is not None:                            # direct Hi-C -> imaging test (same truth)
             hp: dict[str, np.ndarray] = {}
             p_adj = float(settings.get("p_adjacent", 0.5))
-            for anchor_name, b0 in settings.get("hic_anchors", {"literature_b0": None}).items():
-                b0_nm = b0 if b0 is not None else _literature_b0(entry)
-                f_h, n_eff = _counts_freq(hic, p_adj)
+            for anchor_name, factor in settings.get("hic_anchors", {"literature_b0": 1.0}).items():
+                b0_nm = _literature_b0(entry) * float(factor)
+                f_h, n_eff = _counts_freq(hic, p_adj, settings.get("hic_zeros", "clip"))
                 r_h = b0_nm / float(E.gaussian_median_distance(p_adj, 1.0))
                 hp_w, _ = _windowed(f_h, np.full_like(f_h, n_eff), r_h, tiles, split)
                 hw = P.fit_population(f_h, n_eff, r_c_nm=r_h, cfg=cfg)
