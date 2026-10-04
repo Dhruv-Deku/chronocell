@@ -1,0 +1,257 @@
+{
+ "meta": {
+  "machine": {
+   "platform": "Windows-10-10.0.26200-SP0",
+   "processor": "AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD",
+   "cpus": 16,
+   "ram_gb": 23.1,
+   "python": "3.10.11",
+   "torch": "2.11.0+cpu",
+   "cuda": false,
+   "gpu": null
+  },
+  "note": "Synthetic input: cost only, not accuracy. Each row ran in its own process, one at a time; the last column is the whole-machine CPU load measured just before the row (other work slows timings)."
+ },
+ "rows": [
+  {
+   "method": "v3.3",
+   "n_beads": 200,
+   "window_bins": [
+    1295,
+    1495
+   ],
+   "contacts": 1790,
+   "iterations": 1500,
+   "seconds_total": 15.2,
+   "seconds_fit": 7.45,
+   "seconds_sampling": 7.72,
+   "peak_memory_mb": 1156.1,
+   "rss_before_fit_mb": 199.6,
+   "best_misfit": 0.026465925345874212,
+   "contact_fit_spearman": 0.5023166486699934,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 200,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 11.4
+  },
+  {
+   "method": "v4",
+   "n_beads": 200,
+   "window_bins": [
+    1295,
+    1495
+   ],
+   "contacts": 1790,
+   "iterations": 1500,
+   "seconds_total": 5.99,
+   "seconds_fit": 1.58,
+   "seconds_sampling": 4.39,
+   "peak_memory_mb": 1933.6,
+   "rss_before_fit_mb": 200.4,
+   "best_misfit": 0.026464536380912684,
+   "contact_fit_spearman": 0.5017562441495816,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 200,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 19.0
+  },
+  {
+   "method": "v3.3",
+   "n_beads": 400,
+   "window_bins": [
+    1871,
+    2271
+   ],
+   "contacts": 6971,
+   "iterations": 1500,
+   "seconds_total": 33.2,
+   "seconds_fit": 15.85,
+   "seconds_sampling": 17.25,
+   "peak_memory_mb": 1161.6,
+   "rss_before_fit_mb": 201.0,
+   "best_misfit": 0.02313908622113117,
+   "contact_fit_spearman": 0.40634070444550724,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 400,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 17.7
+  },
+  {
+   "method": "v4",
+   "n_beads": 400,
+   "window_bins": [
+    1871,
+    2271
+   ],
+   "contacts": 6971,
+   "iterations": 1500,
+   "seconds_total": 9.55,
+   "seconds_fit": 3.82,
+   "seconds_sampling": 5.64,
+   "peak_memory_mb": 1973.4,
+   "rss_before_fit_mb": 199.1,
+   "best_misfit": 0.02792289203550435,
+   "contact_fit_spearman": 0.41558048670247727,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 256,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 12.0
+  },
+  {
+   "method": "v3.3",
+   "n_beads": 800,
+   "window_bins": [
+    1871,
+    2671
+   ],
+   "contacts": 19080,
+   "iterations": 1500,
+   "seconds_total": 125.1,
+   "seconds_fit": 74.96,
+   "seconds_sampling": 49.78,
+   "peak_memory_mb": 1524.8,
+   "rss_before_fit_mb": 198.3,
+   "best_misfit": 0.03592266704000506,
+   "contact_fit_spearman": 0.23392946443420742,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 800,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 22.2
+  },
+  {
+   "method": "v4",
+   "n_beads": 800,
+   "window_bins": [
+    1871,
+    2671
+   ],
+   "contacts": 19080,
+   "iterations": 1500,
+   "seconds_total": 18.6,
+   "seconds_fit": 11.7,
+   "seconds_sampling": 6.58,
+   "peak_memory_mb": 2063.7,
+   "rss_before_fit_mb": 199.9,
+   "best_misfit": 0.047939516833101374,
+   "contact_fit_spearman": 0.23090798158051,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 256,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 22.9
+  },
+  {
+   "method": "v3.3",
+   "n_beads": 1600,
+   "window_bins": [
+    1871,
+    3471
+   ],
+   "contacts": 32106,
+   "iterations": 1500,
+   "seconds_total": 659.25,
+   "seconds_fit": 439.49,
+   "seconds_sampling": 218.18,
+   "peak_memory_mb": 4699.3,
+   "rss_before_fit_mb": 200.3,
+   "best_misfit": 0.03346044251305153,
+   "contact_fit_spearman": 0.07168353639989171,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 1600,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 17.5
+  },
+  {
+   "method": "v4",
+   "n_beads": 1600,
+   "window_bins": [
+    1871,
+    3471
+   ],
+   "contacts": 32106,
+   "iterations": 1500,
+   "seconds_total": 50.88,
+   "seconds_fit": 40.52,
+   "seconds_sampling": 8.86,
+   "peak_memory_mb": 2371.9,
+   "rss_before_fit_mb": 201.0,
+   "best_misfit": 0.04114986128809315,
+   "contact_fit_spearman": 0.07817838792046268,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 256,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 15.3
+  },
+  {
+   "method": "v3.3",
+   "n_beads": 3200,
+   "skipped": "dense v3.3 fit not attempted above 1600 beads"
+  },
+  {
+   "method": "v4",
+   "n_beads": 3200,
+   "window_bins": [
+    1871,
+    5071
+   ],
+   "contacts": 60224,
+   "iterations": 1500,
+   "seconds_total": 175.16,
+   "seconds_fit": 158.63,
+   "seconds_sampling": 12.88,
+   "peak_memory_mb": 3048.7,
+   "rss_before_fit_mb": 200.6,
+   "best_misfit": 0.22571251630873668,
+   "contact_fit_spearman": 0.034514282274787575,
+   "trajectory_frames": 50,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 256,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 22.4
+  },
+  {
+   "method": "v3.3",
+   "n_beads": 5082,
+   "skipped": "dense v3.3 fit not attempted above 1600 beads"
+  },
+  {
+   "method": "v4",
+   "n_beads": 5082,
+   "window_bins": [
+    0,
+    5082
+   ],
+   "contacts": 70466,
+   "iterations": 1500,
+   "seconds_total": 513.69,
+   "seconds_fit": 485.09,
+   "seconds_sampling": 22.64,
+   "peak_memory_mb": 4320.9,
+   "rss_before_fit_mb": 197.6,
+   "best_misfit": 0.3132918075023452,
+   "contact_fit_spearman": 0.027744092701574224,
+   "trajectory_frames": 39,
+   "replicas": 100,
+   "device": "cpu",
+   "rank": 256,
+   "input": "synthetic reference chr22 (planted fractal globule)",
+   "system_cpu_percent_before": 14.9
+  }
+ ]
+}

@@ -560,14 +560,60 @@ and passes, mouse assemblies get no prediction, in the app or on the command lin
 rows measure cost only, not accuracy.
 
 <!-- BEGIN generated:scale -->
-_validation/scale_benchmark.json: not run (python validation/scale_benchmark.py)._
+Machine: Windows-10-10.0.26200-SP0, AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD, 16 logical CPUs, 23.1 GB RAM, no GPU (CPU only); torch 2.11.0+cpu, Python 3.10.11. Synthetic input: cost only, not accuracy. Each row ran in its own process, one at a time; the last column is the whole-machine CPU load measured just before the row (other work slows timings).
+
+| Beads | Model | Fit (s) | Sampling (s) | Total (s) | Peak memory (MB) | Device | Rank | CPU load before |
+|---|---|---|---|---|---|---|---|---|
+| 200 | v3.3 | 7.5 | 7.7 | 15.2 | 1,156 | cpu | 200 | 11 % |
+| 200 | v4 | 1.6 | 4.4 | 6.0 | 1,934 | cpu | 200 | 19 % |
+| 400 | v3.3 | 15.8 | 17.2 | 33.2 | 1,162 | cpu | 400 | 18 % |
+| 400 | v4 | 3.8 | 5.6 | 9.6 | 1,973 | cpu | 256 | 12 % |
+| 800 | v3.3 | 75.0 | 49.8 | 125.1 | 1,525 | cpu | 800 | 22 % |
+| 800 | v4 | 11.7 | 6.6 | 18.6 | 2,064 | cpu | 256 | 23 % |
+| 1,600 | v3.3 | 439.5 | 218.2 | 659.2 | 4,699 | cpu | 1600 | 18 % |
+| 1,600 | v4 | 40.5 | 8.9 | 50.9 | 2,372 | cpu | 256 | 15 % |
+| 3,200 | v3.3 | — | — | — | — | — | dense v3.3 fit not attempted above 1600 beads | |
+| 3,200 | v4 | 158.6 | 12.9 | 175.2 | 3,049 | cpu | 256 | 22 % |
+| 5,082 | v3.3 | — | — | — | — | — | dense v3.3 fit not attempted above 1600 beads | |
+| 5,082 | v4 | 485.1 | 22.6 | 513.7 | 4,321 | cpu | 256 | 15 % |
 <!-- END generated:scale -->
+
+**Reading.** The v4 model fits the whole synthetic chr22 (5,082 beads) in under 9 minutes on this
+CPU, at about 4,300 MB peak memory. The dense v3.3 fit grows much faster with size: at 1,600 beads it takes
+about 13 times as long as v4 and twice the memory, which is why the app switches to v4 above 400
+beads. These are cost figures on synthetic input; accuracy is Gates 1–3.
 
 ## Per-chromosome runtime (Pillar 6)
 
 <!-- BEGIN generated:per_chromosome -->
-_validation/chromosome_runtime.json: not run (python validation/chromosome_runtime.py)._
+Machine: Windows-10-10.0.26200-SP0, AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD, 16 logical CPUs, 23.1 GB RAM, no GPU (CPU only); torch 2.11.0+cpu, Python 3.10.11. Synthetic input (one planted reference per chromosome at the app's default resolution, at most 6,000 beads), fitted with the app's settings; cost only, not accuracy. Each row ran in its own process, one at a time; the last column is the whole-machine CPU load measured just before the row (other work slows timings).
+
+| Assembly | Chromosome | Resolution | Bins | Assembled beads | Model | Fit (s) | Total (s) | Peak memory (MB) | CPU load before |
+|---|---|---|---|---|---|---|---|---|---|
+| hg38 | chr4 | 40 kb | 4,756 | 4,745 | population_v4 | 407.8 | 435.6 | 4,088 | 22 % |
+| hg38 | chr5 | 40 kb | 4,539 | 4,532 | population_v4 | 353.9 | 381.3 | 3,914 | 15 % |
+| hg38 | chr6 | 40 kb | 4,271 | 4,253 | population_v4 | 299.9 | 324.7 | 3,704 | 15 % |
+| hg38 | chr7 | 40 kb | 3,984 | 3,974 | population_v4 | 302.9 | 329.8 | 3,555 | 25 % |
+| hg38 | chr8 | 25 kb | 5,806 | 5,791 | population_v4 | 615.9 | 651.3 | 4,488 | 14 % |
+| hg38 | chr9 | 25 kb | 5,536 | 4,873 | population_v4 | 548.9 | 581.9 | 4,679 | 7 % |
+| hg38 | chr10 | 25 kb | 5,352 | 5,332 | population_v4 | 537.6 | 571.9 | 4,578 | 18 % |
+| hg38 | chr11 | 25 kb | 5,404 | 5,382 | population_v4 | 541.1 | 573.8 | 4,606 | 20 % |
+| hg38 | chr12 | 25 kb | 5,332 | 5,326 | population_v4 | 528.8 | 559.8 | 4,549 | 14 % |
+| hg38 | chr13 | 20 kb | 5,719 | 4,900 | population_v4 | 607.7 | 644.1 | 4,680 | 16 % |
+
+10 chromosomes; total 84.2 min of fitting; slowest 651 s; largest peak memory 4,680 MB.
+
+**Status: partial: the run was stopped at this machine's 2-hour job limit after 13 chromosomes; continue with python validation/chromosome_runtime.py --resume.** Not measured yet (35 of 45): hg38 chr1, hg38 chr2, hg38 chr3, hg38 chr14, hg38 chr15, hg38 chr16, hg38 chr17, hg38 chr18, hg38 chr19, hg38 chr20, hg38 chr21, hg38 chr22, hg38 chrX, hg38 chrY, mm39 chr1, mm39 chr2, mm39 chr3, mm39 chr4, mm39 chr5, mm39 chr6, mm39 chr7, mm39 chr8, mm39 chr9, mm39 chr10, mm39 chr11, mm39 chr12, mm39 chr13, mm39 chr14, mm39 chr15, mm39 chr16, mm39 chr17, mm39 chr18, mm39 chr19, mm39 chrX, mm39 chrY.
+- Discarded: hg38 chr1 (472 s): measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it.
+- Discarded: hg38 chr2 (544 s): measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it.
+- Discarded: hg38 chr3 (488 s): measured while the full test suite ran on the same machine (02:33-02:50 IST, 5 October 2026); discarded so that --resume re-measures it.
 <!-- END generated:per_chromosome -->
+
+**Reading.** Partial. On the hg38 chromosomes measured so far, the app's default resolution (about
+4,000–5,800 beads) means 5–11 minutes and 3,600–4,700 MB of peak memory per chromosome on this CPU. The run was
+stopped by this machine's 2-hour job limit; `python validation/chromosome_runtime.py --resume`
+measures the rest (and the three discarded rows) and `python validation/report.py` updates this
+table.
 
 ## What is new here, and what is not
 
