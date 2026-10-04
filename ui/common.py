@@ -92,6 +92,7 @@ class Dataset:
     notes: tuple[str, ...] = field(default_factory=tuple)
     signal_label: str = "H3K27ac"             # what `epi` holds (a state track may replace H3K27ac)
     signal_is_placeholder: bool = False        # epi is the reference placeholder, not measured
+    inputs: tuple = ()                         # (role, file name, SHA-256) of every input file (v4 audit record)
 
     @property
     def n(self) -> int:
@@ -128,9 +129,11 @@ def _code_tag() -> str:
 
 
 @st.cache_resource(show_spinner="Building the reference chromosome (first time only)…")
-def reference_chromosome(chrom_name: str, resolution: int, seed: int, b0: float) -> synthetic.SyntheticChromosome:
+def reference_chromosome(chrom_name: str, resolution: int, seed: int, b0: float,
+                         assembly: str = genome.DEFAULT_ASSEMBLY) -> synthetic.SyntheticChromosome:
     """The planted reference model; built once, then read from .chronocell_cache/ on later starts."""
-    path = CACHE_DIR / f"reference_{chrom_name}_{resolution}_{seed}_{b0:.4f}_{_code_tag()}.npz"
+    tag = "" if assembly == genome.DEFAULT_ASSEMBLY else f"{assembly}_"
+    path = CACHE_DIR / f"reference_{tag}{chrom_name}_{resolution}_{seed}_{b0:.4f}_{_code_tag()}.npz"
     fields = ("coords", "gc", "epi", "valid", "ci", "cj", "cm")
     if path.exists():
         try:
@@ -140,7 +143,7 @@ def reference_chromosome(chrom_name: str, resolution: int, seed: int, b0: float)
                                                        "b0_nm": b0, "cached": True})
         except Exception:  # a damaged cache file is rebuilt
             pass
-    ref = synthetic.build(genome.chrom(chrom_name, resolution), seed=seed, b0=b0)
+    ref = synthetic.build(genome.chrom(chrom_name, resolution, assembly), seed=seed, b0=b0)
     try:
         CACHE_DIR.mkdir(exist_ok=True)
         tmp = path.with_suffix(".tmp.npz")
@@ -199,7 +202,7 @@ def _window_contacts(ci, cj, cm, bin0: int, n: int, full: bool):
 @st.cache_resource(show_spinner=False)
 def load_dataset(chrom_name: str, seed: int, b0: float | None, source: tuple, unit: str,
                  graph: tuple | None, trusted: bool, track: tuple | None = None,
-                 condition: str | None = None) -> Dataset:
+                 condition: str | None = None, assembly: str = genome.DEFAULT_ASSEMBLY) -> Dataset:
     """source / graph / track = (label, name, bytes) or None (source None = the reference model).
 
     `track` is a 1-D per-bead signal (.npy) that replaces H3K27ac, e.g. a biological state's own
@@ -207,18 +210,19 @@ def load_dataset(chrom_name: str, seed: int, b0: float | None, source: tuple, un
     """
     notes: list[str] = []
     if source is None:
-        ch = genome.chrom(chrom_name)
+        ch = genome.chrom(chrom_name, None, assembly)
         b0 = b0 or physics.bond_length_for(ch.resolution)
-        ref = reference_chromosome(ch.name, ch.resolution, seed, b0)
+        ref = reference_chromosome(ch.name, ch.resolution, seed, b0, ch.assembly)
         frames = ref.coords[None]
         bin0, labels, times, t_unit, cond = 0, ("reference",), np.zeros(1), "frame", "reference"
         s_label, is_ref, truth = f"Reference model · synthetic fractal globule · seed {seed}", True, ref.coords
         bundle = None
     else:
         s_label, s_name, s_bytes = source
-        bundle, bnotes = formats.read_bundle(s_bytes, s_name, chrom_hint=chrom_name, trusted=trusted, unit=unit, b0=b0)
+        bundle, bnotes = formats.read_bundle(s_bytes, s_name, chrom_hint=chrom_name, trusted=trusted, unit=unit, b0=b0,
+                                             assembly=assembly)
         notes += bnotes
-        ch = genome.chrom(bundle.chrom, bundle.resolution)
+        ch = genome.chrom(bundle.chrom, bundle.resolution, bundle.assembly)
         frames, bin0 = bundle.frames, bundle.start_bin
         labels, times, t_unit, cond = tuple(bundle.labels), bundle.times, bundle.time_unit, bundle.condition
         is_ref, truth = False, None
@@ -258,7 +262,8 @@ def load_dataset(chrom_name: str, seed: int, b0: float | None, source: tuple, un
                                           full=bundle.gc is not None and len(bundle.gc) == n_full)
         t_label = "tracks embedded in the coordinate file"
     if gc is None:
-        ref = reference_chromosome(ch.name, ch.resolution, seed, b0 or physics.bond_length_for(ch.resolution))
+        ref = reference_chromosome(ch.name, ch.resolution, seed, b0 or physics.bond_length_for(ch.resolution),
+                                   ch.assembly)
         gc, epi, valid = ref.gc[bin0:bin0 + n], ref.epi[bin0:bin0 + n], ref.valid[bin0:bin0 + n].astype(float)
         if source is None and not contacts_from_graph:
             ci, cj, cm, t_label = ref.ci, ref.cj, ref.cm, "Reference tracks & simulated Micro-C contacts"
@@ -294,11 +299,21 @@ def load_dataset(chrom_name: str, seed: int, b0: float | None, source: tuple, un
     cond = condition or cond
 
     key = digest(chrom_name, seed, b0, source[2] if source else b"ref", unit, graph[2] if graph else b"", trusted,
-                 track[2] if track else b"", condition)
+                 track[2] if track else b"", condition, *(() if assembly == genome.DEFAULT_ASSEMBLY else (assembly,)))
     return Dataset(key, ch, int(bin0), np.asarray(frames, float), labels, np.asarray(times, float), t_unit, cond,
                    np.asarray(gc, float), np.asarray(epi, float), valid,
                    np.asarray(ci, np.int64), np.asarray(cj, np.int64), np.asarray(cm, float),
-                   truth, s_label, t_label, is_ref, placeholder, tuple(notes), sig_label, sig_placeholder)
+                   truth, s_label, t_label, is_ref, placeholder, tuple(notes), sig_label, sig_placeholder,
+                   _input_hashes(source, graph, track))
+
+
+def _input_hashes(source: tuple | None, graph: tuple | None, track: tuple | None) -> tuple:
+    """(role, file name, SHA-256 of the exact bytes) for every input file of a dataset."""
+    out = []
+    for role, item in (("structure", source), ("contacts / tracks", graph), ("signal track", track)):
+        if item is not None:
+            out.append((role, str(item[1]), hashlib.sha256(item[2]).hexdigest()))
+    return tuple(out)
 
 
 # ======================================================================================

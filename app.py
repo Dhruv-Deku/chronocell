@@ -86,7 +86,7 @@ with _LOCK:
     for _attempt in (1, 2, 3):
         try:
             from chronocell import (accuracy as ACC, agent as A, domains, features, formats, genes as G, genome,
-                                    pdf_report, physics, snapshot as SN, states as S, theme as T, viz)
+                                    pdf_report, physics, provenance as PROV, snapshot as SN, states as S, theme as T, viz)
             from ui import agent_panel, compare, drug_lab, four_d, genes_view, guide, states_panel
             from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
                                    readout, slot_files, slot_graph, warning_card)
@@ -111,7 +111,7 @@ st.set_page_config(page_title="ChronoCell-5D · chromatin 3D/4D workstation", pa
                    initial_sidebar_state="expanded")
 inject_theme()
 
-VERSION = "3.3"
+VERSION = "4.0"
 MAX_FIT_BEADS = 2000
 MIN_FIT_CONTACTS = 20
 REGIONS = {"whole": "Whole chromosome", "centromere": "Centromere", "telomeres": "Telomeric ends",
@@ -782,7 +782,8 @@ if sub is None:
 def accuracy_scores() -> dict:
     """The two separate accuracy scores for the structure in view (see chronocell.accuracy)."""
     if model_kind == "ensemble":
-        return ACC.two_scores("ensemble_v3_3", ens.config.get("window_contact_fit"))
+        name = "population_v4" if ens.config.get("model") == "population_v4" else "ensemble_v3_3"
+        return ACC.two_scores(name, ens.config.get("window_contact_fit"))
     fit_val = None
     if ds.has_contacts:
         wci_, wcj_, wcm_ = window_contacts(ds.key, ds, lo, hi)
@@ -1339,6 +1340,34 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                                    width="stretch", icon=":material/download:")
             except ValueError as exc:
                 st.caption(f"Population PDB unavailable: {exc}")
+        # ---- reproducibility record (chronocell_audit_log.json + PDF) ----
+        audit = PROV.build(
+            software=f"{VERSION}", method=method,
+            parameters=report["parameters"] | ({"population_model": {k: ens.config.get(k) for k in (
+                "model", "rank", "local_term", "iterations", "learning_rate", "weighting", "p_adjacent_assumed",
+                "r_c_nm", "anchor_b0_nm", "seed")}} if model_kind == "ensemble" else {})
+            | ({"single_structure_fit": {k: fit.config.get(k) for k in (
+                "prefit_epochs", "refine_epochs", "alpha", "d_min", "lambda_smooth", "lambda_steric", "seed")}}
+               if model_kind == "egnn" else {}),
+            inputs=[{"role": r, "name": nme, "sha256": h} for r, nme, h in ds.inputs]
+            or [{"role": "structure", "name": ds.structure_label, "sha256": "synthetic reference model (no input file)"}],
+            metrics={"export": report["export"], "structure": report["metrics"]},
+            accuracy=acc_scores if scope == "This window" else None, telemetry=list(ss.telemetry),
+            genome=report["genome"], extra={"method_evidence": ACC.method_evidence(),
+                                           "provenance_notes": list(ds.notes)})
+        c1.download_button("Audit log (JSON)", PROV.to_json(audit), "chronocell_audit_log.json", "application/json",
+                           width="stretch", icon=":material/fact_check:", key="audit_json",
+                           help="Method, equations, parameters, software versions, input SHA-256, data sources and "
+                                "licences, and every measured value. A reproducibility record, not a clinical or "
+                                "regulatory audit.")
+        akey = audit["record_sha256"]
+        if ss.get("audit_pdf", (None,))[0] != akey:
+            if c2.button("Build audit record (PDF)", width="stretch", key="audit_pdf_build", icon=":material/picture_as_pdf:"):
+                with st.spinner("Rendering the audit record…"):
+                    ss.audit_pdf = (akey, PROV.to_pdf(audit))
+        if ss.get("audit_pdf", (None,))[0] == akey:
+            c2.download_button("Audit record (PDF)", ss.audit_pdf[1], "chronocell_audit_record.pdf", "application/pdf",
+                               width="stretch", icon=":material/picture_as_pdf:", key="audit_pdf_dl")
         html('<p class="cc-note">PDB coordinates are nanometres shifted into the positive octant so a whole '
              'chromosome fits the %8.3f columns; REMARK 250 records chromosome, window, unit and offset, and '
              'ChronoCell reads them back onto the right loci. Occupancy = f<sub>GC</sub>; B-factor = log-scaled H3K27ac.</p>')

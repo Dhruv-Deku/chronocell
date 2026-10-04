@@ -67,7 +67,71 @@ def load_benchmark(path: Path | str = RESULTS) -> dict | None:
             "per_dataset_percent_of_ceiling": {name: round(float(d[model]["percent_of_ceiling"]), 1)
                                                for name, d in s["datasets"].items() if model in d},
         }
+    v4 = _gate1_benchmark(Path(path).parent)
+    if v4:
+        out["models"]["population_v4"] = v4
     return out if out["models"] else None
+
+
+def _gate1_benchmark(folder: Path) -> dict | None:
+    """The v4 whole-chromosome model's held-out benchmark (Gate 1, Su et al. 2020 chr21 tracing)."""
+    per, hic = {}, []
+    for fname, label in (("results_gate1.json", "IMR-90 chr21"), ("results_gate1_rep.json", "IMR-90 chr21 replicate")):
+        try:
+            s = json.loads((folder / fname).read_text(encoding="utf-8"))["datasets"][0]["summary"]
+        except (OSError, ValueError, KeyError, IndexError):
+            continue
+        h = s.get("hic_input", {}).get("all_pairs", {}).get("whole_v4[literature_b0]")
+        if h:
+            per[f"{label} · sequencing Hi-C input (Rao 2014)"] = round(float(h["percent_of_ceiling"]), 1)
+            hic.append(float(h["percent_of_ceiling"]))
+        per[f"{label} · imaging-derived contacts"] = round(float(s["imaging_input"]["all_pairs"]["whole_v4"]["percent_of_ceiling"]), 1)
+    if not per:
+        return None
+    headline = np.mean(hic) if hic else np.mean(list(per.values()))
+    return {"overall_percent_of_ceiling": round(float(headline), 1),
+            "per_dataset_percent_of_ceiling": per,
+            "definition": ("Trend-removed Spearman rho vs held-out tracing medians (Su et al. 2020, chr21, 651 loci), as % "
+                           "of the half-A vs half-B ceiling, all locus pairs, 3 splits. Headline: sequencing Hi-C input, the "
+                           "app's input type; with Hi-C input the absolute sizes (nm) are not calibrated.")}
+
+
+VALIDATION = RESULTS.parent
+
+
+def method_evidence() -> dict:
+    """Headline numbers of every held-out test that has been run, read from validation/*.json (measured
+    values only; a test that has not been run is reported as such, never filled in)."""
+    out: dict = {}
+    bench = load_benchmark()
+    out["v3_3_microscopy_benchmark"] = bench["models"] if bench else "not run"
+    for key, fname in (("gate1_whole_chromosome", "results_gate1.json"),
+                       ("gate1_whole_chromosome_replicate", "results_gate1_rep.json")):
+        try:
+            d = json.loads((VALIDATION / fname).read_text(encoding="utf-8"))["datasets"][0]
+            s = d["summary"]
+            out[key] = {"dataset": d["dataset"], "loci": d["loci"],
+                        **{f"{inp}.{m}.{model}": round(v["percent_of_ceiling"], 1)
+                           for inp, rows in s.items() for m, models in rows.items() for model, v in models.items()
+                           if m in ("within_tiles", "all_pairs")}}
+        except (OSError, ValueError, KeyError, IndexError):
+            out[key] = "not run"
+    try:
+        p = json.loads((VALIDATION / "results_perturbation.json").read_text(encoding="utf-8"))
+        out["gate4_cohesin_depletion"] = {"dataset": p["dataset"],
+                                          **{f"{k}.change_spearman": round(v["change_spearman"], 3)
+                                             for k, v in p["summary"].items() if isinstance(v, dict)
+                                             and np.isfinite(v.get("change_spearman", np.nan))}}
+    except (OSError, ValueError, KeyError):
+        out["gate4_cohesin_depletion"] = "not run"
+    try:
+        c = json.loads((VALIDATION / "results_calibration.json").read_text(encoding="utf-8"))
+        out["gate2_calibration"] = {r["dataset"]: {"levels": r["levels"], "coverage": [round(v, 3) for v in r["coverage"]],
+                                                   "coverage_recalibrated": [round(v, 3) for v in r.get("coverage_recalibrated", [])]}
+                                    for r in c["rows"]}
+    except (OSError, ValueError, KeyError):
+        out["gate2_calibration"] = "not run"
+    return out
 
 
 def two_scores(model: str, contact_fit: float | None) -> dict:
