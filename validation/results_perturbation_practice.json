@@ -1,0 +1,205 @@
+{
+ "mode": "practice (in-sample: these numbers are fits, not tests)",
+ "params": {
+  "cohesin_loss": {
+   "lam": 0.4484099519439994,
+   "c": [
+    -2.34617528957838,
+    0.9520534846027794,
+    -0.08629262910996613
+   ],
+   "log_sep_range": [
+    4.477121254719663,
+    6.283301228703549
+   ],
+   "fitted_on": "bintu_hct116_28_30 -> bintu_hct116_28_30_auxin",
+   "fitted_utc": "2026-10-04T06:30:07+00:00",
+   "note": "Fitted by validation/perturbation.py --practice on Bintu et al. 2018 HCT116 chr21:28-30 Mb, untreated vs 6 h auxin (practice pair), pooled over 3 splits. Not a first-principles constant."
+  },
+  "cohesin_loss_trend_only": {
+   "lam": 0.0,
+   "c": [
+    -2.3461752895784134,
+    0.9520534846027963,
+    -0.08629262910996789
+   ],
+   "log_sep_range": [
+    4.477121254719663,
+    6.283301228703549
+   ],
+   "fitted_on": "bintu_hct116_28_30 -> bintu_hct116_28_30_auxin",
+   "fitted_utc": "2026-10-04T06:30:07+00:00",
+   "note": "Baseline: separation-dependent shift only."
+  }
+ },
+ "splits": [
+  {
+   "auxin_ceiling_trend_removed": 0.9809481551072132,
+   "full_model": {
+    "change_spearman": 0.11416954688218502,
+    "change_pearson": 0.15508684574261428,
+    "change_rmse_log": 0.17143653273870685,
+    "auxin_lin_ccc_nm": 0.9265209672101486,
+    "auxin_raw_spearman": 0.9118638929547145,
+    "auxin_trend_removed_pct_of_ceiling": 64.93444560583951,
+    "auxin_median_scale": 0.9918320595028292
+   },
+   "trend_only": {
+    "change_spearman": 0.31682831719741755,
+    "change_pearson": 0.26149331268061465,
+    "change_rmse_log": 0.16308068192931152,
+    "auxin_lin_ccc_nm": 0.9187732369477697,
+    "auxin_raw_spearman": 0.8983094605751981,
+    "auxin_trend_removed_pct_of_ceiling": 64.88224148519798,
+    "auxin_median_scale": 0.9974815487414896
+   },
+   "no_change": {
+    "change_spearman": NaN,
+    "change_pearson": NaN,
+    "change_rmse_log": 0.18582014639687053,
+    "auxin_lin_ccc_nm": 0.6404155626476717,
+    "auxin_raw_spearman": 0.8994088604011716,
+    "auxin_trend_removed_pct_of_ceiling": 64.88224148519798,
+    "auxin_median_scale": 0.7720463803584084
+   },
+   "data_only_reference": {
+    "change_spearman": 0.3172745422556685,
+    "change_pearson": 0.2614933126806151,
+    "change_rmse_log": 0.16308068192931152,
+    "auxin_lin_ccc_nm": 0.848998733882478,
+    "auxin_raw_spearman": 0.8886306779105854,
+    "auxin_trend_removed_pct_of_ceiling": 65.55571422168815,
+    "auxin_median_scale": 1.11812097751874
+   },
+   "measured_change": {
+    "mean_log": 0.14485447303284946,
+    "sd_log": 0.11638860962022826
+   }
+  },
+  {
+   "auxin_ceiling_trend_removed": 0.9855191220760656,
+   "full_model": {
+    "change_spearman": 0.10615103301311855,
+    "change_pearson": 0.14043911805231907,
+    "change_rmse_log": 0.1722887096131848,
+    "auxin_lin_ccc_nm": 0.9195652905089163,
+    "auxin_raw_spearman": 0.9052171772378402,
+    "auxin_trend_removed_pct_of_ceiling": 63.87575155843656,
+    "auxin_median_scale": 0.984406739327536
+   },
+   "trend_only": {
+    "change_spearman": 0.318863788900117,
+    "change_pearson": 0.27278758261488384,
+    "change_rmse_log": 0.1627772030301281,
+    "auxin_lin_ccc_nm": 0.9110107241974792,
+    "auxin_raw_spearman": 0.8880413715709246,
+    "auxin_trend_removed_pct_of_ceiling": 63.81404624581621,
+    "auxin_median_scale": 0.9863980920605404
+   },
+   "no_change": {
+    "change_spearman": NaN,
+    "change_pearson": NaN,
+    "change_rmse_log": 0.18576805236282642,
+    "auxin_lin_ccc_nm": 0.615323150763988,
+    "auxin_raw_spearman": 0.8900333915110464,
+    "auxin_trend_removed_pct_of_ceiling": 63.81404624581621,
+    "auxin_median_scale": 0.762092560389614
+   },
+   "data_only_reference": {
+    "change_spearman": 0.3185733204756097,
+    "change_pearson": 0.27278758261488306,
+    "change_rmse_log": 0.1627772030301281,
+    "auxin_lin_ccc_nm": 0.8498330381387704,
+    "auxin_raw_spearman": 0.8878478744305003,
+    "auxin_trend_removed_pct_of_ceiling": 64.90086650815078,
+    "auxin_median_scale": 1.1154985898303926
+   },
+   "measured_change": {
+    "mean_log": 0.1449135986135249,
+    "sd_log": 0.11623174357960916
+   }
+  },
+  {
+   "auxin_ceiling_trend_removed": 0.9793283459090325,
+   "full_model": {
+    "change_spearman": 0.11624819331450757,
+    "change_pearson": 0.16193208145612376,
+    "change_rmse_log": 0.1678616048375995,
+    "auxin_lin_ccc_nm": 0.9309498294200508,
+    "auxin_raw_spearman": 0.9098145060663079,
+    "auxin_trend_removed_pct_of_ceiling": 66.31802146127534,
+    "auxin_median_scale": 1.0082410988595694
+   },
+   "trend_only": {
+    "change_spearman": 0.30130985089244405,
+    "change_pearson": 0.25621030436836195,
+    "change_rmse_log": 0.15884721134989377,
+    "auxin_lin_ccc_nm": 0.9159813451530107,
+    "auxin_raw_spearman": 0.8977515436669689,
+    "auxin_trend_removed_pct_of_ceiling": 66.24227738818581,
+    "auxin_median_scale": 1.018196997188761
+   },
+   "no_change": {
+    "change_spearman": NaN,
+    "change_pearson": NaN,
+    "change_rmse_log": 0.1861212540154359,
+    "auxin_lin_ccc_nm": 0.6821644680993819,
+    "auxin_raw_spearman": 0.8988856823671814,
+    "auxin_trend_removed_pct_of_ceiling": 66.24227738818581,
+    "auxin_median_scale": 0.7881514818338603
+   },
+   "data_only_reference": {
+    "change_spearman": 0.30051561676331773,
+    "change_pearson": 0.25621030436836134,
+    "change_rmse_log": 0.1588472113498938,
+    "auxin_lin_ccc_nm": 0.8583831321354172,
+    "auxin_raw_spearman": 0.9045796849929729,
+    "auxin_trend_removed_pct_of_ceiling": 68.51933539543793,
+    "auxin_median_scale": 1.110177197160182
+   },
+   "measured_change": {
+    "mean_log": 0.14776817448262655,
+    "sd_log": 0.11316221898827564
+   }
+  }
+ ],
+ "summary": {
+  "full_model": {
+   "change_spearman": 0.11218959106993705,
+   "change_pearson": 0.1524860150836857,
+   "change_rmse_log": 0.1705289490631637,
+   "auxin_lin_ccc_nm": 0.9256786957130386,
+   "auxin_raw_spearman": 0.9089651920862876,
+   "auxin_trend_removed_pct_of_ceiling": 65.04273954185048,
+   "auxin_median_scale": 0.9948266325633114
+  },
+  "trend_only": {
+   "change_spearman": 0.3123339856633262,
+   "change_pearson": 0.26349706655462013,
+   "change_rmse_log": 0.16156836543644446,
+   "auxin_lin_ccc_nm": 0.9152551020994198,
+   "auxin_raw_spearman": 0.8947007919376971,
+   "auxin_trend_removed_pct_of_ceiling": 64.9795217064,
+   "auxin_median_scale": 1.000692212663597
+  },
+  "no_change": {
+   "change_spearman": NaN,
+   "change_pearson": NaN,
+   "change_rmse_log": 0.18590315092504428,
+   "auxin_lin_ccc_nm": 0.6459677271703472,
+   "auxin_raw_spearman": 0.8961093114264664,
+   "auxin_trend_removed_pct_of_ceiling": 64.9795217064,
+   "auxin_median_scale": 0.7740968075272944
+  },
+  "data_only_reference": {
+   "change_spearman": 0.312121159831532,
+   "change_pearson": 0.26349706655461985,
+   "change_rmse_log": 0.16156836543644448,
+   "auxin_lin_ccc_nm": 0.8524049680522219,
+   "auxin_raw_spearman": 0.8936860791113529,
+   "auxin_trend_removed_pct_of_ceiling": 66.3253053750923,
+   "auxin_median_scale": 1.114598921503105
+  },
+  "auxin_ceiling_trend_removed": 0.9819318743641038
+ }
+}

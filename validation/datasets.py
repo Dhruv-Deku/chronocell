@@ -144,6 +144,65 @@ def by_role(role: str) -> list[Entry]:
 
 
 # ======================================================================================
+# Sequencing Hi-C read remotely (only the blocks covering a region are downloaded)
+# ======================================================================================
+GEO_RAO2014 = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/"
+HIC_SOURCES = {
+    # key: (url, assembly, cell line, citation, licence)
+    "rao2014_imr90": (GEO_RAO2014 + "GSE63525_IMR90_combined_30.hic", "hg19", "IMR90"),
+    "rao2014_k562": (GEO_RAO2014 + "GSE63525_K562_combined_30.hic", "hg19", "K562"),
+    "rao2014_gm12878": (GEO_RAO2014 + "GSE63525_GM12878_insitu_primary+replicate_combined_30.hic", "hg19", "GM12878"),
+}
+HIC_LICENSE = ("NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by "
+               "region with HTTP range requests; only extracted region counts are cached locally (git-ignored).")
+
+
+def hic_region(source: str, chrom: str, start: int, end: int, binsize: int = 5000) -> np.ndarray:
+    """Dense raw-count matrix (5 kb by default) of one region of a remote .hic map, cached on disk."""
+    from chronocell import hicfile
+    url, assembly, _ = HIC_SOURCES[source]
+    cache = DATA / "hic_cache" / f"{source}_{chrom}_{start}_{end}_{binsize}.npz"
+    if cache.exists():
+        return np.load(cache)["counts"]
+    hf = hicfile.HicFile(url)
+    m = hf.dense(chrom.removeprefix("chr"), binsize, start, end)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(cache, counts=m, url=np.array(url), assembly=np.array(assembly),
+                        region=np.array(f"{chrom}:{start}-{end}"), binsize=np.array(binsize),
+                        bytes_fetched=np.array(hf.f.bytes_fetched))
+    record(cache, url)
+    return m
+
+
+def hic_for_segments(source: str, chrom: str, seg_starts_hg19: np.ndarray, seg_bp: int,
+                     binsize: int = 5000) -> np.ndarray:
+    """Hi-C counts summed onto imaged segments (each 5 kb bin to the segment holding its midpoint),
+    as recommended in the Bintu et al. data README (5 kb data re-binned to 30 kb by summation)."""
+    lo = int(seg_starts_hg19[0]) // binsize * binsize
+    hi = int(seg_starts_hg19[-1]) + seg_bp
+    m = hic_region(source, chrom, lo, hi, binsize)
+    mids = lo + np.arange(len(m)) * binsize + binsize / 2
+    seg = np.searchsorted(seg_starts_hg19, mids, side="right") - 1
+    ok = (seg >= 0) & (mids < seg_starts_hg19[-1] + seg_bp)
+    n = len(seg_starts_hg19)
+    out = np.zeros((n, n))
+    idx = np.flatnonzero(ok)
+    np.add.at(out, (seg[idx][:, None], seg[idx][None, :]), m[np.ix_(idx, idx)])
+    return out
+
+
+def bintu_hic(key: str) -> tuple[np.ndarray, str]:
+    """Rao et al. 2014 Hi-C of the same cell line, on the 30 kb segments of a Bintu dataset."""
+    e = REGISTRY[key]
+    source = {"IMR90": "rao2014_imr90", "K562": "rao2014_k562"}.get(e.cell_line)
+    if source is None or e.region_start_hg19 is None:
+        raise KeyError(f"No Rao 2014 Hi-C for {key} ({e.cell_line}).")
+    n = {"chr21:28.0-29.9 Mb": 65, "chr21:18.6-20.6 Mb": 65, "chr21:34.6-37.1 Mb": 83}[e.region]
+    starts = e.region_start_hg19 + np.arange(n) * 30_000
+    return hic_for_segments(source, "chr21", starts, 30_000), source
+
+
+# ======================================================================================
 # Download with integrity record
 # ======================================================================================
 def _sha256(path: Path) -> str:
@@ -171,32 +230,87 @@ def record(path: Path, url: str) -> str:
     return digest
 
 
-def fetch(entry: Entry, retries: int = 3, verbose: bool = True) -> list[Path]:
-    """Download the entry's files if missing (atomic write, resumable by retry) and record their hashes."""
+_SOURCE_META: dict[str, dict] = {}
+
+
+def source_checksum(entry: Entry, fname: str) -> dict:
+    """What the source itself publishes about a file: size and a checksum (Zenodo: MD5; GitHub: the
+    git blob SHA-1). Used to refuse truncated or altered downloads."""
+    if entry.base == SU_BASE:
+        if "zenodo" not in _SOURCE_META:
+            with urllib.request.urlopen(urllib.request.Request("https://zenodo.org/api/records/3928890", headers=UA),
+                                        timeout=60) as r:
+                rec = json.loads(r.read())
+            _SOURCE_META["zenodo"] = {f["key"]: {"bytes": int(f["size"]), "md5": f["checksum"].split(":", 1)[1]}
+                                      for f in rec["files"]}
+        return _SOURCE_META["zenodo"].get(fname, {})
+    if entry.base == BINTU_BASE:
+        if "github" not in _SOURCE_META:
+            url = "https://api.github.com/repos/BogdanBintu/ChromatinImaging/contents/Data"
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                _SOURCE_META["github"] = {f["name"]: {"bytes": int(f["size"]), "git_sha1": f["sha"]}
+                                          for f in json.loads(r.read())}
+        return _SOURCE_META["github"].get(fname, {})
+    return {}
+
+
+def _verify(path: Path, meta: dict) -> None:
+    size = path.stat().st_size
+    if meta.get("bytes") is not None and size != meta["bytes"]:
+        raise OSError(f"{path.name}: {size:,} bytes, the source lists {meta['bytes']:,}")
+    if "md5" in meta:
+        h = hashlib.md5()
+        with path.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        if h.hexdigest() != meta["md5"]:
+            raise OSError(f"{path.name}: MD5 does not match the source")
+    if "git_sha1" in meta:
+        h = hashlib.sha1(f"blob {size}\0".encode())
+        with path.open("rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        if h.hexdigest() != meta["git_sha1"]:
+            raise OSError(f"{path.name}: git blob SHA-1 does not match the source")
+
+
+def fetch(entry: Entry, retries: int = 6, verbose: bool = True, verify: bool = True) -> list[Path]:
+    """Download the entry's files if missing, resuming interrupted transfers (HTTP Range), verify them
+    against the size and checksum the source publishes, and record their SHA-256."""
     out = []
-    for path, url in zip(entry.paths(), entry.urls()):
+    for path, url, fname in zip(entry.paths(), entry.urls(), entry.files):
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             tmp = path.with_suffix(path.suffix + ".part")
+            meta = source_checksum(entry, fname) if verify else {}
+            t0 = time.time()
             for attempt in range(1, retries + 1):
+                have = tmp.stat().st_size if tmp.exists() else 0
+                headers = dict(UA, **({"Range": f"bytes={have}-"} if have else {}))
                 try:
-                    t0 = time.time()
-                    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=120) as r, \
-                            tmp.open("wb") as fh:
-                        while chunk := r.read(1 << 20):
-                            fh.write(chunk)
-                    tmp.replace(path)
-                    if verbose:
-                        print(f"downloaded {path.name} ({path.stat().st_size / 1e6:.1f} MB, {time.time() - t0:.0f} s)",
-                              flush=True)
+                    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
+                        mode = "ab" if have and r.status == 206 else "wb"
+                        with tmp.open(mode) as fh:
+                            while chunk := r.read(1 << 20):
+                                fh.write(chunk)
+                    if meta.get("bytes") is not None and tmp.stat().st_size < meta["bytes"]:
+                        raise OSError(f"short read ({tmp.stat().st_size:,} of {meta['bytes']:,} bytes)")
                     break
                 except OSError as exc:
                     if attempt == retries:
                         raise
                     print(f"retry {attempt} for {path.name}: {exc}", flush=True)
-                    time.sleep(3 * attempt)
+                    time.sleep(min(60, 3 * 2 ** attempt))
+            if verify:
+                _verify(tmp, meta)
+            tmp.replace(path)
+            if verbose:
+                print(f"downloaded {path.name} ({path.stat().st_size / 1e6:.1f} MB, {time.time() - t0:.0f} s, verified)",
+                      flush=True)
         man = _load_manifest().get(path.relative_to(ROOT).as_posix())
         if not man or man.get("bytes") != path.stat().st_size:
+            if verify:
+                _verify(path, source_checksum(entry, fname))
             record(path, url)
         out.append(path)
     return out
