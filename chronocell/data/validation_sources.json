@@ -11,7 +11,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_imr90_18_20",
@@ -25,7 +26,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_a549_28_30",
@@ -39,7 +41,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_k562_28_30",
@@ -53,7 +56,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_hct116_28_30",
@@ -67,7 +71,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_hct116_28_30_auxin",
@@ -81,7 +86,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)"
+  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_hct116_34_37",
@@ -95,7 +101,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_hct116_34_37_auxin",
@@ -109,7 +116,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)"
+  "condition": "6 h auxin (RAD21 degraded, cohesin depleted)",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "bintu_imr90_28_30_cellcycle",
@@ -123,7 +131,8 @@
   "citation": "Bintu B, Mateo LJ, Su J-H, et al. Super-resolution chromatin tracing reveals domains and cooperative interactions in single cells. Science 362, eaau1783 (2018). doi:10.1126/science.aau1783",
   "license": "No licence file in github.com/BogdanBintu/ChromatinImaging (all rights reserved by default). Downloaded on demand for research validation; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "checksum_source": "no checksum published (GitHub raw file); the SHA-256 of the downloaded copy is recorded in validation/data_manifest.json"
  },
  {
   "key": "su_chr2",
@@ -137,7 +146,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "4ac51195ddd67992d64037460a6849f7",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_chr2_parm_rep",
@@ -151,7 +162,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "ead30c6797b86db559bcb1cd60b20540",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_chr21",
@@ -165,7 +178,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "170d9d8b081edaa5f4ccaad8aad25eff",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_chr21_rep",
@@ -179,7 +194,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "d8dc951c966ae0961e9c48bedcbaea54",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_genome",
@@ -193,7 +210,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "a1d79c2ba047c20411547431a728b621",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_hic_chr21",
@@ -207,7 +226,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "7842ef3149e139fe08c6de7df13b3084",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_hic_chr2",
@@ -221,7 +242,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "be53b23e6d201eaa291530a5e6971bba",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "su_hic_genome",
@@ -235,7 +258,9 @@
   "citation": "Su J-H, Zheng P, Kinrot SS, Bintu B, Zhuang X. Genome-scale imaging of the 3D organization and transcriptional activity of chromatin. Cell 182, 1641-1659 (2020). doi:10.1016/j.cell.2020.07.032. Data: Zenodo record 3928890, doi:10.5281/zenodo.3928890 Hi-C reads: Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
   "license": "CC-BY-4.0 (Zenodo record 3928890). Downloaded on demand; not redistributed.",
   "assembly": "hg38",
-  "condition": "untreated"
+  "condition": "untreated",
+  "md5": "13e3607efab2d889e82b10f36e71ce5a",
+  "checksum_source": "Zenodo record 3928890 (md5 published by Zenodo; checked at download)"
  },
  {
   "key": "rao2014_imr90",
@@ -244,7 +269,8 @@
   "assembly": "hg19",
   "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_IMR90_combined_30.hic",
   "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
-  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored).",
+  "checksum_source": "no checksum published for the .hic file; read remotely by HTTP range requests and the bytes fetched recorded with each cached region"
  },
  {
   "key": "rao2014_k562",
@@ -253,7 +279,8 @@
   "assembly": "hg19",
   "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic",
   "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
-  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored).",
+  "checksum_source": "no checksum published for the .hic file; read remotely by HTTP range requests and the bytes fetched recorded with each cached region"
  },
  {
   "key": "rao2014_gm12878",
@@ -262,11 +289,12 @@
   "assembly": "hg19",
   "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_GM12878_insitu_primary+replicate_combined_30.hic",
   "citation": "Rao SSP, Huntley MH, Durand NC, et al. A 3D map of the human genome at kilobase resolution reveals principles of chromatin looping. Cell 159, 1665-1680 (2014). doi:10.1016/j.cell.2014.11.021. GEO GSE63525",
-  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored)."
+  "license": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored).",
+  "checksum_source": "no checksum published for the .hic file; read remotely by HTTP range requests and the bytes fetched recorded with each cached region"
  },
  {
   "key": "encode_ctcf_imr90",
-  "role": "input (Gate 5 predictor)",
+  "role": "input (Gate 5 predictor; offered in the app as 'ENCODE, by cell type')",
   "cell_line": "IMR90",
   "assembly": "GRCh38",
   "url": "https://www.encodeproject.org/files/ENCFF670ULH/",
@@ -277,7 +305,7 @@
  },
  {
   "key": "encode_ctcf_a549",
-  "role": "input (Gate 5 predictor)",
+  "role": "input (Gate 5 predictor; offered in the app as 'ENCODE, by cell type')",
   "cell_line": "A549",
   "assembly": "GRCh38",
   "url": "https://www.encodeproject.org/files/ENCFF624ZSR/",
@@ -288,7 +316,7 @@
  },
  {
   "key": "encode_ctcf_k562",
-  "role": "input (Gate 5 predictor)",
+  "role": "input (Gate 5 predictor; offered in the app as 'ENCODE, by cell type')",
   "cell_line": "K562",
   "assembly": "GRCh38",
   "url": "https://www.encodeproject.org/files/ENCFF582SNT/",
@@ -299,7 +327,7 @@
  },
  {
   "key": "encode_ctcf_hct116",
-  "role": "input (Gate 5 predictor)",
+  "role": "input (Gate 5 predictor; offered in the app as 'ENCODE, by cell type')",
   "cell_line": "HCT116",
   "assembly": "GRCh38",
   "url": "https://www.encodeproject.org/files/ENCFF470EAN/",
@@ -331,7 +359,10 @@
   "role": "input (Gate 5 predictor; bundled as chronocell/data/jaspar_MA0139.1.jaspar)",
   "url": "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar",
   "citation": "Rauluseviciute I et al. JASPAR 2024: 20th anniversary of the open-access database of transcription factor binding profiles. Nucleic Acids Res 52, D174-D182 (2024). Matrix MA0139.1 (CTCF).",
-  "license": "CC BY 4.0 (JASPAR)."
+  "license": "CC BY 4.0 (JASPAR).",
+  "md5": "6a3646a4117f2e86bac009175bf8ed55",
+  "sha256": "620a615d5b2c106e80c2e2cb41fac72c0d516e1c186c54e61295e5752dcebd83",
+  "checksum_source": "JASPAR publishes no checksum; hashes of the bundled copy"
  },
  {
   "key": "k562_chr9_deletions",
@@ -350,5 +381,41 @@
   ],
   "citation": "Zhou B, Ho SS, Greer SU, et al. Comprehensive, integrated, and phased whole-genome analysis of the primary ENCODE cell line K562. Genome Res 29, 472-484 (2019).",
   "license": "Published coordinates (no data file is used)."
+ },
+ {
+  "key": "ucsc_hg38_chromosomes",
+  "role": "input (app: sequence + CTCF prediction, any hg38 chromosome; python -m chronocell.predict)",
+  "assembly": "hg38",
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/{chrom}.fa.gz",
+  "md5": "per file, from https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/md5sum.txt (no published MD5, no download)",
+  "citation": "Genome Reference Consortium GRCh38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002).",
+  "license": "UCSC hg38 (GRCh38) sequence, freely available for download and use; downloaded on demand into .chronocell_cache/fasta/, not redistributed."
+ },
+ {
+  "key": "pastis_0.4.0",
+  "role": "benchmark method (Gate 3)",
+  "url": "https://files.pythonhosted.org/packages/64/a0/396cb8b6bbc987a5fdc9d95d2c4bc06972938fea265d18ab744532ea01dd/pastis-0.4.0.tar.gz",
+  "sha256": "9c921e3d17f92a44147f31e70ade25dc5cdd0175d85b1410ff36b020202c1fdf",
+  "checksum_source": "SHA-256 published by PyPI; checked by validation/benchmark/methods.py before use",
+  "citation": "Varoquaux N, Ay F, Noble WS, Vert J-P. A statistical approach for inferring the 3D structure of the genome. Bioinformatics 30, i26-i33 (2014).",
+  "license": "New BSD (setup.py of the sdist). Downloaded on demand into validation/data/tools/, run unmodified, not redistributed."
+ },
+ {
+  "key": "genome_hg38_bundle",
+  "role": "app data (bundled: chronocell/data/hg38.json, genes_hg38.json.gz, genomes/hg38/chromAlias.tsv)",
+  "assembly": "hg38",
+  "url": "https://api.genome.ucsc.edu ; https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromAlias.txt",
+  "sources": "chronocell/data/genomes/hg38/manifest.json",
+  "citation": "Kent WJ et al., Genome Res 12:996 (2002); O'Leary NA et al., Nucleic Acids Res 44:D733 (2016)",
+  "license": "UCSC Genome Browser data: free for academic, non-profit and personal use; RefSeq: public NCBI data."
+ },
+ {
+  "key": "genome_mm39_bundle",
+  "role": "app data (bundled: chronocell/data/genomes/mm39/)",
+  "assembly": "mm39",
+  "url": "https://api.genome.ucsc.edu ; https://hgdownload.soe.ucsc.edu/goldenPath/mm39/bigZips/mm39.chromAlias.txt",
+  "sources": "chronocell/data/genomes/mm39/manifest.json",
+  "citation": "Kent WJ et al., Genome Res 12:996 (2002); O'Leary NA et al., Nucleic Acids Res 44:D733 (2016)",
+  "license": "UCSC Genome Browser data: free for academic, non-profit and personal use; RefSeq: public NCBI data."
  }
 ]

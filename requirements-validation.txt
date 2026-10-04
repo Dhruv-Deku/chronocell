@@ -1,5 +1,5 @@
 # Validation harness (validation/), benchmark baselines and paper figures; not needed by the app.
-matplotlib==3.10.9      # figures (python -m validation.reproduce)
+matplotlib==3.10.9      # figures (no script in this repository uses it yet)
 psutil==7.2.2           # peak memory in validation/scale_benchmark.py
 truststore==0.10.4      # system certificate store for UCSC / ENCODE / GEO downloads
 # PASTIS 0.4.0 is fetched by validation/benchmark/methods.py from its official sdist (SHA-256 checked).
