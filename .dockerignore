@@ -1,0 +1,11 @@
+.git
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.chronocell_cache
+.streamlit/secrets.toml
+demo_states
+validation/data
+static/plotly-*.min.js
+colab/chronocell_code.zip
+*.pdf

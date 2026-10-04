@@ -5,9 +5,12 @@ pandas>=2.0
 torch>=2.2          # reconstruction + equivariance check; the viewer, physics and export run without it
 fpdf2>=2.7          # PDF research dossier
 h5py>=3.9           # patient .cool / .mcool contact maps
+scipy>=1.10         # convex-hull volume in the Self-Math PDB State Evaluator (03 Compare)
 pytest>=8           # tests only
 # Raw-input graph building only (python -m chronocell.build_graph):
 # pyfaidx, pyBigWig, cooler
 # ChronoAgent online mode uses `requests` (installed with Streamlit); no extra package is needed.
 # Optional: pyBigWig (bigWig tracks), hic-straw (.hic contact maps).
 # Optional REST API (python -m chronocell.api): fastapi, uvicorn.
+# Exact versions the test suite was run with: requirements.lock. Validation harness and figures:
+# requirements-validation.txt.
