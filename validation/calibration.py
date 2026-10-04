@@ -16,6 +16,13 @@ practice data against each bead's held-out error (median |log(model / measured)|
 
     python validation/calibration.py --practice      # fit recalibration -> chronocell/data/calibration.json
     python validation/calibration.py --test          # run once -> validation/results_calibration.json
+
+Gate 2b, sequencing Hi-C input (pre-registered in frozen.HIC_CALIBRATION): the same coverage and the
+same recalibration method, with the model built from Rao et al. 2014 Hi-C on the imaged loci (the Gate 1
+Hi-C settings and the app's b0 anchor) instead of half A's imaging contacts.
+
+    python validation/calibration.py --practice --input hic   # -> chronocell/data/calibration_hic.json
+    python validation/calibration.py --test --input hic       # run once -> validation/results_calibration_hic.json
 """
 
 from __future__ import annotations
@@ -37,6 +44,7 @@ import protocol as PR           # noqa: E402
 from chronocell import ensemble as E, population as P   # noqa: E402
 
 CAL_PATH = ROOT.parent / "chronocell" / "data" / "calibration.json"
+CAL_HIC_PATH = ROOT.parent / "chronocell" / "data" / "calibration_hic.json"
 PRACTICE = ["bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_28_30_auxin", "bintu_hct116_34_37", "su_chr2",
             "su_chr2_parm_rep"]
 TEST = ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30", "bintu_hct116_34_37_auxin", "su_chr21",
@@ -98,6 +106,123 @@ def run_dataset(key: str, split: int, interval_pits=None) -> dict:
     return out
 
 
+def _hic_counts(key: str, starts: np.ndarray) -> np.ndarray:
+    """Rao et al. 2014 Hi-C of the dataset's cell line on its imaged loci (raw counts)."""
+    e = D.REGISTRY[key]
+    if e.kind == "bintu_csv":
+        return D.bintu_hic(key)[0]
+    H, _, hst = D.load_su_hic(D.REGISTRY[e.paired_hic])
+    idx = np.searchsorted(hst, starts)
+    if not (np.all(idx < len(hst)) and np.array_equal(hst[np.minimum(idx, len(hst) - 1)], starts)):
+        raise KeyError(f"{key}: the Hi-C loci do not cover the imaged loci")
+    return H[np.ix_(idx, idx)]
+
+
+def interval_width(interval_pits=None, level: float = 0.9) -> float:
+    """Upper / lower bound of the stated `level` interval (the same for every pair: both scale with sigma)."""
+    if interval_pits is None:
+        lo, hi = P.central_interval(level)
+    else:
+        lo, hi = (float(P.maxwell_quantile(q)) for q in interval_pits(level))
+    return float(hi / lo) if lo > 0 else float("inf")
+
+
+def run_dataset_hic(key: str, split: int, imaging_pits=None, hic_pits=None) -> dict:
+    """Gate 2b: coverage of the stated intervals when the model is built from sequencing Hi-C."""
+    from benchmark.run import _hic_input
+    from chronocell import physics
+    from frozen import HIC_CALIBRATION as HC
+    tr = D.load(key)
+    _, b = PR.split(tr.n_copies, split)
+    e = D.REGISTRY[key]
+    p, n_eff, _ = _hic_input(_hic_counts(key, tr.starts))
+    step = e.step_bp if e.kind != "bintu_csv" else 30_000
+    r_h = physics.bond_length_for(step) / float(E.gaussian_median_distance(float(HC["p_adjacent"]), 1.0))
+    n = tr.n_loci
+    res = _fit(key, p, n_eff, r_h, n, split)
+    iu = np.triu_indices(n, 1)
+    sigma = np.zeros((n, n))
+    sigma[iu] = P.pair_sigma_nm(res, iu[0], iu[1])
+    sigma = sigma + sigma.T
+    mask = np.triu(np.ones((n, n), bool), 1)
+    sep = PR.separation(n, tr.starts)
+    raw = PR.coverage(tr.xyz[b], sigma, mask)
+    hb_med = PR.half_stats(tr.xyz[b], None).median
+    ratio = res.median_distance_nm[mask] / hb_med[mask]
+    out = {"dataset": key, "split": split, "loci": n, "input": "sequencing Hi-C (Rao et al. 2014)", "r_c_nm": r_h,
+           "n_eff": n_eff, "model": res.config.get("model", "ensemble_v3_3"), "coverage": raw["coverage"],
+           "levels": raw["levels"], "measurements": raw["measurements"], "pit_histogram": raw["pit_histogram"],
+           "median_scale_model_over_real": float(np.nanmedian(ratio[np.isfinite(ratio) & (ratio > 0)])),
+           "width_90_raw": interval_width(None)}
+    by_sep = []
+    for lo, hi in zip(SEP_BINS_BP[:-1], SEP_BINS_BP[1:]):
+        m = mask & (sep >= lo) & (sep < hi)
+        if m.sum() < 20:
+            continue
+        row = {"sep_bp": [lo, hi], "pairs": int(m.sum()), "coverage": PR.coverage(tr.xyz[b], sigma, m)["coverage"]}
+        if hic_pits is not None:
+            row["coverage_recalibrated"] = PR.coverage_with_pits(tr.xyz[b], sigma, m, hic_pits)["coverage"]
+        by_sep.append(row)
+    out["by_separation"] = by_sep
+    if imaging_pits is not None:
+        out["coverage_imaging_recalibration"] = PR.coverage_with_pits(tr.xyz[b], sigma, mask, imaging_pits)["coverage"]
+    if hic_pits is not None:
+        out["coverage_recalibrated"] = PR.coverage_with_pits(tr.xyz[b], sigma, mask, hic_pits)["coverage"]
+        out["width_90_recalibrated"] = interval_width(hic_pits)
+    return out
+
+
+def _print_hic(r: dict) -> None:
+    print(f"{r['dataset']:28s} Hi-C input  raw {np.round(r['coverage'], 3)}  imaging recal "
+          f"{np.round(r.get('coverage_imaging_recalibration', []), 3)}  Hi-C recal {np.round(r.get('coverage_recalibrated', []), 3)}"
+          f"  size ratio {r['median_scale_model_over_real']:.2f}", flush=True)
+
+
+def main_hic(practice: bool) -> None:
+    """Gate 2b (frozen.HIC_CALIBRATION): fit the Hi-C recalibration on practice data, or run the test once."""
+    from frozen import HIC_CALIBRATION as HC
+    cal_img = json.loads(CAL_PATH.read_text())
+    img_pits = PR.isotonic_recalibration(np.asarray(cal_img["pit_histogram"]))
+    split = int(HC["split"])
+    if practice:
+        keys = HC["practice"]
+        assert all(D.REGISTRY[k].role == "practice" for k in keys)
+        rows = [run_dataset_hic(k, split, img_pits) for k in keys]
+        per = [np.asarray(r["pit_histogram"]) / max(1.0, float(np.sum(r["pit_histogram"]))) for r in rows]
+        balanced = np.mean(per, axis=0)
+        cal = {"method": "quantile recalibration (Kuleshov, Fenner & Ermon, ICML 2018) on the PIT values of held-out "
+                         "single-copy distances, model built from sequencing Hi-C",
+               "pit_histogram": balanced.tolist(), "bins": len(balanced), "input": "sequencing Hi-C",
+               "fitted_on": keys, "fitted_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+               "settings": {k: HC[k] for k in ("split", "p_adjacent", "hic_zeros", "anchor")},
+               "note": "Practice datasets only; each dataset weighted equally. Pre-registered in validation/frozen.py "
+                       "(HIC_CALIBRATION); its held-out test is Gate 2b in validation/RESULTS.md."}
+        CAL_HIC_PATH.write_text(json.dumps(cal, indent=1) + "\n", encoding="utf-8")
+        hic_pits = PR.isotonic_recalibration(balanced)
+        rows = [run_dataset_hic(k, split, img_pits, hic_pits) for k in keys]          # in-sample after recalibration
+        (ROOT / "results_calibration_hic_practice.json").write_text(json.dumps(
+            {"mode": "practice (Hi-C recalibration fitted here; in-sample)", "rows": rows}, indent=1, default=float))
+    else:
+        cal = json.loads(CAL_HIC_PATH.read_text())
+        hic_pits = PR.isotonic_recalibration(np.asarray(cal["pit_histogram"]))
+        keys = HC["test"]
+        assert all(D.REGISTRY[k].role == "test" for k in keys)
+        rows = [run_dataset_hic(k, split, img_pits, hic_pits) for k in keys]
+        lo90, hi90 = HC["pass_90"]
+        lo50, hi50 = HC["pass_50"]
+        per = {r["dataset"]: bool(lo90 <= r["coverage_recalibrated"][2] <= hi90 and lo50 <= r["coverage_recalibrated"][0] <= hi50)
+               for r in rows}
+        verdict = "pass" if all(per.values()) else "fail"
+        (ROOT / "results_calibration_hic.json").write_text(json.dumps(
+            {"mode": "test (run once; Hi-C recalibration frozen)", "calibration_used": cal, "rows": rows,
+             "rule": {"pass_90": HC["pass_90"], "pass_50": HC["pass_50"], "every_dataset": True},
+             "per_dataset_pass": per, "verdict": verdict,
+             "run_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}, indent=1, default=float))
+        print(f"verdict: {verdict} ({sum(per.values())} of {len(per)} datasets within the pre-registered ranges)")
+    for r in rows:
+        _print_hic(r)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = ap.add_mutually_exclusive_group(required=True)
@@ -105,7 +230,11 @@ def main() -> None:
     g.add_argument("--test", action="store_true")
     ap.add_argument("--splits", type=int, default=1)
     ap.add_argument("--datasets", nargs="*")
+    ap.add_argument("--input", choices=("imaging", "hic"), default="imaging")
     a = ap.parse_args()
+    if a.input == "hic":
+        main_hic(a.practice)
+        return
     if a.practice:
         keys = a.datasets or PRACTICE
         assert all(D.REGISTRY[k].role == "practice" for k in keys)
