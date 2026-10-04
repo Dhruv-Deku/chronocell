@@ -109,3 +109,23 @@ PREDICTOR_MOUSE = {"status": "pre-registered, not run (4DN access key needed)",
                    "control": ["4DNES2KX6HQ5", "4DNESMN7RCSB", "4DNESG62SAVA", "4DNESBH54BG2"],
                    "peaks": ("ENCFF533APC", "ENCSR000CCB", "d2c0c0c2ed1d8e11989362580ca85af7"), "assembly": "mm10",
                    "model": "validation/predictor_model.json", "splits": 3, "pass": "both test loci meet Gate 5 (i) and (ii)"}
+
+# Gate 2c (Pillar 2, per-pair reliability; validation/reliability.py). Pre-registered after the practice
+# comparison (validation/results_reliability_practice.json) and before any test run.
+# Score: "misfit" = minus |log sigma_model^2 - log sigma_target^2| of the pair, from the input and the fitted
+# model only. It has the best worst case on practice data: imaging input, pair level misfit +0.057 to +0.175,
+# combined +0.049 to +0.245, input_se -0.031 to +0.266; bead-level minimum -0.147 vs -0.208 and -0.281. On
+# practice Hi-C input every candidate was negative (misfit the least negative on Su chr2 and its replicate,
+# -0.080 vs input_se -0.079 on K562); misfit is tested there unchanged.
+# Error of a pair: |r - median of r in its separation stratum| with r = log(model / half-B median), 10
+# equal-count strata. Pair level: Spearman(score, -error) within strata, averaged; bead level: median pair
+# score vs median pair error. 95 % intervals: 200 resamples of the loci. Test sets: Gate 2's six (imaging
+# input) and Gate 2b's four (Hi-C input), split 0.
+# Pass, separately for each input type and level: on EVERY test set Spearman >= min_spearman (0.20, the
+# usability bar validation/report.py already applied to Gate 2's per-bead score) with the 95 % interval
+# above 0. Only a passing input type and level may show a reliability in the app (probe: pair level; 3D
+# view: bead level), labelled with its measured standing; otherwise none is shown.
+RELIABILITY = {"score": "misfit", "min_spearman": 0.20, "strata": 10, "bootstrap": 200, "split": 0,
+               "test_imaging": ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30",
+                                "bintu_hct116_34_37_auxin", "su_chr21", "su_chr21_rep"],
+               "test_hic": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep"]}

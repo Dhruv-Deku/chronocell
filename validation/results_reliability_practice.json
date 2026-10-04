@@ -1,0 +1,447 @@
+{
+ "mode": "practice (candidates compared; in-sample)",
+ "rows": [
+  {
+   "dataset": "bintu_k562_28_30",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": 0.1905561783273917,
+    "pair_ci95": [
+     0.0561,
+     0.2827
+    ],
+    "bead_spearman": 0.3308129370629371,
+    "bead_ci95": [
+     0.1151,
+     0.542
+    ],
+    "pairs": 2079,
+    "beads": 65
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.12387525383363095,
+    "pair_ci95": [
+     0.0338,
+     0.1977
+    ],
+    "bead_spearman": 0.2534527972027972,
+    "bead_ci95": [
+     0.0206,
+     0.4826
+    ],
+    "pairs": 2079,
+    "beads": 65
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.17751288432555576,
+    "pair_ci95": [
+     0.0767,
+     0.2514
+    ],
+    "bead_spearman": 0.34833916083916083,
+    "bead_ci95": [
+     0.1139,
+     0.5479
+    ],
+    "pairs": 2079,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_hct116_28_30",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": 0.08695492009800405,
+    "pair_ci95": [
+     -0.0689,
+     0.2343
+    ],
+    "bead_spearman": 0.21595279720279717,
+    "bead_ci95": [
+     -0.0573,
+     0.4517
+    ],
+    "pairs": 2080,
+    "beads": 65
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.06287675410469158,
+    "pair_ci95": [
+     -0.0385,
+     0.1688
+    ],
+    "bead_spearman": 0.035008741258741254,
+    "bead_ci95": [
+     -0.2418,
+     0.2957
+    ],
+    "pairs": 2080,
+    "beads": 65
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.0834503648216931,
+    "pair_ci95": [
+     -0.0529,
+     0.2215
+    ],
+    "bead_spearman": 0.21936188811188811,
+    "bead_ci95": [
+     -0.0367,
+     0.4431
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_hct116_28_30_auxin",
+   "input": "imaging",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": 0.2657940665406607,
+    "pair_ci95": [
+     0.0369,
+     0.4564
+    ],
+    "bead_spearman": 0.5343968531468531,
+    "bead_ci95": [
+     0.3411,
+     0.7099
+    ],
+    "pairs": 2080,
+    "beads": 65
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.1751196035878817,
+    "pair_ci95": [
+     0.0222,
+     0.3063
+    ],
+    "bead_spearman": 0.30699300699300697,
+    "bead_ci95": [
+     0.0713,
+     0.5607
+    ],
+    "pairs": 2080,
+    "beads": 65
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.24491735180137372,
+    "pair_ci95": [
+     0.0461,
+     0.4268
+    ],
+    "bead_spearman": 0.43006993006993005,
+    "bead_ci95": [
+     0.2399,
+     0.6331
+    ],
+    "pairs": 2080,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37",
+   "input": "imaging",
+   "loci": 83,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": 0.00865750175693005,
+    "pair_ci95": [
+     -0.1163,
+     0.1053
+    ],
+    "bead_spearman": -0.28124344066160106,
+    "bead_ci95": [
+     -0.4651,
+     -0.0572
+    ],
+    "pairs": 3403,
+    "beads": 83
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.0669036428936902,
+    "pair_ci95": [
+     -0.0297,
+     0.1565
+    ],
+    "bead_spearman": -0.1468032408379161,
+    "bead_ci95": [
+     -0.3571,
+     0.074
+    ],
+    "pairs": 3403,
+    "beads": 83
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.06562959119956438,
+    "pair_ci95": [
+     -0.0453,
+     0.1688
+    ],
+    "bead_spearman": -0.2081356786029134,
+    "bead_ci95": [
+     -0.3869,
+     -0.0007
+    ],
+    "pairs": 3403,
+    "beads": 83
+   }
+  },
+  {
+   "dataset": "su_chr2",
+   "input": "imaging",
+   "loci": 935,
+   "split": 0,
+   "model": "population_v4",
+   "input_se": {
+    "pair_stratified_spearman": -0.03055559359979624,
+    "pair_ci95": [
+     -0.0474,
+     -0.0087
+    ],
+    "bead_spearman": -0.108465100497235,
+    "bead_ci95": [
+     -0.1802,
+     -0.0422
+    ],
+    "pairs": 436645,
+    "beads": 935
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.05718410393022283,
+    "pair_ci95": [
+     0.0474,
+     0.0653
+    ],
+    "bead_spearman": 0.26213828578106196,
+    "bead_ci95": [
+     0.1925,
+     0.3296
+    ],
+    "pairs": 436645,
+    "beads": 935
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.04928604832675254,
+    "pair_ci95": [
+     0.0395,
+     0.0594
+    ],
+    "bead_spearman": 0.15854637238312763,
+    "bead_ci95": [
+     0.0815,
+     0.2285
+    ],
+    "pairs": 436645,
+    "beads": 935
+   }
+  },
+  {
+   "dataset": "su_chr2_parm_rep",
+   "input": "imaging",
+   "loci": 357,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": 0.07650454686978013,
+    "pair_ci95": [
+     0.0412,
+     0.1134
+    ],
+    "bead_spearman": 0.15217367940190604,
+    "bead_ci95": [
+     0.047,
+     0.2489
+    ],
+    "pairs": 63546,
+    "beads": 357
+   },
+   "misfit": {
+    "pair_stratified_spearman": 0.09858830188215742,
+    "pair_ci95": [
+     0.0737,
+     0.1233
+    ],
+    "bead_spearman": 0.24062435218265327,
+    "bead_ci95": [
+     0.1411,
+     0.3468
+    ],
+    "pairs": 63546,
+    "beads": 357
+   },
+   "combined": {
+    "pair_stratified_spearman": 0.09944969546904085,
+    "pair_ci95": [
+     0.0729,
+     0.1262
+    ],
+    "bead_spearman": 0.26279928831742355,
+    "bead_ci95": [
+     0.1588,
+     0.3638
+    ],
+    "pairs": 63546,
+    "beads": 357
+   }
+  },
+  {
+   "dataset": "bintu_k562_28_30",
+   "input": "hic",
+   "loci": 65,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": -0.0789380528719113,
+    "pair_ci95": [
+     -0.3345,
+     0.1309
+    ],
+    "bead_spearman": -0.04017091244094551,
+    "bead_ci95": [
+     -0.2671,
+     0.2083
+    ],
+    "pairs": 2079,
+    "beads": 65
+   },
+   "misfit": {
+    "pair_stratified_spearman": -0.07976495030675816,
+    "pair_ci95": [
+     -0.2,
+     0.052
+    ],
+    "bead_spearman": 0.1944055944055944,
+    "bead_ci95": [
+     -0.0662,
+     0.4247
+    ],
+    "pairs": 2079,
+    "beads": 65
+   },
+   "combined": {
+    "pair_stratified_spearman": -0.09545198906149242,
+    "pair_ci95": [
+     -0.2721,
+     0.0876
+    ],
+    "bead_spearman": -0.014554195804195806,
+    "bead_ci95": [
+     -0.2571,
+     0.2814
+    ],
+    "pairs": 2079,
+    "beads": 65
+   }
+  },
+  {
+   "dataset": "su_chr2",
+   "input": "hic",
+   "loci": 935,
+   "split": 0,
+   "model": "population_v4",
+   "input_se": {
+    "pair_stratified_spearman": -0.048108325132829706,
+    "pair_ci95": [
+     -0.0629,
+     -0.0351
+    ],
+    "bead_spearman": 0.0018170260572452383,
+    "bead_ci95": [
+     -0.052,
+     0.0635
+    ],
+    "pairs": 436645,
+    "beads": 935
+   },
+   "misfit": {
+    "pair_stratified_spearman": -0.020173798768258557,
+    "pair_ci95": [
+     -0.032,
+     -0.0099
+    ],
+    "bead_spearman": 0.01880128860165477,
+    "bead_ci95": [
+     -0.0434,
+     0.0801
+    ],
+    "pairs": 436645,
+    "beads": 935
+   },
+   "combined": {
+    "pair_stratified_spearman": -0.024035648155870636,
+    "pair_ci95": [
+     -0.037,
+     -0.0126
+    ],
+    "bead_spearman": 0.009119365900631397,
+    "bead_ci95": [
+     -0.0548,
+     0.0692
+    ],
+    "pairs": 436645,
+    "beads": 935
+   }
+  },
+  {
+   "dataset": "su_chr2_parm_rep",
+   "input": "hic",
+   "loci": 357,
+   "split": 0,
+   "model": "ensemble_v3_3",
+   "input_se": {
+    "pair_stratified_spearman": -0.10417875644632944,
+    "pair_ci95": [
+     -0.1462,
+     -0.0614
+    ],
+    "bead_spearman": -0.16003770044977783,
+    "bead_ci95": [
+     -0.26,
+     -0.0479
+    ],
+    "pairs": 63546,
+    "beads": 357
+   },
+   "misfit": {
+    "pair_stratified_spearman": -0.013911055843089215,
+    "pair_ci95": [
+     -0.0466,
+     0.017
+    ],
+    "bead_spearman": 0.07197583697341846,
+    "bead_ci95": [
+     -0.0376,
+     0.1624
+    ],
+    "pairs": 63546,
+    "beads": 357
+   },
+   "combined": {
+    "pair_stratified_spearman": -0.026441826623091746,
+    "pair_ci95": [
+     -0.0606,
+     0.0071
+    ],
+    "bead_spearman": 0.041596137544842815,
+    "bead_ci95": [
+     -0.068,
+     0.1451
+    ],
+    "pairs": 63546,
+    "beads": 357
+   }
+  }
+ ],
+ "run_utc": "2026-10-04T18:25:21+00:00"
+}
