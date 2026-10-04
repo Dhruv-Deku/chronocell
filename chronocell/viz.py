@@ -149,9 +149,11 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
              focus_color: str | None, style: str, radius: float, bead_px: int, height: int,
              context: np.ndarray | None, uirevision: str, scale_bar_nm: float,
              gc: np.ndarray, epi: np.ndarray, valid: np.ndarray, chrom: genome.Chrom | None = None,
-             clip: tuple[int, float] | None = None, probe: tuple[int, int] | None = None) -> go.Figure:
+             clip: tuple[int, float] | None = None, probe: tuple[int, int] | None = None,
+             halo_nm: np.ndarray | None = None) -> go.Figure:
     """3D fold. `clip` = (axis 0/1/2, coordinate in nm): a slicing plane that hides everything beyond it
-    (a cross-section). `probe` = (i, j) local bead indices: marks both beads and the straight line between."""
+    (a cross-section). `probe` = (i, j) local bead indices: marks both beads and the straight line between.
+    `halo_nm` (per bead, nm): translucent halos sized by the population's positional spread (overlay)."""
     chrom = chrom or genome.DEFAULT
     fig = go.Figure()
     n = len(sub)
@@ -208,6 +210,17 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
                         opacity=1.0 if beads_visible else 0.01, line=dict(width=0)),
             text=hover, hovertemplate="%{text}<extra></extra>", showlegend=False))
 
+    if halo_nm is not None and len(halo_nm) == n:
+        # marker sizes are screen pixels: scale the spread relative to the fold's extent so halos read as nm
+        ext = float(np.max(np.ptp(sub, axis=0))) or 1.0
+        px = np.clip(np.asarray(halo_nm, float) / ext * height * 0.9, 2.0, 60.0)
+        pts = np.where(beyond(sub)[:, None], np.nan, sub)
+        fig.add_trace(go.Scatter3d(
+            x=pts[:, 0], y=pts[:, 1], z=pts[:, 2], mode="markers",
+            marker=dict(size=px, color=T.ACCENT, opacity=0.16, line=dict(width=0)),
+            customdata=np.column_stack([idx, halo_nm]),
+            hovertemplate="bin %{customdata[0]:,.0f}<br>population spread (RMSF) %{customdata[1]:,.0f} nm"
+                          "<br>ensemble consistency, not accuracy<extra></extra>", showlegend=False))
     # 5' / 3' ends and a physical scale bar (units are real nanometres)
     lo_c, hi_c = sub.min(axis=0), sub.max(axis=0)
     if clip is not None:                                 # translucent slicing plane for orientation

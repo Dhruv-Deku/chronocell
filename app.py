@@ -175,6 +175,13 @@ def window_contacts(ds_key: str, _ds: Dataset, lo: int, hi: int) -> tuple[np.nda
     return _ds.ci[m] - lo, _ds.cj[m] - lo, _ds.cm[m]
 
 
+@st.cache_resource(show_spinner=False, max_entries=8)
+def population_rmsf(view_key: str, _population) -> np.ndarray:
+    """Per-bead positional spread (nm) of a population's members about its representative (ensemble
+    consistency, not accuracy)."""
+    return POP.rmsf_nm(_population.frames_nm, _population.representative_nm)
+
+
 @st.cache_data(show_spinner=False)
 def equivariance_report() -> dict:
     return egnn.equivariance_check(n=300, seed=0)
@@ -799,6 +806,11 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
                 b2 = st.number_input("Bead B", 1, n_view, n_view, key=f"probe_b_{n_view}")
                 st.caption("Hover a bead in the view to see its number (bin) and locus.")
                 ss["probe_pair"] = (int(b1) - 1, int(b2) - 1)
+                st.select_slider("Interval shown (population model)", ["50 %", "80 %", "90 %"], "50 %",
+                                 key="probe_level",
+                                 help="Central interval of the pair's distance across the population's cells "
+                                      "(exact, from the fitted ensemble). Its calibration against held-out imaging "
+                                      "is reported in validation/RESULTS.md (Gate 2).")
         with st.popover("Display"):
             st.segmented_control("Rendering", ["Tube", "Beads", "Line"], default="Tube", required=True, key="disp_style")
             st.selectbox("Colour by", list(T.SCALES), key="disp_colour")
@@ -811,6 +823,10 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
             if ss.get("clip_on"):
                 st.segmented_control("Plane normal", ["x", "y", "z"], default="z", required=True, key="clip_axis")
                 st.slider("Plane position (% of the fold's extent)", 0, 100, 50, key="clip_pos")
+            st.toggle("Uncertainty overlay (population spread)", False, key="unc_on",
+                      help="With the population model shown: a translucent halo on every bead, sized by how much its "
+                           "position varies across the population's members (RMSF after superposition). This is "
+                           "ensemble consistency, not accuracy. Off by default.")
     style = ss.get("disp_style") or "Tube"
     colour = ss.get("disp_colour") or "Genomic position"
     idx = ds.gbin(np.arange(lo, hi))
@@ -834,11 +850,14 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
         lo_ax, hi_ax = float(sub[:, axis].min()), float(sub[:, axis].max())
         clip = (axis, lo_ax + (hi_ax - lo_ax) * float(ss.get("clip_pos", 50)) / 100.0)
     probe = ss.get("probe_pair") if ss.get("probe_on") else None
+    halo = None
+    if ss.get("unc_on") and population is not None and population.representative_nm.shape[0] == n_view:
+        halo = population_rmsf(view_key, population)
     fig = viz.viewport(sub, idx, intensity, labels[lo:hi], scale=colour, focus_color=focus_color, style=style,
                        radius=float(ss.get("disp_radius", 0.30)) * b0, bead_px=int(ss.get("disp_bead", 5)),
                        height=int(ss.get("disp_height", 720)), context=ctx, uirevision=view_key,
                        scale_bar_nm=bar, gc=ds.gc[lo:hi], epi=ds.epi[lo:hi], valid=ds.valid[lo:hi], chrom=ch,
-                       clip=clip, probe=probe)
+                       clip=clip, probe=probe, halo_nm=halo)
 
     if colour == "Monochrome":
         legend = f'<span class="sw" style="background:{T.INK}"></span> chromatin fibre'
@@ -856,6 +875,11 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
                   f'<span class="bar" style="background:linear-gradient(90deg,{grad})"></span>'
                   f'<span class="cc-num">{ends[1]}</span>')
     legend += f'&nbsp;&nbsp;<span class="sw" style="background:{T.GHOST}"></span> unassembled'
+    if halo is not None:
+        legend += (f'&nbsp;&nbsp;<span class="sw" style="background:{T.ACCENT};opacity:.35"></span> population spread '
+                   f'(RMSF, median <span class="cc-num">{np.median(halo):,.0f}</span> nm)')
+    elif ss.get("unc_on"):
+        legend += '&nbsp;&nbsp;· uncertainty overlay: build and show a population model first'
     top_l.markdown(f'<div class="cc-legend">{legend}</div>', unsafe_allow_html=True)
 
     with st.container(key="stage"):
@@ -874,12 +898,12 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
         rows = [("Distance in this structure", f"{d_now:,.0f}", "nm"),
                 ("Along the DNA", f"{j_p - i_p:,} beads", f"{(j_p - i_p) * ch.resolution / 1000:,.0f} kb"),
                 ("Loci", f"{ch.name}:{int(ch.bin_start(g_i)) + 1:,}", f"{ch.name}:{int(ch.bin_start(g_j)) + 1:,}")]
-        if population is not None:
-            tr = population.trajectories_nm.reshape(-1, n_view, 3)
-            dd = np.linalg.norm(tr[:, i_p] - tr[:, j_p], axis=-1)
-            q1, q3 = np.percentile(dd, [25, 75])
+        if population is not None and POP is not None:
+            level = int(str(ss.get("probe_level") or "50 %").split()[0])
+            ps = POP.pair_summary(population, i_p, j_p, level / 100.0)
             rows += [("Population median (all trajectories)", f"{population.median_distance_nm[i_p, j_p]:,.0f}", "nm"),
-                     ("Middle 50 % of cells (model)", f"{q1:,.0f}–{q3:,.0f}", "nm"),
+                     (f"Middle {level} % of cells (model)", f"{ps.lower:,.0f}–{ps.upper:,.0f}", "nm"),
+                     ("Mean ± SD across cells (model)", f"{ps.mean:,.0f} ± {ps.sd:,.0f}", "nm"),
                      ("Contact probability (model)", f"{population.contact_probability[i_p, j_p]:.3f}",
                       f"< {population.config.get('r_c_nm', 0):.0f} nm")]
         readout(rows)
