@@ -233,23 +233,31 @@ def record(path: Path, url: str) -> str:
 _SOURCE_META: dict[str, dict] = {}
 
 
+def _get_json(url: str, tries: int = 5) -> object:
+    last = None
+    for k in range(tries):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                return json.loads(r.read())
+        except OSError as exc:              # DNS hiccups and server errors: retry with backoff
+            last = exc
+            time.sleep(min(30, 2 * 2 ** k))
+    raise OSError(f"could not reach {url}: {last}")
+
+
 def source_checksum(entry: Entry, fname: str) -> dict:
     """What the source itself publishes about a file: size and a checksum (Zenodo: MD5; GitHub: the
     git blob SHA-1). Used to refuse truncated or altered downloads."""
     if entry.base == SU_BASE:
         if "zenodo" not in _SOURCE_META:
-            with urllib.request.urlopen(urllib.request.Request("https://zenodo.org/api/records/3928890", headers=UA),
-                                        timeout=60) as r:
-                rec = json.loads(r.read())
+            rec = _get_json("https://zenodo.org/api/records/3928890")
             _SOURCE_META["zenodo"] = {f["key"]: {"bytes": int(f["size"]), "md5": f["checksum"].split(":", 1)[1]}
                                       for f in rec["files"]}
         return _SOURCE_META["zenodo"].get(fname, {})
     if entry.base == BINTU_BASE:
         if "github" not in _SOURCE_META:
-            url = "https://api.github.com/repos/BogdanBintu/ChromatinImaging/contents/Data"
-            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
-                _SOURCE_META["github"] = {f["name"]: {"bytes": int(f["size"]), "git_sha1": f["sha"]}
-                                          for f in json.loads(r.read())}
+            listing = _get_json("https://api.github.com/repos/BogdanBintu/ChromatinImaging/contents/Data")
+            _SOURCE_META["github"] = {f["name"]: {"bytes": int(f["size"]), "git_sha1": f["sha"]} for f in listing}
         return _SOURCE_META["github"].get(fname, {})
     return {}
 
