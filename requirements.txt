@@ -12,5 +12,7 @@ pytest>=8           # tests only
 # ChronoAgent online mode uses `requests` (installed with Streamlit); no extra package is needed.
 # Optional: pyBigWig (bigWig tracks), hic-straw (.hic contact maps).
 # Optional REST API (python -m chronocell.api): fastapi, uvicorn.
+# Optional: truststore, for TLS-inspected networks (corporate proxies): the app's downloads of the UCSC
+# sequence and ENCODE CTCF peaks then use the system certificate store.
 # Exact versions the test suite was run with: requirements.lock. Validation harness and figures:
 # requirements-validation.txt.

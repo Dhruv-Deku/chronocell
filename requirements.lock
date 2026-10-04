@@ -15,3 +15,5 @@ requests==2.34.2
 pytest==9.1.1
 # Optional, also tested (REST API, python -m chronocell.api; its test is skipped without them):
 #   fastapi==0.141.1  uvicorn==0.52.1  httpx==0.28.1
+# Optional, installed when the suite ran (downloads use it when present, for TLS-inspecting proxies):
+#   truststore==0.10.4

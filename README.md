@@ -46,7 +46,7 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 
 | Page | What it does |
 |---|---|
-| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, raw and recalibrated. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. |
+| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, and the measured coverage of that interval for your input type. **No contacts for a window?** Build the population from a prediction instead: CTCF ChIP-seq peaks of the cell type (upload, paste, or fetch from ENCODE by cell type) plus the DNA sequence, labelled *predicted* everywhere. When a window has both, the two maps are shown side by side with their agreement, never blended. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. |
 | **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements from presets, a custom definition or **your own VCF / BEDPE file**. *04 Variant impact* lists the changed contacts, affected genes and enhancer–promoter pairs, with 90 % intervals from refits. It is labelled with its measured standing: "mechanism simulator, not validated". Export movies and GIFs. |
 | **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. |
 | **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. |
@@ -89,6 +89,8 @@ flowchart LR
     P --> U["Every pair: median, SD,<br/>interval (raw + recalibrated)"]
     P --> T["100 exact Langevin trajectories"]
     A --> S["Single structure (v3.2)<br/>MDS + gradient + E(3)-equivariant GNN"]
+    Q["No contacts:<br/>sequence + CTCF peaks"] --> R["Predicted distance map<br/>(frozen Gate 5 model)"]
+    R --> P
     V["Variant file<br/>VCF · BEDPE"] --> X["Rearranged ensemble<br/>(exact, covariance space)"]
     P --> X
     X --> Y["Changed contacts · genes ·<br/>enhancer–promoter pairs"]
@@ -102,6 +104,7 @@ flowchart LR
 3. **Every distance comes with its distribution** across cells: median, SD and a central interval. The interval was tested for calibration on held-out single-cell measurements, and a recalibration fitted on practice data is shown next to it.
 4. **Exact trajectories** are drawn from the ensemble (Langevin dynamics, solved exactly mode by mode). They feed the 3D view, the comparisons and the analyses.
 5. **Variants** rearrange the fitted ensemble exactly in covariance space; predicted contact changes are mapped back to the reference.
+6. **Without contact data**, CTCF peaks oriented by the JASPAR CTCF motif plus GC content predict each pair's median distance (a ridge model fitted on practice data, Gate 5). A population model is then fitted to that map, so every page can use it, labelled *predicted*.
 
 Heavy reconstructions can run on a free Google Colab GPU with [`colab/ChronoCell5D_Colab.ipynb`](colab/ChronoCell5D_Colab.ipynb). Its output unzips straight into `coordinates/`.
 
@@ -142,7 +145,9 @@ The table below is generated from the result files by `python validation/report.
 **In plain words:**
 - The whole-chromosome model reproduces the measured folding pattern as well as the windowed model, a fraction of a point below, and adds the long-range pairs.
 - From sequencing Hi-C, the *ranking* of distances transfers to real cells; the absolute size in nanometres does not.
-- Stated intervals were too narrow until recalibrated. For close pairs and for Hi-C input they remain too narrow.
+- Stated intervals were too narrow until recalibrated. For close pairs they remain somewhat too narrow; for Hi-C input, the app's usual case, they stay far too narrow even with a Hi-C-specific recalibration, and the app says so under every interval.
+- No score computed from the input says reliably *which* distances are wrong: a per-pair score showed a weak signal for imaging-derived input and none for Hi-C, below the pre-registered bar, so the app shows none.
+- From sequence and CTCF alone, with no contacts, a modest part of the pattern beyond the separation trend is recovered. The cohesin-depleted control scores as high, so it reflects compartments and insulation, not loops: a prior, not a measurement.
 - The cohesin-loss prediction worked on its held-out region. The structural-variant simulator did **not** beat a simple genomic-distance shift on the one real rearrangement tested, so it is labelled a mechanism simulator.
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
@@ -158,6 +163,7 @@ Files are recognised **by their content**, not their name, and assigned to *Heal
 | Hi-C / Micro-C contacts | `.cool`, `.mcool`, `.hic` (built-in reader, format versions 6–9), text tables (`bin bin count`, positions, BEDPE) |
 | Structural variants | VCF (`SVTYPE` DEL / DUP / INV / BND, symbolic or breakend ALTs), BEDPE: in 02 · 4D dynamics |
 | RNA-seq expression | `.csv` / `.tsv` (gene, value) |
+| CTCF ChIP-seq peaks (prediction without contacts, hg38) | narrowPeak or BED (`.gz` accepted), pasted lines, or fetched from ENCODE by cell type (IMR-90, A549, K562, HCT116; MD5 checked): 01 · 3D structure → 03 Model & convergence → Input |
 
 ¹ needs `pyBigWig`
 
@@ -180,17 +186,23 @@ python -m chronocell.build_graph --synthetic --out graph.npz     # no downloads 
 python -m chronocell.train --graph graph.npz --out predicted_coords.npz
 python -m chronocell.genome_fetch mm39 --species "Mus musculus" --common mouse --display GRCm39
 python -m chronocell.demo_states demo_states                     # write the demo patients as files
+python -m chronocell.predict --chrom chr21 --start 28000000 --end 30000000 --peaks ctcf.narrowPeak --out map.npy
+                                                                 # distances from sequence + CTCF, no contacts
+                                                                 # (writes map.npy + map.json: predicted, not measured)
 python -m pytest                                                 # the test suite
 
 # held-out validation (data download on demand; see validation/RESULTS.md)
 python validation/validate_tracing.py                            # v3.3 windows, Bintu et al. 2018
 python validation/gate1.py --test                                # whole chromosome vs windows, Hi-C -> imaging
 python validation/calibration.py --test                          # interval calibration
+python validation/calibration.py --test --input hic              # interval calibration with Hi-C input (Gate 2b)
+python validation/reliability.py --test                          # per-pair reliability (Gate 2c)
 python validation/perturbation.py --test                         # cohesin depletion
 python validation/sv_validation.py                               # structural variants (K562)
 python validation/predictor.py --test                            # prediction without contact data
 python -m validation.benchmark.run                               # benchmark incl. PASTIS
 python validation/scale_benchmark.py                             # runtime and memory vs beads (synthetic)
+python validation/chromosome_runtime.py                          # runtime and memory per chromosome (synthetic)
 python validation/report.py                                      # regenerate the tables in RESULTS.md / README
 ```
 
@@ -216,7 +228,7 @@ Every call is appended to a run log (`.chronocell_cache/api_run_log.jsonl`): tim
 
 - **Reproducibility record.** 01 · 3D structure → Export writes `chronocell_audit_log.json` and a PDF. Each holds the method, equations, parameters, dataset sources and licences, software versions, the SHA-256 of every input file and every measured metric. It is a reproducibility record, not a clinical or regulatory audit.
 - **Pinned environment.** `requirements.lock` lists the exact versions the tests ran with. The `Dockerfile` builds a CPU image with the app, the tests and the validation harness. GitHub Actions (`.github/workflows/ci.yml`) runs the test suite on every push.
-- **Figures and tables.** `python -m validation.reproduce` regenerates every figure in this README and in `paper/` from the result files. It re-runs the held-out tests only when asked with `--rerun`.
+- **Tables.** `python validation/report.py` regenerates every numeric table in `validation/RESULTS.md` and the accuracy table in this README from the result files; the held-out tests themselves are re-run only by their own commands (above).
 
 ## Project layout
 
@@ -229,7 +241,7 @@ ChronoCell-5D/
 │   ├── ensemble.py         v3.3 population model: max-entropy ensemble + exact Langevin trajectories
 │   ├── perturb.py          cohesin depletion; structural variants in covariance space; E-P pairs
 │   ├── svio.py             VCF / BEDPE reading, variants -> scenarios
-│   ├── predict.py          sequence + CTCF distance predictor (Gate 5; not in the app, see RESULTS.md)
+│   ├── predict.py          sequence + CTCF distance predictor (Gate 5), its downloads and CLI
 │   ├── hicfile.py          .hic reader (v6-v9, local or remote by HTTP range)
 │   ├── analytics/          pdb_evaluator.py: Self-Math PDB State Evaluator
 │   ├── provenance.py       reproducibility record (JSON + PDF)
@@ -246,10 +258,9 @@ ChronoCell-5D/
 │   ├── pdf_report.py, snapshot.py, viz.py, theme.py
 │   ├── genome_fetch.py     add an assembly from UCSC
 │   └── data/               annotations (hg38, mm39), frozen calibration and perturbation parameters
-├── ui/                     the six pages, sidebar and shared helpers
+├── ui/                     the six pages, sidebar and shared helpers (predict_view.py: prediction input)
 ├── tests/                  unit and end-to-end tests of every page
 ├── validation/             held-out tests, benchmark harness, tuning record, results
-├── paper/                  manuscript draft and one-page summary (numbers from validation/)
 ├── colab/                  GPU reconstruction notebook
 ├── coordinates/            drop-in folder for your structures
 └── docs/                   plain-language overview and images
@@ -265,7 +276,6 @@ ChronoCell-5D/
 | [`AUDIT.md`](AUDIT.md) | Audits of the code and the claims, and the corrections made |
 | [`validation/RESULTS.md`](validation/RESULTS.md) | Every held-out test and its result, failures included |
 | [`validation/TUNING.md`](validation/TUNING.md) | How every setting was chosen, on practice data only |
-| [`paper/`](paper/) | Manuscript draft and a one-page summary |
 | [`coordinates/README.md`](coordinates/README.md) | Coordinate folder and file formats |
 | [`UPDATES.md`](UPDATES.md) | Development log |
 
@@ -273,7 +283,8 @@ ChronoCell-5D/
 
 - **Research and education only.** This is not a diagnostic tool and not medical advice.
 - **Absolute distances from sequencing Hi-C are not calibrated.** Ranks transfer to real cells; nanometres do not (Gate 1b).
-- **Intervals are lower bounds for some inputs.** Recalibrated intervals were close to nominal for imaging-derived contacts but too narrow for close pairs and for Hi-C input (Gate 2). There is no per-bead reliability score: the one tested did not predict error.
+- **Intervals are lower bounds for some inputs.** Recalibrated intervals were close to nominal for imaging-derived contacts but too narrow for close pairs (Gate 2). With sequencing Hi-C input they are far too narrow, even after a recalibration fitted on practice Hi-C (Gate 2b). There is no reliability score: neither the per-bead (Gate 2) nor the per-pair (Gate 2c) candidate reached the bar.
+- **Prediction without contacts is a prior.** It recovers a modest share of the pattern on human data (Gate 5), reflects compartments and insulation rather than loops, and is offered for hg38 only: the mouse test is pre-registered but not run (Gate 5m).
 - **The structural-variant simulator is not validated.** On the one real rearrangement tested it did not beat a genomic-distance shift. It also assumes the variant list fully describes how the pieces are joined.
 - **The drug lab is a mechanism simulator.** It shows what a drug's mechanism *could* do to a fold, not how well a drug works in patients.
 - **Gene "active / silenced" labels are predictions** from 3D accessibility and signal. RNA-seq can be added to check them.
@@ -291,6 +302,7 @@ Reference data:
   - Bintu et al., *Science* 2018 ([github.com/BogdanBintu/ChromatinImaging](https://github.com/BogdanBintu/ChromatinImaging));
   - Su et al., *Cell* 2020 (Zenodo 3928890, CC-BY-4.0);
   - Rao et al., *Cell* 2014 (GEO GSE63525);
-  - ENCODE CTCF peaks;
+  - ENCODE CTCF peaks (also fetched by the app on request, not redistributed);
+  - UCSC hg38 sequence (fetched on request, MD5 checked);
   - JASPAR 2024 (CC BY 4.0).
-- Sources, licences and checksums: `validation/datasets.py` and `validation/data_manifest.json`.
+- Sources, licences and checksums: `chronocell/data/validation_sources.json`, `validation/datasets.py` and `validation/data_manifest.json`.

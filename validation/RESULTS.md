@@ -371,6 +371,20 @@ Post hoc (after the verdict; cannot change it): K562 contacts across each juncti
   - The simulator assumes the variant list fully describes how the pieces are joined. A list of
     deleted intervals does not.
   - In the app the SV tools are labelled "mechanism simulator, not validated", with these numbers.
+- **A second, independent SV test was looked for (October 2026) and none could be pre-registered
+  and run here.** A useful test needs a clonal rearrangement with known joins, Hi-C of the same cell
+  type with and without it, and contact maps (not raw reads) that can be read on this machine:
+  - *Firre deletion* (Barutcu et al., *Nat Commun* 9:1444, 2018; GEO GSE98632): wild-type and
+    knockout mouse fibroblasts, an 82 kb deletion (mm9 chrX:47,908,463–47,990,294), hemizygous in
+    male cells. The design is right, but GEO holds raw reads only; building the maps means aligning
+    hundreds of millions of reads, with no aligner or Hi-C pipeline on this machine. The deletion is
+    also about two bins at the published 40 kb resolution, so the expected change is small.
+  - *CTCF-motif edits in HAP1 cells* (Sanborn et al., *PNAS* 2015): tens of base pairs, far below
+    the simulator's 5–25 kb beads; they test loop extrusion, not a bead-level rearrangement.
+  - *Cancer lines with breakpoint-resolved SVs* (Dixon et al., *Nat Genet* 50:1388, 2018): mostly
+    complex rearrangements with copy-number changes and no Hi-C of a matched normal of the same cell
+    type, the same confound that weakens the K562-vs-GM12878 test above.
+  - So the label stays: **mechanism simulator, not validated.**
 - **Drug-lab mechanisms** (loop-extrusion, compaction and similar what-ifs) have no matching
   perturbation data here and stay labelled "not validated".
 
@@ -417,6 +431,26 @@ control (CTCF-anchored loops need cohesin) and is not in the rule.
 - **In the app** it is offered only where a window has no contact data, labelled "predicted from
   sequence + CTCF (no contact data)", with these numbers. When contacts are present the
   data-driven model is used. Blending prediction and data was not tested and is not offered.
+
+## Gate 5m — the predictor on mouse (pre-registered, not run)
+
+**Why.** The predictor was trained and tested on human data. The app offers it for hg38 only.
+
+**Pre-registered test** (`validation/frozen.py`, `PREDICTOR_MOUSE`, committed before any mouse data
+were read):
+- **Truth:** ORCA chromatin tracing in mouse ES cells, two 3-Mb loci on chr6 and chr3 (Hafner et al.,
+  *Mol Cell* 83:1377, 2023; 4DN sets 4DNESD28H8O7 and 4DNESWDXDZSE, untreated).
+- **Inputs:** ENCODE CTCF IDR peaks of mouse ES-Bruce4 cells (ENCFF533APC, mm10; the only ENCODE mouse
+  ES CTCF ChIP-seq, and a different ES line from the imaged cells) and the mm10 sequence.
+- **Model:** the frozen human model, unchanged.
+- **Rule:** Gate 5's criteria (i) and (ii), on both loci. The CTCF- and cohesin-degron lines are
+  secondary sets and, with auxin, controls.
+
+**Not run.** The 4DN Data Portal answers downloads with HTTP 403 unless the request carries a 4DN
+account access key, which this machine does not have. An openly licensed alternative (Takei et al.,
+*Nature* 590:344, 2021, DNA seqFISH+, Zenodo 3735329) gives spot positions, not traces. Turning spots
+into single-copy traces is a separate analysis that would itself need validating. Until the test runs
+and passes, mouse assemblies get no prediction, in the app or on the command line.
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
 

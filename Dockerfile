@@ -2,7 +2,7 @@
 #   docker build -t chronocell .
 #   docker run --rm -p 8501:8501 chronocell                              # the app on http://localhost:8501
 #   docker run --rm chronocell python -m pytest -q                       # the test suite
-#   docker run --rm -v "$PWD/out:/app/paper/figures" chronocell python -m validation.reproduce   # paper figures
+#   docker run --rm chronocell python validation/report.py --print        # the result tables, from the result files
 FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1

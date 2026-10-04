@@ -30,6 +30,7 @@
 8. [Legacy Code](#8-legacy-code)
 9. [Dependency Graph](#9-dependency-graph)
 10. [Technology Stack](#10-technology-stack)
+11. [Population models, validation and the predictor (v3.3 and v4)](#11-population-models-validation-and-the-predictor-v33-and-v4-septemberoctober-2026)
 
 ---
 
@@ -638,3 +639,84 @@ graph TD
 | **Testing** | Pytest ≥ 8 | 21-test verification suite |
 | **Genomics** | pyfaidx, pyBigWig, cooler | Raw-input graph building (optional) |
 | **Export** | wwPDB v3.3 format | Standard structural biology interchange |
+
+
+---
+
+## 11. Population models, validation and the predictor (v3.3 and v4, September–October 2026)
+
+Sections 1–10 describe the v3.2 single-structure pipeline. This section covers what was added since:
+the population models, the held-out validation harness and the prediction without contact data. Every
+measured number lives in `validation/RESULTS.md` (generated from the result files by
+`python validation/report.py`); none is repeated here.
+
+### 11.1 Core modules (`chronocell/`, no Streamlit imports)
+
+| Module | Role | Main entry points |
+|---|---|---|
+| `ensemble.py` | v3.3 population model: maximum-entropy Gaussian ensemble (HIPPS/DIMES approach) on windows of ≤ 400 beads; exact Langevin trajectories | `fit_ensemble`, `fit_from_counts`, `EnsembleResult` |
+| `population.py` | v4 population model: low rank plus a random walk, exact block gradients, up to 6,000 beads; per-pair uncertainty (Maxwell law); practice-fitted interval recalibration | `fit_population`, `fit_population_from_counts`, `fit_population_from_medians`, `pair_summary`, `recalibrated_interval(level, kind)` |
+| `perturb.py` | cohesin depletion; structural variants built exactly in covariance space; enhancer–promoter pairs | `cohesin_loss_map`, `derive`, `variant_impact`, `bootstrap_impact` |
+| `svio.py` | VCF / BEDPE reading, variants to scenarios | `read_any`, `to_scenario` |
+| `hicfile.py` | `.hic` reader (format versions 6–9), local or remote by HTTP range requests | `HicFile`, `read_counts` |
+| `predict.py` | prediction without contact data (Pillar 5): CTCF peaks oriented by the JASPAR CTCF motif plus GC give 12 pair features; the frozen ridge model predicts each pair's median distance; verified downloads; command line | `load_model`, `predict_window`, `compare_maps`, `download_verified`, `fetch_chromosome_fasta`, `fetch_encode_peaks`, `encode_ctcf_sources`, `main` |
+| `accuracy.py` | the two accuracy scores kept apart; every held-out number the app shows, read from `validation/` result files | `two_scores`, `load_benchmark`, `interval_evidence`, `interval_input_kind`, `interval_note`, `sv_evidence` |
+| `provenance.py` | reproducibility record (JSON + PDF): inputs with SHA-256, parameters, software versions, sources | `build`, `to_json`, `to_pdf`, `validation_sources` |
+
+**`population.fit_population_from_medians(median_nm)`** turns a distance map that did not come from
+contacts (the predictor's output) into a population model: each median d_ij gives a per-axis spread
+σ_ij = d_ij / 1.538 (the Maxwell median), hence a contact frequency at the radius where adjacent beads
+touch with probability `p_adjacent`; those frequencies are fitted like measured ones (v3.3 up to 400
+beads, v4 above). This projects the map onto a valid 3D Gaussian ensemble, so every page (viewer, probe,
+Compare, exports) can use it. The result carries `config["input"]`, which the app uses to label it.
+
+**`predict.py` in detail.** Per locus: forward / reverse / unoriented CTCF peaks (strand of the best
+JASPAR MA0139.1 match within ±100 bp of the summit, relative score ≥ 0.8) and GC fraction. Per pair:
+convergent, divergent and tandem orientation products, peaks at either end, CTCF peaks between the loci,
+GC similarity, and each of these times log10(separation). Prediction: log d_ij = a + b·log10 s_ij +
+x_ij·β, with the trend (a, b) and β frozen in `data/predictor.json`. Downloads (`download_verified`)
+resume with HTTP Range requests and are moved into place only if their MD5 equals the one the source
+publishes (UCSC `md5sum.txt`, the ENCODE portal); without a published MD5 nothing is downloaded.
+
+### 11.2 Data files (`chronocell/data/`)
+
+| File | What it is | Where it comes from |
+|---|---|---|
+| `predictor.json` | the frozen Gate 5 model (β, feature means and SDs, trend, ridge λ, training sets, settings, validation reference) | copy of `validation/predictor_model.json`, fitted on practice data only (`validation/predictor.py --practice`) |
+| `jaspar_MA0139.1.jaspar` | CTCF position frequency matrix | JASPAR 2024, CC BY 4.0 (hashes in `validation_sources.json`) |
+| `calibration.json` | PIT histogram for the interval recalibration with imaging-derived contacts (Gate 2) | `validation/calibration.py --practice` |
+| `calibration_hic.json` | the same for sequencing Hi-C input (Gate 2b); the app uses it only if Gate 2b passed | `validation/calibration.py --practice --input hic` |
+| `perturbation_params.json` | cohesin-depletion parameters (Gate 4) | `validation/perturbation.py --practice` |
+| `validation_sources.json` | every external dataset, tool and annotation: URL, citation, licence, published checksum | maintained by hand; the ENCODE CTCF entries also feed the app's "ENCODE, by cell type" list |
+
+### 11.3 User interface (`ui/`)
+
+| Module | Role |
+|---|---|
+| `predict_view.py` | 01 · 3D structure → 03 Model & convergence → Input "Sequence + CTCF (predicted)": CTCF peaks uploaded, pasted or fetched from ENCODE by cell type; the chromosome sequence downloaded once from UCSC; the Gate 5 result and the cohesin-control caveat read from the result file; the population fitted to the prediction (`fit_population_from_medians`) and labelled "predicted" everywhere. `render_comparison` shows the model built from measured contacts and the predicted one side by side, with their rank agreement (raw and beyond the separation trend), when a window has both; they are never blended. |
+| `variant_impact.py` | 02 · 4D dynamics → 04 Variant impact; uses only populations built from contacts, never a prediction |
+| `pdb_eval_view.py` | Self-Math PDB State Evaluator; labels predicted populations as such |
+
+The distance probe (in `app.py`) shows, under the interval, the measured coverage for the input type of
+the population on screen (`accuracy.interval_input_kind`): imaging-derived contacts (Gate 2), sequencing
+Hi-C (Gate 2b: the Hi-C recalibration only if that test passed, otherwise the measured shortfall), or a
+prediction (intervals not tested).
+
+### 11.4 Validation (`validation/`)
+
+| Script | Gate | Output |
+|---|---|---|
+| `validate_tracing.py` | v3.3 windows (baseline) | `results.json` |
+| `gate1.py` | 1 / 1b: whole chromosome vs windows; Hi-C → imaging | `results_gate1*.json` |
+| `calibration.py` (`--input imaging` / `hic`) | 2 / 2b: interval coverage, recalibration | `results_calibration*.json`, `data/calibration*.json` |
+| `reliability.py` | 2c: per-pair reliability vs held-out error | `results_reliability*.json` |
+| `benchmark/run.py` | 3: baselines and PASTIS on the same inputs | `benchmark/results.json`, `RESULTS_TABLE.md` |
+| `perturbation.py`, `sv_validation.py` | 4 / 4b: cohesin loss; structural variants | `results_perturbation*.json`, `results_sv*.json` |
+| `predictor.py` | 5: prediction without contact data | `results_predictor.json`, `predictor_model.json` |
+| `scale_benchmark.py`, `chromosome_runtime.py` | cost: runtime and peak memory (synthetic input) | `scale_benchmark.json`, `chromosome_runtime.json` |
+| `report.py` | every numeric table in `RESULTS.md` and the README | (rewrites the generated blocks) |
+
+`frozen.py` holds every pre-registered setting and pass rule; git history shows each was committed
+before the test that uses it. `protocol.py` is the shared held-out protocol (half A in, half B as the
+answer key, trend-removed Spearman as a % of the half A vs half B ceiling). `datasets.py` is the dataset
+registry with practice / test roles, downloads and checksums.
