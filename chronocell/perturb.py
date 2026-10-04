@@ -120,14 +120,46 @@ def project_to_ensemble(median_nm: np.ndarray, r_c_nm: float, iterations: int = 
 NATIVE, COPY, PARTNER, INVERTED = 0, 1, 2, 3
 
 
-def pair_variance_from_result(res: ENS.EnsembleResult) -> tuple[np.ndarray, float]:
-    """(per-axis pair variance in units of r_c^2, r_c in nm) of any v3.3 / v4 result, exactly."""
+def pair_variance_from_result(res: ENS.EnsembleResult, window: tuple[int, int] | None = None) -> tuple[np.ndarray, float]:
+    """(per-axis pair variance in units of r_c^2, r_c in nm) of any v3.3 / v4 result, exactly; with
+    `window` = (lo, hi), only beads lo..hi-1 (the exact marginal of a Gaussian ensemble)."""
     r_c = float(res.config.get("r_c_nm", 150.0))
-    if getattr(res, "model", None) is not None:
-        return res.model.dense_variance(dtype=np.float64), r_c
-    s = (np.asarray(res.median_distance_nm, dtype=np.float64) / (ENS.MAXWELL_MEDIAN * r_c)) ** 2
+    model = getattr(res, "model", None)
+    if model is not None:
+        if window is None:
+            return model.dense_variance(dtype=np.float64), r_c
+        idx = np.arange(int(window[0]), int(window[1]))
+        I, J = np.meshgrid(idx, idx, indexing="ij")
+        s = model.pair_variance(I.ravel(), J.ravel()).reshape(len(idx), len(idx))
+    else:
+        m = np.asarray(res.median_distance_nm, dtype=np.float64)
+        if window is not None:
+            m = m[window[0]:window[1], window[0]:window[1]]
+        s = (m / (ENS.MAXWELL_MEDIAN * r_c)) ** 2
     np.fill_diagonal(s, 0.0)
     return s, r_c
+
+
+def adjacent_variance(res: ENS.EnsembleResult) -> float:
+    """Median adjacent-bead pair variance of the whole fitted window: the junction bond s_b."""
+    model = getattr(res, "model", None)
+    if model is not None:
+        i = np.arange(model.n - 1)
+        return float(np.median(model.pair_variance(i, i + 1)))
+    r_c = float(res.config.get("r_c_nm", 150.0))
+    d = np.diag(np.asarray(res.median_distance_nm, dtype=np.float64), 1)
+    return float(np.median((d / (ENS.MAXWELL_MEDIAN * r_c)) ** 2))
+
+
+def shift_params(params: dict, lo: int) -> dict:
+    """Bead coordinates of a variant re-expressed relative to bead `lo`."""
+    out = dict(params)
+    for k in ("a", "b", "breakpoint"):
+        if k in out:
+            out[k] = int(out[k]) - int(lo)
+    if "segments" in out:
+        out["segments"] = [(int(a) - int(lo), int(b) - int(lo)) for a, b in out["segments"]]
+    return out
 
 
 @dataclass
@@ -316,10 +348,10 @@ class VariantImpact:
 
 
 def variant_impact_from_variance(S: np.ndarray, r_c_nm: float, op: str, params: dict,
-                                 partner_S: np.ndarray | None = None) -> VariantImpact:
+                                 partner_S: np.ndarray | None = None, s_bond: float | None = None) -> VariantImpact:
     n = len(S)
     pieces, desc = pieces_for(op, n, params)
-    Sd, origin, _ = derive(S, pieces, partner_S)
+    Sd, origin, _ = derive(S, pieces, partner_S, s_bond)
     p_after, d_after = to_reference(Sd, origin, n, r_c_nm)
     sig = np.sqrt(np.clip(S, 0.0, None))
     p_before = ENS.contact_probability_from_sigma(np.where(sig > 0, sig, 1e-9))
@@ -330,25 +362,35 @@ def variant_impact_from_variance(S: np.ndarray, r_c_nm: float, op: str, params: 
     return VariantImpact(desc, fc, p_before, p_after, d_before, d_after)
 
 
-def variant_impact(res: ENS.EnsembleResult, op: str, params: dict) -> VariantImpact:
-    """Apply one rearrangement to a fitted population and compare contacts before and after."""
-    S, r_c = pair_variance_from_result(res)
-    return variant_impact_from_variance(S, r_c, op, params)
+def variant_impact(res: ENS.EnsembleResult, op: str, params: dict,
+                   window: tuple[int, int] | None = None) -> VariantImpact:
+    """Apply one rearrangement to a fitted population and compare contacts before and after. With
+    `window` = (lo, hi) (bead coordinates of the fit, containing the variant and its flanks) only those
+    beads are used: identical results for every pair inside, at a fraction of the cost; the output is
+    then indexed from lo."""
+    if window is None:
+        S, r_c = pair_variance_from_result(res)
+        return variant_impact_from_variance(S, r_c, op, params)
+    S, r_c = pair_variance_from_result(res, window)
+    return variant_impact_from_variance(S, r_c, op, shift_params(params, window[0]), s_bond=adjacent_variance(res))
 
 
 def bootstrap_impact(fit_fn, counts: tuple[np.ndarray, np.ndarray, np.ndarray], op: str, params: dict,
-                     reps: int = 8, seed: int = 0, level: float = 0.9) -> dict:
+                     reps: int = 8, seed: int = 0, level: float = 0.9, progress=None,
+                     window: tuple[int, int] | None = None) -> dict:
     """Uncertainty of a predicted change from the input data: refit on Poisson-resampled counts
     `reps` times, apply the same variant, and take percentiles of log2 fold change per pair.
-    fit_fn(ci, cj, cm) -> EnsembleResult."""
+    fit_fn(ci, cj, cm) -> EnsembleResult; progress(done, reps) is called after each refit."""
     rng = np.random.default_rng(seed)
     ci, cj, cm = counts
     fcs = []
-    for _ in range(reps):
+    for r in range(reps):
         cm_b = rng.poisson(np.asarray(cm, dtype=np.float64)).astype(np.float64)
         keep = cm_b > 0
         res = fit_fn(ci[keep], cj[keep], cm_b[keep])
-        fcs.append(variant_impact(res, op, params).log2_fc)
+        fcs.append(variant_impact(res, op, params, window).log2_fc)
+        if progress is not None:
+            progress(r + 1, reps)
     arr = np.stack(fcs)
     q = (1 - level) / 2
     import warnings

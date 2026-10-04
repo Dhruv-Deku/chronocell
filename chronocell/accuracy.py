@@ -99,6 +99,18 @@ def _gate1_benchmark(folder: Path) -> dict | None:
 VALIDATION = RESULTS.parent
 
 
+def sv_evidence() -> dict | None:
+    """The structural-variant test (validation/sv_validation.py, pre-registered) as measured, or None if it
+    has not been run. Nothing here is typed in: every number is read from validation/results_sv.json."""
+    try:
+        r = json.loads((VALIDATION / "results_sv.json").read_text(encoding="utf-8"))
+        return {"verdict": r["verdict"], "validated": r["verdict"].startswith("validated"),
+                "event": r["settings"]["deleted_source"], "window": r["window"], "pairs": r["spanning_pairs"],
+                "spearman": r["spearman"], "ci95": r["ci95_block_bootstrap"], "criteria": r["criteria"]}
+    except (OSError, ValueError, KeyError):
+        return None
+
+
 def method_evidence() -> dict:
     """Headline numbers of every held-out test that has been run, read from validation/*.json (measured
     values only; a test that has not been run is reported as such, never filled in)."""
@@ -124,6 +136,10 @@ def method_evidence() -> dict:
                                              and np.isfinite(v.get("change_spearman", np.nan))}}
     except (OSError, ValueError, KeyError):
         out["gate4_cohesin_depletion"] = "not run"
+    sv = sv_evidence()
+    out["gate4_structural_variants"] = ({"verdict": sv["verdict"], "spanning_pairs": sv["pairs"],
+                                         **{f"{k}.spearman": round(v, 3) for k, v in sv["spearman"].items()}}
+                                        if sv else "not run")
     try:
         c = json.loads((VALIDATION / "results_calibration.json").read_text(encoding="utf-8"))
         out["gate2_calibration"] = {r["dataset"]: {"levels": r["levels"], "coverage": [round(v, 3) for v in r["coverage"]],
