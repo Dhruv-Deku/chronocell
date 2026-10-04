@@ -7,7 +7,7 @@ It runs locally with Streamlit. Heavy reconstruction runs on a Google Colab T4 G
 ```bash
 pip install -r requirements.txt
 streamlit run app.py              # opens http://localhost:8501
-python -m pytest                  # 101 tests
+python -m pytest                  # 227 tests: 226 passed, 1 skipped (the FastAPI wrapper) on the reference machine
 python -m chronocell.demo_states demo_states   # optional: synthetic Healthy / Disease / Senescent files to try the states
 ```
 
@@ -112,7 +112,7 @@ chronocell/                    numerics — never imports Streamlit
 colab/ChronoCell5D_Colab.ipynb Colab notebook (T4 GPU)
 colab/pack_code.py             zips chronocell/ for upload -> colab/chronocell_code.zip
 coordinates/                   THE SLOT: put coordinates here (see §4)
-tests/                         101 tests (pytest); test_v31.py / test_v32.py include end-to-end AppTests of every page
+tests/                         227 tests (pytest); test_v31.py / test_v32.py / test_v4_ui.py include end-to-end AppTests
 chronocell/genes.py            gene annotation (RefSeq Select), 3D accessibility, RNA-seq agreement      (v3.2)
 chronocell/domains.py          TADs (insulation), A/B compartments, loops, contact decay                 (v3.2)
 chronocell/therapy.py          drug lab: drug classes, targeting, dose simulation, ranking                (v3.2)
@@ -813,3 +813,50 @@ with:
 - the software version, run time and outcome.
 
 It is a reproducibility log, not a compliance audit trail.
+
+## 21. v4: prediction without contacts, predicted vs measured, interval coverage per input
+
+Every number behind this section is in `validation/RESULTS.md` (Gates 2, 2b, 2c, 5); the app reads
+them from the result files, so none is repeated here.
+
+**Prediction without contact data** (3D structure → 03 Model & convergence → **Input: Sequence + CTCF
+(predicted)**; human hg38 only):
+1. Choose the CTCF peaks:
+   - **Upload or paste**: narrowPeak or BED of the same cell type (`.gz` accepted); or
+   - **ENCODE, by cell type**: IMR-90, A549, K562 or HCT116 GRCh38 IDR peaks, downloaded once into
+     `.chronocell_cache/encode/` and checked against the MD5 the ENCODE portal publishes.
+2. The chromosome sequence is downloaded once from UCSC into `.chronocell_cache/fasta/` and checked
+   against UCSC's `md5sum.txt`. Without a published MD5 nothing is downloaded.
+3. **Predict and build population model** predicts every pair's median distance with the frozen
+   Gate 5 model, then fits a population to that map so every page can use it.
+
+What you see:
+- the label "predicted from sequence + CTCF (no contact data)" wherever the model appears;
+- the held-out result (Gate 5) in a banner, and the cohesin-control caveat: the signal is
+  compartment / insulation level, not CTCF loops;
+- the accession, experiment, MD5 and SHA-256 of the peaks in the export's `prediction_inputs`.
+
+**Predicted next to built from contacts.** When one window has both, 03 shows both distance maps side
+by side with their Spearman ρ (raw, and beyond the separation trend) and their size ratio. This is
+agreement between two models, not accuracy. The maps are never blended (that was not tested). On the
+built-in reference chr22 the contacts are synthetic, and the panel says so.
+
+**Interval coverage under the probe** depends on what the population was built from:
+
+| Built from | What the probe shows under the interval |
+|---|---|
+| Imaging-derived contacts | the Gate 2 recalibrated interval and its held-out coverage |
+| Sequencing counts (Hi-C, Micro-C; the app's usual input) | the model's interval and the measured Gate 2b shortfall: read it as the model's spread, not as a range for real cells |
+| A prediction | "coverage not tested" |
+
+**No reliability score.** Neither a per-bead (Gate 2) nor a per-pair (Gate 2c) score computed from the
+input reached the pre-registered bar, so none is shown.
+
+**Command line:**
+```bash
+python -m chronocell.predict --chrom chr21 --start 28000000 --end 30000000 --peaks ctcf.narrowPeak --out map.npy
+```
+This writes `map.npy` (median distance, nm) and `map.json`. The JSON holds the inputs with SHA-256,
+the model, the validation reference and "predicted, not measured". `--fasta` uses a local sequence;
+`--bin` sets the locus size (30 and 50 kb were tested; other sizes add a warning). Assemblies other
+than hg38 are refused.
