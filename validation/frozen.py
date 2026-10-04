@@ -48,3 +48,22 @@ SV_VALIDATION = {"reference": "rao2014_gm12878", "variant": "rao2014_k562", "chr
                  "population": WHOLE_CHROMOSOME, "p_adjacent": GATE1["p_adjacent"], "hic_zeros": GATE1["hic_zeros"],
                  "min_new_separation_bins": 2, "max_new_separation_bins": 80, "block_bins": 8, "bootstrap": 1000,
                  "seed": 0}
+
+# Gate 5 (Pillar 5, no-Hi-C prediction; validation/predictor.py). Pre-registered before any test run.
+# Model: chronocell.predict (CTCF peaks oriented by the JASPAR MA0139.1 motif + GC per locus -> ridge
+# regression of the trend-removed log median distance). Inputs per dataset: ENCODE CTCF IDR peaks of
+# the same cell line (validation/datasets.py CTCF_PEAKS) and the hg38 sequence. Training: the untreated
+# practice datasets, each weighted equally; the ridge penalty is chosen on practice data only, by
+# leave-one-dataset-out cross-validation over ridge_grid, then the model is refitted on all of them and
+# frozen in validation/predictor_model.json. Test (run once): the untreated test datasets; the cohesin-
+# depleted test set is reported as a control (CTCF-anchored loops need cohesin) and is not in the rule.
+# Scoring: validation/benchmark/run.py protocol (half B medians as truth, all pairs, mean over splits,
+# 95 % interval from split 0). Baseline: the same training trend log d = a + b log10 s with no features
+# (genomic distance only, no data from the target region).
+# Pass (keep in the UI): on at least 3 of the 5 test datasets, (i) % of ceiling > 0 with the 95 %
+# interval above 0, and (ii) raw Spearman above the baseline's. Otherwise: documented, not in the UI.
+PREDICTOR = {"train": ["bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_34_37", "su_chr2"],
+             "test": ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30", "su_chr21", "su_chr21_rep"],
+             "control": ["bintu_hct116_34_37_auxin"],
+             "motif": "JASPAR MA0139.1", "motif_min_relative_score": 0.8, "pseudocount": 0.25,
+             "summit_half_width_bp": 100, "ridge_grid": [1e-4, 1e-3, 1e-2, 1e-1, 1.0], "pass_min_datasets": 3}
