@@ -132,10 +132,23 @@ def _camera(eye: tuple[float, float, float]) -> dict:
 CAMERAS = {"Iso": (1.55, 1.2, 0.75), "Front": (0.0, 2.1, 0.0), "Top": (0.0, 0.01, 2.1), "Side": (2.1, 0.0, 0.0)}
 
 
-def _tips(chrom_name: str) -> tuple[str, str]:
-    locus = f"<b>{chrom_name}:" + "%{customdata[1]:,.0f}–%{customdata[2]:,.0f}</b><br>bin %{customdata[0]:,.0f}<br>"
-    return (locus + "GC %{customdata[3]:.3f} · H3K27ac %{customdata[4]:.2f}<extra></extra>",
-            locus + "unassembled (N) · no sequence<extra></extra>")
+def _tips(chrom_name: str, extra: str = "") -> tuple[str, str]:
+    """Tube tooltips; customdata = bin, start, end, GC, H3K27ac, bead number, [distance columns];
+    %{text} carries the genes at the bead; `extra` is appended (e.g. the distance to the probe's bead A)."""
+    locus = (f"<b>{chrom_name}:" + "%{customdata[1]:,.0f}–%{customdata[2]:,.0f}</b><br>bin %{customdata[0]:,.0f} · "
+             "bead %{customdata[5]:,.0f}<br>")
+    return (locus + "GC %{customdata[3]:.3f} · H3K27ac %{customdata[4]:.2f}%{text}" + extra + "<extra></extra>",
+            locus + "unassembled (N) · no sequence%{text}" + extra + "<extra></extra>")
+
+
+def _probe_line(probe_dist: dict | None) -> str:
+    """Tooltip line for the distance to the probe's bead A (customdata columns 6-8)."""
+    if not probe_dist:
+        return ""
+    line = f"<br>to bead {probe_dist['ref'] + 1:,} ({probe_dist['source']}): " + "%{customdata[6]:,.0f} nm"
+    if probe_dist.get("lower") is not None:
+        line += f" · middle {probe_dist['level']} % " + "%{customdata[7]:,.0f}–%{customdata[8]:,.0f} nm"
+    return line
 
 
 def _submesh(verts: np.ndarray, faces: np.ndarray, keep: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -152,14 +165,27 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
              context: np.ndarray | None, uirevision: str, scale_bar_nm: float,
              gc: np.ndarray, epi: np.ndarray, valid: np.ndarray, chrom: genome.Chrom | None = None,
              clip: tuple[int, float] | None = None, probe: tuple[int, int] | None = None,
-             halo_nm: np.ndarray | None = None) -> go.Figure:
+             halo_nm: np.ndarray | None = None, genes: np.ndarray | None = None, probe_dist: dict | None = None,
+             marks: list[tuple[int, str]] | None = None) -> go.Figure:
     """3D fold. `clip` = (axis 0/1/2, coordinate in nm): a slicing plane that hides everything beyond it
     (a cross-section). `probe` = (i, j) local bead indices: marks both beads and the straight line between.
-    `halo_nm` (per bead, nm): translucent halos sized by the population's positional spread (overlay)."""
+    `halo_nm` (per bead, nm): translucent halos sized by the population's positional spread (overlay).
+    `genes` (per bead, '' if none) and `probe_dist` ({'ref', 'median', 'lower', 'upper', 'level', 'source'};
+    per-bead distance to bead `ref`) extend the tooltips; `marks` = [(bead, label)] labels beads.
+    Every pickable trace carries the genomic bin as customdata[0] (click-to-select)."""
     chrom = chrom or genome.DEFAULT
     fig = go.Figure()
     n = len(sub)
     cs = state_colorscale(scale, focus_color)
+    gene_txt = np.array([f"<br>{g}" if g else "" for g in (genes if genes is not None else [""] * n)], dtype=object)
+    nan = np.full(n, np.nan)
+    if probe_dist:
+        lo_d = probe_dist.get("lower")
+        hi_d = probe_dist.get("upper")
+        d_cols = np.column_stack([probe_dist["median"], nan if lo_d is None else lo_d, nan if hi_d is None else hi_d])
+    else:
+        d_cols = np.column_stack([nan, nan, nan])
+    dist_line = _probe_line(probe_dist)
 
     def beyond(pts: np.ndarray) -> np.ndarray:
         return pts[:, clip[0]] > clip[1] if clip is not None else np.zeros(len(pts), bool)
@@ -180,11 +206,13 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
         vbead = np.concatenate([np.repeat(ring_bead, sides), [0, n - 1]])
         gb = idx[vbead]
         custom = np.column_stack([gb, chrom.bin_start(gb) + 1, chrom.bin_end(gb),
-                                  np.nan_to_num(gc[vbead], nan=0.0), np.nan_to_num(epi[vbead], nan=0.0)])
+                                  np.nan_to_num(gc[vbead], nan=0.0), np.nan_to_num(epi[vbead], nan=0.0),
+                                  vbead + 1, d_cols[vbead]])
         # float64 on purpose: float32 is exact only to 2^24 = 16.7 Mb, so chr22 loci would round.
         on_data = valid[vbead][faces].all(axis=1)       # a face is 'unassembled' if any corner is
         inside = ~beyond(verts)[faces].any(axis=1)       # slicing plane: drop faces with a corner beyond it
-        tip_data, tip_gap = _tips(chrom.name)
+        tip_data, tip_gap = _tips(chrom.name, dist_line)
+        vtext = gene_txt[vbead]
         for keep, tip in ((on_data & inside, tip_data), (~on_data & inside, tip_gap)):
             if not keep.any():
                 continue
@@ -192,7 +220,7 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
             fig.add_trace(go.Mesh3d(
                 x=verts[used, 0], y=verts[used, 1], z=verts[used, 2], i=f[:, 0], j=f[:, 1], k=f[:, 2],
                 intensity=vint[used], intensitymode="vertex", colorscale=cs, cmin=0, cmax=1, showscale=False,
-                flatshading=False, customdata=custom[used], hovertemplate=tip,
+                flatshading=False, customdata=custom[used], text=vtext[used], hovertemplate=tip,
                 lighting=dict(ambient=0.42, diffuse=0.78, specular=0.28, roughness=0.5, fresnel=0.12),
                 lightposition=dict(x=1600, y=1200, z=2400)))
     elif style == "Line":
@@ -206,11 +234,19 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
     if style != "Tube":
         beads_visible = style == "Beads"
         shown_pts = np.where(beyond(sub)[:, None], np.nan, sub)
+        btext = [f"{h}<br>bead {k + 1:,}{gene_txt[k]}" for k, h in enumerate(hover)]
+        if probe_dist:
+            for k in range(n):
+                if np.isfinite(d_cols[k, 0]):
+                    btext[k] += (f"<br>to bead {probe_dist['ref'] + 1:,} ({probe_dist['source']}): {d_cols[k, 0]:,.0f} nm"
+                                 + (f" · middle {probe_dist['level']} % {d_cols[k, 1]:,.0f}–{d_cols[k, 2]:,.0f} nm"
+                                    if np.isfinite(d_cols[k, 1]) else ""))
         fig.add_trace(go.Scatter3d(
             x=shown_pts[:, 0], y=shown_pts[:, 1], z=shown_pts[:, 2], mode="markers",
             marker=dict(size=bead_px if beads_visible else 3, color=intensity, colorscale=cs, cmin=0, cmax=1,
                         opacity=1.0 if beads_visible else 0.01, line=dict(width=0)),
-            text=hover, hovertemplate="%{text}<extra></extra>", showlegend=False))
+            customdata=np.asarray(idx, dtype=np.float64)[:, None], text=btext, hovertemplate="%{text}<extra></extra>",
+            showlegend=False))
 
     if halo_nm is not None and len(halo_nm) == n:
         # marker sizes are screen pixels: scale the spread relative to the fold's extent so halos read as nm
@@ -244,6 +280,14 @@ def viewport(sub: np.ndarray, idx: np.ndarray, intensity: np.ndarray, hover: lis
         fig.add_trace(go.Scatter3d(x=[mid[0]], y=[mid[1]], z=[mid[2]], mode="text", text=[f"{dist:,.0f} nm"],
                                    textfont=dict(family=T.MONO, size=13, color=T.TERRACOTTA), hoverinfo="skip",
                                    showlegend=False))
+    for bead, label in (marks or []):
+        if 0 <= bead < n:
+            fig.add_trace(go.Scatter3d(x=[sub[bead, 0]], y=[sub[bead, 1]], z=[sub[bead, 2]], mode="markers+text",
+                                       marker=dict(size=10, color=T.INK, symbol="diamond", line=dict(width=1, color=T.PAPER)),
+                                       text=[f"  {label}"], textposition="middle right",
+                                       textfont=dict(family=T.SANS, size=12, color=T.INK),
+                                       customdata=[[float(idx[bead])]], hovertemplate=f"<b>{label}</b><extra></extra>",
+                                       showlegend=False))
     fig.add_trace(go.Scatter3d(
         x=[sub[0, 0], sub[-1, 0]], y=[sub[0, 1], sub[-1, 1]], z=[sub[0, 2], sub[-1, 2]], mode="markers+text",
         marker=dict(size=5, color=T.INK, symbol="circle"), text=[f"  {idx[0]}", f"  {idx[-1]}"],
@@ -363,6 +407,14 @@ def matrix_chart(mat: np.ndarray, lo: int, k: int, kind: str, height: int = 330,
                                       xaxis=dict(title="Mb", constrain="domain", showgrid=False),
                                       yaxis=dict(title="Mb", autorange="reversed", scaleanchor="x", constrain="domain",
                                                  showgrid=False)))
+    return fig
+
+
+def mark_pair(fig: go.Figure, x_mb: float, y_mb: float) -> go.Figure:
+    """Mark the distance probe's pair on a contact / distance map (both triangles)."""
+    fig.add_trace(go.Scatter(x=[x_mb, y_mb], y=[y_mb, x_mb], mode="markers", hoverinfo="skip", showlegend=False,
+                             marker=dict(symbol="x-thin-open", size=14, color=T.TERRACOTTA, line=dict(width=2.5,
+                                                                                                   color=T.TERRACOTTA))))
     return fig
 
 

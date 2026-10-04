@@ -71,6 +71,8 @@ def test_population_probe_interval_overlay_and_telemetry(app):
     at.toggle(key="probe_on").set_value(True).run()
     txt = _text(at)
     assert "Middle 50 % of cells (model)" in txt and "Mean ± SD across cells (model)" in txt
+    tip = next(d for d in _chart(at, "viewport")[1]["data"] if d["type"] == "mesh3d")["hovertemplate"]
+    assert "(population model)" in tip and "middle 50 %" in tip            # hover: distance to bead A with interval
     at.select_slider(key="probe_level").set_value("90 %").run()
     assert "Middle 90 % of cells (model)" in _text(at)
     at.toggle(key="unc_on").set_value(True).run()
@@ -132,3 +134,40 @@ def test_variant_file_scenario_and_impact_panel(app, monkeypatch):
     assert "90 % interval" in _table(at, "Locus A (Mb)").columns
     assert "Of those, 90 % interval excludes no change" in _text(at)
     assert any("bootstrap" in r["Stage"] for r in at.session_state["telemetry"])
+
+
+def _chart(at, key: str):
+    import json
+    for c in at.get("plotly_chart"):
+        if c.proto.id.endswith(f"-{key}"):
+            return c.proto, json.loads(c.proto.spec)
+    return None, None
+
+
+def test_bead_tooltips_click_to_pick_and_linked_gene(app):
+    at = app
+    proto, spec = _chart(at, "viewport")
+    assert proto is not None and list(proto.selection_mode) == []            # default: clicks do nothing, as before
+    mesh = next(d for d in spec["data"] if d["type"] == "mesh3d")
+    assert "bead %{customdata[5]" in mesh["hovertemplate"]                    # bead number in the tooltip
+    assert any(t for t in mesh["text"])                                       # gene names at the beads
+    assert "to bead" not in mesh["hovertemplate"]
+    at.toggle(key="pick_on").set_value(True).run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert list(_chart(at, "viewport")[0].selection_mode)                     # 3D view now reports clicked beads
+    assert list(_chart(at, "matrix")[0].selection_mode)                       # and so does the map
+    at.toggle(key="probe_on").set_value(True).run()
+    _, spec = _chart(at, "viewport")
+    mesh = next(d for d in spec["data"] if d["type"] == "mesh3d")
+    assert "to bead 1 (this structure)" in mesh["hovertemplate"]
+    heat = _chart(at, "matrix")[1]["data"]
+    assert len(heat) == 2                                                      # the probe pair is marked on the map
+    # linked selection: a gene picked on the Genes page is marked in the 3D view
+    at.segmented_control(key="workspace").set_value("Genes").run()
+    at.selectbox(key="genes_pick_chr22").set_value("BCR").run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert at.session_state["linked_gene"][0] == "BCR"
+    at.segmented_control(key="workspace").set_value("3D structure").run()
+    assert _ok(at), [e.value for e in at.exception]
+    _, spec = _chart(at, "viewport")
+    assert any(d.get("text") == ["  BCR"] for d in spec["data"])
