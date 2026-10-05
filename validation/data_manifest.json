@@ -1,4 +1,134 @@
 {
+ "data/4dn/4DNFI1MBPSTC.csv": {
+  "sha256": "f77ae1976f2a12687521d246c86a4f84044075e5e4ded34eea7f06cfb92c2367",
+  "bytes": 8773023,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/aab3e7d5-6122-46d5-af06-7d23e9e4f87f/4DNFI1MBPSTC.csv"
+ },
+ "data/4dn/4DNFI2OG3IPB.csv": {
+  "sha256": "6e1fa1626884f6f15ba83465751d2c52309c91ab39d5b1548ff754f1113331a6",
+  "bytes": 9179799,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/30a0322b-b661-42bb-b908-073d14bf8b5a/4DNFI2OG3IPB.csv"
+ },
+ "data/4dn/4DNFI4AKVCVH.csv": {
+  "sha256": "459272d512892d01d6f87cf06a311f19b2d9355cd9049bd5c4ab806889e3c3b3",
+  "bytes": 10633366,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/8ad2bb7c-9e59-4fe9-b74d-8738f7b630e8/4DNFI4AKVCVH.csv"
+ },
+ "data/4dn/4DNFI4SYERQD.csv": {
+  "sha256": "dbdbc2ebd2580df30f2bfaa1de5559602379c9ea3c645925b1b4009a0bdb380d",
+  "bytes": 4885956,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/14cfb096-f08d-4c3b-8d48-71218da6af9b/4DNFI4SYERQD.csv"
+ },
+ "data/4dn/4DNFI4VLY3WU.csv": {
+  "sha256": "ca14c557c529fc25eb94b8ecd71966b544e02e136fa75a97141cc47acb7d9644",
+  "bytes": 9255105,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/35e54b5f-8945-4a2b-a554-316e84bad5ae/4DNFI4VLY3WU.csv"
+ },
+ "data/4dn/4DNFIA63SK83.csv": {
+  "sha256": "d79386e15e6faae9f3b1f781be4b980b041be66aa1026b9186ad2c135d7df451",
+  "bytes": 15923040,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/f96751cd-86a7-4248-8e46-abfacc5d1a2a/4DNFIA63SK83.csv"
+ },
+ "data/4dn/4DNFIBI4PIOM.csv": {
+  "sha256": "c5b3022517d1eabc1deae3e6e8d79fae6edba8485ad41e907197f9a54125d78e",
+  "bytes": 6275089,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/d520c455-dc51-4f07-a58a-ca52ee2b1c90/4DNFIBI4PIOM.csv"
+ },
+ "data/4dn/4DNFICN9NE8U.csv": {
+  "sha256": "5211830fb0cac1abf8496c7788f655684205542faa2efdd4a5d32f961f000834",
+  "bytes": 9836950,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/bf0df72e-52b2-49cb-b5ff-c2b81d924f18/4DNFICN9NE8U.csv"
+ },
+ "data/4dn/4DNFID7HZ8LX.csv": {
+  "sha256": "3c357d202eeb3ef8df5ade96420290c2743388e24736e1ec2033ecae5839d285",
+  "bytes": 6491283,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/9a169672-dcdf-4f8f-829b-fade994ce38f/4DNFID7HZ8LX.csv"
+ },
+ "data/4dn/4DNFIDNY8W7L.csv": {
+  "sha256": "29acd31e142fca08b1f171750e94cf8d0acf2201508fc39f9749d41d2ed4d999",
+  "bytes": 35750095,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/78348eef-7fb5-4486-9b88-2b79e890fbab/4DNFIDNY8W7L.csv"
+ },
+ "data/4dn/4DNFIFW72AJF.csv": {
+  "sha256": "efb53735a5bed0b37825c11c079fe418f22879b53c99e268e8e2cd0be45478e5",
+  "bytes": 3571597,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/a7f1bba4-03a6-4021-ba35-4e9cc4e672bc/4DNFIFW72AJF.csv"
+ },
+ "data/4dn/4DNFIHA5PA9U.csv": {
+  "sha256": "8a957f1ec108f571a987831bbcece390feeb6c1c7cbaa71b9f9667a0b5f2471b",
+  "bytes": 6910489,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/b02e02c0-6bce-495a-ba3f-084fafe0cc9c/4DNFIHA5PA9U.csv"
+ },
+ "data/4dn/4DNFIIOVHG1I.csv": {
+  "sha256": "c91e008ddd256ff11de51400f4d06064a26a11b64cc0f7fd6e1d0fd096c887af",
+  "bytes": 13352611,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/469582c7-8d3d-4a42-a179-10f4a7803b6d/4DNFIIOVHG1I.csv"
+ },
+ "data/4dn/4DNFIIQ8YIG4.csv": {
+  "sha256": "5a194c81fae8dbdf3089ed1a6aa8321e406a938d8266985a46d3d88cf8cdc8b3",
+  "bytes": 16956800,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/87667821-d014-46c9-9f6e-be12e64fe0c7/4DNFIIQ8YIG4.csv"
+ },
+ "data/4dn/4DNFIJIZ3RQH.csv": {
+  "sha256": "f2838ff6340c1e7b4dccfe277d845615b2151992b0c2137109c56c83c7408df5",
+  "bytes": 9821116,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/cbc1a19c-576f-48ae-aff1-7e0f31dab043/4DNFIJIZ3RQH.csv"
+ },
+ "data/4dn/4DNFIJYFR8FT.csv": {
+  "sha256": "66017e8f091d1f3842a8213bb487bbf02c883076a7018d58f27a43774792eb25",
+  "bytes": 10355779,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/fe3c5350-6d7a-4566-914c-e7b9bb9c305b/4DNFIJYFR8FT.csv"
+ },
+ "data/4dn/4DNFIKVZTN9K.csv": {
+  "sha256": "7db083035850a1400e48f41a5f67d5bc1aa62cb0bf1d61a2e2b8e7d13225eb0f",
+  "bytes": 16449983,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/d6372243-7901-4bc5-88e8-d250a1b202e9/4DNFIKVZTN9K.csv"
+ },
+ "data/4dn/4DNFIKXR227H.csv": {
+  "sha256": "dc7d1f30839a7615ff30ba4319fbf87badada66047ab00dd93d6effae622cff4",
+  "bytes": 15115819,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/15d17583-a7ca-41ab-a6e8-f22e857c0c8e/4DNFIKXR227H.csv"
+ },
+ "data/4dn/4DNFILD6TDR6.csv": {
+  "sha256": "d126377901a1015f3839ff22edf78cb99133ac76c35e67a2995528459b151171",
+  "bytes": 11384982,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/fdaaf048-629f-4f3f-97af-16a47a9deb03/4DNFILD6TDR6.csv"
+ },
+ "data/4dn/4DNFILHN6ZHZ.csv": {
+  "sha256": "09de76e5b843fb1627367ac55af2ec8b5795199f385d3794e307741fb2b8bdf6",
+  "bytes": 10561069,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/15df1440-77c4-4964-a011-82dc296d1f89/4DNFILHN6ZHZ.csv"
+ },
+ "data/4dn/4DNFILYJ6RJ7.csv": {
+  "sha256": "e78db9dfca88bf1b27b4e70b9b3fd0f601e7eb7a88e526082677635764fc61dc",
+  "bytes": 6268958,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/64be8671-c1b1-430d-8675-d78ab53c02a8/4DNFILYJ6RJ7.csv"
+ },
+ "data/4dn/4DNFIPUTK6GO.csv": {
+  "sha256": "05042b4e8a43a833dd023ef936b66dc012077058066de15f9a5896daae1bcd5d",
+  "bytes": 10415340,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/27bcd217-ed49-441d-9364-dd85616512b6/4DNFIPUTK6GO.csv"
+ },
+ "data/4dn/4DNFIRKSEW93.csv": {
+  "sha256": "d20bad90a9024358ee6f571c7abe3823c5b08710e64700f9ab8b6436a93fb105",
+  "bytes": 8769761,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/ccb0c740-d19f-4bf3-b73b-1bca319ca598/4DNFIRKSEW93.csv"
+ },
+ "data/4dn/4DNFIU5X9MXT.csv": {
+  "sha256": "b959c26caf81880e786c84d13bd1cf85a1075be0c769b09bf9e8d982354b639f",
+  "bytes": 8901577,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/3db16c1a-91c8-40ca-80b2-556a065ed01f/4DNFIU5X9MXT.csv"
+ },
+ "data/4dn/4DNFIW3V9CRO.csv": {
+  "sha256": "141730c3e547137f89624e37f614873a8e9ac633919324055bd03628fdabdfc9",
+  "bytes": 24281043,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/0f9367da-7264-424e-9864-6688d68dede4/4DNFIW3V9CRO.csv"
+ },
+ "data/4dn/4DNFIZWUQTXF.csv": {
+  "sha256": "5456d091088b2779c40cf04f46e4fb27e3b0d6ae99f87762894edfe4c9255d35",
+  "bytes": 6125503,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/644f7b9a-f4e0-4bbe-b8c3-bff0c819ad9d/4DNFIZWUQTXF.csv"
+ },
  "data/A549_chr21-28-30Mb.csv": {
   "sha256": "2880c861c0b2655f4cf45886995c606f6b9b3ee5c4721f6bc0d933356d94729a",
   "bytes": 6278287,
@@ -49,6 +179,11 @@
   "bytes": 1298162,
   "url": "https://www.encodeproject.org/files/ENCFF038DDS/@@download/ENCFF038DDS.bed.gz"
  },
+ "data/encode/ENCFF041XLP.bedpe.gz": {
+  "sha256": "e730c81170fc244ed2e2392d737f0465095ced4f26b9b7787c577d8d0cffe2ee",
+  "bytes": 476667,
+  "url": "https://www.encodeproject.org/files/ENCFF041XLP/@@download/ENCFF041XLP.bedpe.gz"
+ },
  "data/encode/ENCFF178CSM.bed.gz": {
   "sha256": "624b91bf4a2ce10fcd7adf14733b6a2e826655bd3ec43f8f61730cf3e6ff96b6",
   "bytes": 1177743,
@@ -68,6 +203,11 @@
   "sha256": "75565fdab146677b46972327309d2e4df8cd60c83acba1e986ec11c0a0df9700",
   "bytes": 1443448,
   "url": "https://www.encodeproject.org/files/ENCFF470EAN/@@download/ENCFF470EAN.bed.gz"
+ },
+ "data/encode/ENCFF533APC.bed.gz": {
+  "sha256": "ff9866e7a78981eb1290a6481657421e97a0d63b7407ceb813d153ef22f84e96",
+  "bytes": 553128,
+  "url": "https://www.encodeproject.org/files/ENCFF533APC/@@download/ENCFF533APC.bed.gz"
  },
  "data/encode/ENCFF558BLC.bed.gz": {
   "sha256": "f71c04db3c5c55a7760a79016e2642979ce078b1b5ee88227898ed78c7bf7fd4",
@@ -119,6 +259,21 @@
   "bytes": 30507,
   "url": "https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic"
  },
+ "data/hic_cache/encode_hct116_insitu_chr10_100000000_102000000_10000.npz": {
+  "sha256": "2002386a8ec564a07e303c8f13abeb6036a52848e04c1229b51715e507483189",
+  "bytes": 53372,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr12_52000000_54000000_10000.npz": {
+  "sha256": "5e0e31afea6d5cede737b400e1b9caca95ef8d5dc0b73d27419f389d6c3c02b2",
+  "bytes": 49787,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr17_48000000_50000000_10000.npz": {
+  "sha256": "f487669671fe5717e534c518a4efd6254773028ab2d34bb7905d4ee8da210b4b",
+  "bytes": 53704,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
  "data/hic_cache/encode_hct116_insitu_chr21_28000000_29950071_5000.npz": {
   "sha256": "fc79235bbafb10e0c7eb9df15792634e166ef32d7804489af07f2e75214d7f72",
   "bytes": 125297,
@@ -134,6 +289,21 @@
   "bytes": 213980,
   "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
  },
+ "data/hic_cache/encode_hct116_insitu_chr2_216000000_218000000_10000.npz": {
+  "sha256": "c66c01a1594aeb9eeeff32b79a7541ea8e82075ec82019f1c9b35d04c128075d",
+  "bytes": 50338,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr5_140000000_142000000_10000.npz": {
+  "sha256": "995203433d3716239cdc1d8aa865aa61d2f6bed17a9195f9d8b0e9585abd2528",
+  "bytes": 48534,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr7_130000000_132000000_10000.npz": {
+  "sha256": "a74e1e0bfc2a4785c42efa43b914202161bc13b4770b29ec440e49c718c1d9a1",
+  "bytes": 47956,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
  "data/hic_cache/encode_hct116_intact_chr21_28000000_29950071_5000.npz": {
   "sha256": "3055a3357f5aeec918ed9808971d3f371990b22c175eb063149f53c2a9462312",
   "bytes": 93764,
@@ -144,20 +314,130 @@
   "bytes": 156842,
   "url": "https://www.encodeproject.org/files/ENCFF573OPJ/@@download/ENCFF573OPJ.hic"
  },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr10_100000000_102000000_10000.npz": {
+  "sha256": "44a4c016dc5c6887750782e85fc6d26622a4df930410e250174e02379d65427c",
+  "bytes": 47668,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr12_52000000_54000000_10000.npz": {
+  "sha256": "c567bc69055b31b4ea37a3fbdd4545a16aa6636cb606208a3b5132c201f1d54a",
+  "bytes": 44550,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr17_48000000_50000000_10000.npz": {
+  "sha256": "d5083380f85c91db90b7087977a6b4a2ced5e0a3187973ae14ddaa41b957e82e",
+  "bytes": 47379,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
  "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr21_28000000_30000000_10000.npz": {
   "sha256": "9c395dfa0a60f89f9107d634b18fcda0165c39e7d2557824fc45a29e873ed3ee",
   "bytes": 42856,
   "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr2_216000000_218000000_10000.npz": {
+  "sha256": "d1b3def2bcbb9d33fc495854ca822068bc586e77ac5a0fc7dbd7f9cd619d555d",
+  "bytes": 45033,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr5_140000000_142000000_10000.npz": {
+  "sha256": "cbbd55c3bee0c72a1e51e733ca0541a9280d5a4144294d12f59dec1fbd4fd68c",
+  "bytes": 43647,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_insitu_chr7_130000000_132000000_10000.npz": {
+  "sha256": "1ed16f1fcb9adf83f0d5db5872ef31010f5f7f7b610209c695387654e6c2c92f",
+  "bytes": 42815,
+  "url": "https://www.encodeproject.org/files/ENCFF301BWY/@@download/ENCFF301BWY.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr10_100000000_102000000_10000.npz": {
+  "sha256": "9db0cc317fbc4df56dc5f39c26673042e78601b1ffcc5307114c17a3e1866664",
+  "bytes": 42100,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr12_52000000_54000000_10000.npz": {
+  "sha256": "45bc1193293243c5a25c97786288bd8cb1b0aa8ae14c1c2d770338910725d4a7",
+  "bytes": 38502,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr17_48000000_50000000_10000.npz": {
+  "sha256": "1eaff3cfe1f3ff17416dadf71360e56cf334f479c57395156524ad198253f71b",
+  "bytes": 41329,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
  },
  "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr21_28000000_30000000_10000.npz": {
   "sha256": "ee718f2e912ae7f76e40640fefb8d821afabc0429ec2c1c43472110205b0b596",
   "bytes": 39101,
   "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
  },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr2_216000000_218000000_10000.npz": {
+  "sha256": "4d74d90b639a4c2479c06e5c3516cebc15f841a556e54b69c35d17c91f8078af",
+  "bytes": 40602,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr5_140000000_142000000_10000.npz": {
+  "sha256": "b2ab9687e74544e99b9bff12770d84135ba26c9ee081b6271f327f85743e00e1",
+  "bytes": 39124,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_auxin6h_intact_chr7_130000000_132000000_10000.npz": {
+  "sha256": "2fe802547539b69e6d02bc08b3d3a9a9dadc7c97e6189945b049e3051d8063a1",
+  "bytes": 38859,
+  "url": "https://www.encodeproject.org/files/ENCFF317OIA/@@download/ENCFF317OIA.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr10_100000000_102000000_10000.npz": {
+  "sha256": "b29d6496795ad9a5a3b21f5e4a6e75506373a65472261917ae88797462a78644",
+  "bytes": 40627,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr12_52000000_54000000_10000.npz": {
+  "sha256": "4978834687a23d18f5c5a80e668bec5ca1137f145ef38a33591f32eac5f1cbb7",
+  "bytes": 36154,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr17_48000000_50000000_10000.npz": {
+  "sha256": "b9d78477113edd498098d062db058d0ef30adc075a1f5f7a1d83291de88fed18",
+  "bytes": 40386,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
  "data/hic_cache/encode_hct116_rad21_untreated_intact_chr21_28000000_30000000_10000.npz": {
   "sha256": "2b4fd52212eecc9f3f40b8c00697a99256d43e8ea10c924306587dd95d862160",
   "bytes": 36909,
   "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr2_216000000_218000000_10000.npz": {
+  "sha256": "e5cfc0a53ef7301802d1830be5149976f7b5c6cba8b69259e8c379ffa4345cd1",
+  "bytes": 40801,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr5_140000000_142000000_10000.npz": {
+  "sha256": "c88d4a2102dc453bde9ed14924024ef20fb33c71a769ab5634d6fcd904e718bf",
+  "bytes": 37929,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21_untreated_intact_chr7_130000000_132000000_10000.npz": {
+  "sha256": "0947fe5442dab6dccd159cae3df0347bbe6c588ff9b720f39161406153c050d6",
+  "bytes": 38094,
+  "url": "https://www.encodeproject.org/files/ENCFF528XGK/@@download/ENCFF528XGK.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21aid_ctrl_002OIN_chr21_28000000_30000000_10000.npz": {
+  "sha256": "8345f166e450a9ee50a2ffdd167ed7547ac05a695d2fb41b57ab66e90796f7fc",
+  "bytes": 21122,
+  "url": "https://www.encodeproject.org/files/ENCFF058WJC/@@download/ENCFF058WJC.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21aid_ctrl_401WPL_chr21_28000000_30000000_10000.npz": {
+  "sha256": "1bb0a48ee47edbfd41fb90003562507cb373b8fb431111ceb479ffbcf96798d9",
+  "bytes": 23891,
+  "url": "https://www.encodeproject.org/files/ENCFF011IRM/@@download/ENCFF011IRM.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21aid_ctrl_579TBL_chr21_28000000_30000000_10000.npz": {
+  "sha256": "68efa4a57a5e29032c3da7afe8b7367230cdcef7036a3ffe6f3335efb98c6bf2",
+  "bytes": 35517,
+  "url": "https://www.encodeproject.org/files/ENCFF556CFS/@@download/ENCFF556CFS.hic"
+ },
+ "data/hic_cache/encode_hct116_rad21aid_ctrl_697MNL_chr21_28000000_30000000_10000.npz": {
+  "sha256": "986c3e8ec503218c9d4f2949008d9e1a3a35d73c0bbc43ee6531a65638495e42",
+  "bytes": 41843,
+  "url": "https://www.encodeproject.org/files/ENCFF720FKA/@@download/ENCFF720FKA.hic"
  },
  "data/hic_cache/encode_imr90_dilution_chr21_18625000_20577714_5000.npz": {
   "sha256": "9e71aae0ed696589e14405bd9b038536f7a2dba19cfd041b8b9db6945de21fc4",
@@ -183,6 +463,21 @@
   "sha256": "f683e11ae3ea5e06a1ad65da920330a69ed265dfa07c021129f29f1c9c100e4f",
   "bytes": 98303,
   "url": "https://www.encodeproject.org/files/ENCFF621AIY/@@download/ENCFF621AIY.hic"
+ },
+ "data/hic_cache/encode_loops_gm12878_chr1_100000000_110000000_10000.npz": {
+  "sha256": "e5c3f8f626d360b95f602b2e5c890c499004c3b2201af460d5e7b78d628ca0aa",
+  "bytes": 304835,
+  "url": "https://www.encodeproject.org/files/ENCFF256UOW/@@download/ENCFF256UOW.hic"
+ },
+ "data/hic_cache/encode_loops_gm12878_chr2_100000000_110000000_10000.npz": {
+  "sha256": "e10622235624b8bc502555c56e84658e2f88f30628d84ad560ff7b6844e58353",
+  "bytes": 357187,
+  "url": "https://www.encodeproject.org/files/ENCFF256UOW/@@download/ENCFF256UOW.hic"
+ },
+ "data/hic_cache/encode_loops_gm12878_chr3_100000000_110000000_10000.npz": {
+  "sha256": "e29ca953864a2e0c4f0b5cdc484aefbf0ca9736fa11a3bc5d185ac76ac479fe0",
+  "bytes": 352072,
+  "url": "https://www.encodeproject.org/files/ENCFF256UOW/@@download/ENCFF256UOW.hic"
  },
  "data/hic_cache/rao2014_gm12878_chr9_16000000_36000000_25000.npz": {
   "sha256": "1273e7e8caa560b407f82161600390d05dd97f254ceb4bfdfc6aec74599913ab",
@@ -213,6 +508,16 @@
   "sha256": "620a615d5b2c106e80c2e2cb41fac72c0d516e1c186c54e61295e5752dcebd83",
   "bytes": 571,
   "url": "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar"
+ },
+ "data/mm10/chr3.fa.gz": {
+  "sha256": "e87a9d780208dda301621721e2c3b059d0c44c5f70090a25128e07ac0cab037b",
+  "bytes": 51333383,
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/chr3.fa.gz"
+ },
+ "data/mm10/chr6.fa.gz": {
+  "sha256": "cba89cb6b827f448e09ab0035a0ef0d35f65fe89d7361790047f6aaefda13d72",
+  "bytes": 47988543,
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/chr6.fa.gz"
  },
  "data/su2020/Hi-C_contacts_chromosome2.tsv": {
   "sha256": "bc8aa014200d2615ec00af48d181498f0b0b53dffcc8e4c9b84d2b0c4d34f611",
