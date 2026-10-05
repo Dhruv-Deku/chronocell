@@ -860,3 +860,66 @@ This writes `map.npy` (median distance, nm) and `map.json`. The JSON holds the i
 the model, the validation reference and "predicted, not measured". `--fasta` uses a local sequence;
 `--bin` sets the locus size (30 and 50 kb were tested; other sizes add a warning). Assemblies other
 than hg38 are refused.
+
+## 22. Phase B: analyses for your own maps, variant engine v2, platform
+
+Every measured standing quoted by the app on these panels is read from `validation/RESULTS.md`'s result files
+(Gates 4c, 4d, 6, 7 and 5m); none is repeated here. All of it runs on this computer; nothing is uploaded.
+
+**Research mode** (sidebar, on by default). Off: the Drug lab workspace and the PDB State Evaluator's
+Normal / Diseased / Senescent label, its criteria table and the per-member state counts are hidden; the measured
+geometry stays. *Open the app this way next time* saves the choice in `.chronocell_cache/settings.json`.
+Synthetic inputs are named "SYNTHETIC · …" in every dropdown, and results computed on them carry a banner.
+
+**01 · 3D structure → 06 Analysis suite.** Runs on the measured contacts of the current window:
+loops (HiCCUPS-like: local expected counts from four neighbourhoods, Poisson test, false-discovery rate),
+boundaries (insulation and a TopDom-like caller), domains (an Arrowhead-like corner score), compartments
+(eigenvector, signed by GC) and P(s). Balancing: none (raw), KR or ICE. Downloads: loops as BEDPE and as Juicebox 2D
+annotations, boundaries (BED), insulation (bedGraph) and an HTML report with the run record. Standing: Gate 6.
+
+**03 · Compare → Differential analysis.** Give each condition its replicate maps (.hic, .mcool, .cool, .pairs),
+uploaded, or as local paths / URLs for large files (read region by region). Choose the region, resolution and FDR,
+and press *Run*. With two or more replicates per condition, each pixel gets a moderated t-test (empirical Bayes
+variance, distance-normalised) and a Benjamini–Hochberg q-value; loops gained / lost, boundaries changed and
+compartment switches are listed beside it. With one replicate per condition the panel says no statistics are
+possible and shows fold changes only. Downloads: significant pixels (BEDPE), all pixels (TSV), loops (CSV), report.
+Standing: Gate 7.
+
+**02 · 4D dynamics → 05 Variant impact engine v2.** Needs a population model of the window (built in 01, or in the
+04 panel above it). Describe the variant by:
+- **Joins**: `A:40:L-A:60:R` (a deletion of beads 40–59), `A:40:L-A:60:L, A:40:R-A:60:R` (an inversion),
+  `chr9:130700000:L-chr22:23290000:R` (genomic positions). Side L is the piece that ends at the cut, R the piece that
+  starts there; the derivative chromosomes are found by walking the joins.
+- **Segments**: a derivative typed piece by piece, `A:0-40 + A:60-120(-) + A:40-60`, one per line (complex events).
+- **Copy number**: a CNV BED file, or an estimate from Hi-C coverage (labelled not validated).
+- **Variant file**: VCF (genotype and CN used when present) or BEDPE with strands; every variant is applied on its
+  own and the variants are ranked.
+A second chromosome (for translocations) comes from a contact file region fitted on the spot, or, with no data, a
+homogeneous chain. Outputs: derivative chromosomes and lost pieces, genes affected (copy number, broken, inverted,
+next to a new junction, contacts changed; ClinVar counts after a one-click download), domain boundaries lost /
+gained and domains that span a junction, enhancer–promoter pairs (needs a measured activity track), a contact-change
+map, optional 90 % intervals from 8 refits, and a ranking score (a transparent heuristic). Standing: mechanism
+simulator, not validated (Gate 4d is blocked for lack of events); the cohesin-loss model it shares the ensemble with
+passed Gate 4c.
+
+**05 · Genes → Reference annotations.** GTEx median expression per tissue and ClinVar pathogenic-allele counts
+(both downloaded on demand and checked against the checksum their sources publish), and your own COSMIC Cancer Gene
+Census export. Information only.
+
+**Mouse prediction without contacts.** 01 → 03 Model & convergence → Input *Sequence + CTCF (predicted)* now also
+works on mouse assemblies, because the pre-registered mouse test (Gate 5m) passed; the banner shows its numbers.
+Upload the CTCF peaks of your mouse cells (the ENCODE list is human only).
+
+**Sidebar → Projects.** *Save this session* stores the settings, the population models and telemetry built in the
+session, and the last analysis / differential / variant reports under `.chronocell_cache/projects/<name>/`; *Open*
+restores them after a restart.
+
+**Sidebar → Jobs.** Type a `chronocell` command (for example `impact data.mcool --region chr9:130000000-131000000
+--res 10000 --variants sv.vcf --out results/sv`), pick GPU or CPU, *Submit*. The worker runs one GPU job at a time and
+CPU jobs in parallel up to a limit; *Stop* ends a job; jobs left running when the app stopped are resumed when the
+worker starts again. The panel shows the last lines of the newest job's log.
+
+**Command line** (after `pip install -e .`): `chronocell analyze`, `chronocell diff`, `chronocell impact`,
+`chronocell batch SHEET.csv` (resumable), `chronocell report FOLDER [--pdf]`, `chronocell predict` (the existing
+`python -m chronocell.predict`). REST: `POST /api/v1/analyze`, `/diff`, `/impact`, with the same run log as the
+existing endpoints.

@@ -264,3 +264,71 @@ scale-free error within 10 separation strata, averaged; bead level: median pair 
 **Frozen** (`frozen.RELIABILITY`): the misfit score, which has the best worst case: on imaging input its pair-level minimum is +0.057 (combined +0.049, input_se −0.031) and its bead-level minimum −0.147 (combined −0.208, input_se −0.281), and on Hi-C practice it is the least negative on Su chr2 and its replicate (on K562, −0.080 against −0.079 for input_se). No candidate is positive on practice Hi-C input; the misfit score is tested there unchanged. Pass bar: ρ ≥ 0.20 on every test set with its 95 % interval above 0 (the usability bar report.py already applied to Gate 2's per-bead score), per input type and level.
 
 **Reading.** Even the chosen score reaches the bar on none of the practice sets at pair level. A weak positive ranking on imaging-derived input is the best case the test can confirm.
+
+## 13. Hi-C size calibration (Gate 1c, Phase A1), practice
+
+`validation/hic_size_calibration.py --practice` → `results_hic_size_practice.json`. Model distances are multiplied
+by exp(h), h from a least-squares fit of log(measured / model median) with equal weight per practice unit; six
+forms of increasing complexity (one global factor; + separation; + separation²; + locus spacing; + depth (from
+1/4 and 1/16 binomial thinning of the same maps); + protocol (in situ / intact)) were compared by
+leave-one-dataset-out over five practice groups (Bintu K562, HCT116 28–30 and 34–37, Su chr2 with its
+replicate, the genome-scale practice set). The practice table is in `RESULTS.md` (Gate 1c, generated).
+
+**Frozen** (`chronocell/data/hic_size_calibration.json`): the single global factor (h = 0.895, ×2.45), the best
+mean held-out CCC (0.688); every richer form extrapolated worse to the held-out group, most on Su chr2.
+
+## 14. Distance ranges (Gate 2d, Phase A2), practice
+
+`validation/intervals_v2.py --practice` → `results_intervals_v2_practice.json`. Split-conformal quantiles of
+log(single-copy distance / model median) from half B's copies, compared four ways (per separation band or
+pooled; with or without the Gate 1c size calibration) by leave-one-dataset-out; criterion: the smallest
+worst-case |coverage at 90 % − 0.90| over held-out groups and bands, and within 0.005 of it the simpler variant.
+
+| Variant | Imaging input: worst |cov90 − 0.90| | Hi-C input |
+|---|---|---|
+| per band | **0.066** (chosen) | 0.282 |
+| pooled | 0.074 | **0.175** (chosen) |
+| per band + size calibration | — | 0.281 |
+| pooled + size calibration | — | 0.175 |
+
+The size calibration is a global factor, so it cancels in the ratio (identical to the pooled variant within
+binning); the tie rule keeps it out. Zero distances (identical rounded coordinates) count as below every range.
+
+## 15. Per-pair reliability (Gate 2e, Phase A3), practice
+
+`validation/reliability_v2.py --practice` (two chunks: imaging, then Hi-C; refits cached per unit) →
+`results_reliability_v2_practice.json`; the table is generated in `RESULTS.md` (Gate 2e). Candidates: refit
+spread (8 refits on resampled input), local evidence, their rank average, and Gate 2c's misfit.
+
+**Frozen** (`frozen.RELIABILITY_V2`), by the best worst case per input: imaging input, misfit (the only candidate
+positive on every practice group, +0.063 to +0.175); Hi-C input, the refit spread (worst −0.031; every
+candidate is near zero on Hi-C input). No candidate reached the 0.30 bar on any practice group.
+
+## 16. Learned correction (Gate 3b, Phase A4), practice
+
+`validation/learned_correction.py --practice` → `results_learned_correction_practice.json` (generated in
+`RESULTS.md`, Gate 3b). Ridge and a two-layer network (trained on the GPU) on pair features, leave-one-dataset-out.
+Both raise Lin's CCC (0.42 → 0.68 / 0.69) and lower the held-out trend-removed ρ (0.709 → 0.654 / 0.682).
+
+**Frozen**: no correction (the selection rule needs a better held-out pattern on every group). Gate 3b not run.
+
+## 17. Prediction from more inputs (Gate 5b, Phase A5), practice
+
+`validation/predictor_v2.py --practice` → `results_predictor_v2_practice.json` (generated in `RESULTS.md`, Gate
+5b). Feature sets CTCF + GC, plus ATAC, H3K27ac, RAD21 or all three; ridge λ by leave-one-dataset-out over the
+three non-IMR-90 untreated practice regions.
+
+**Frozen** (`validation/predictor_v2_model.json`): CTCF + GC + RAD21 peaks, λ = 0.01 (held-out ρ +0.432 against
++0.294 for CTCF + GC). ATAC and H3K27ac did not help.
+
+## 18. Phase B: settings chosen on practice data
+
+- **Gate 4c (cohesin loss against Hi-C).** Nothing fitted: the Gate 4 parameters are used unchanged. The practice
+  run (chr21:28–30 Mb, `results_cohesin_hic_practice.json`) only checked the pipeline; resolution (10 kb),
+  window (2 Mb), read threshold (10) and the main pair (in situ) were fixed in the code before it ran.
+- **Gate 6 (loops).** On three GM12878 windows (`results_gate6_practice.json`, generated in `RESULTS.md`): FDR 0.05 /
+  0.1 / 0.2 per neighbourhood, raw or KR-balanced counts. **Frozen**: FDR 0.2 with KR balancing (precision 0.889,
+  recall 0.533, F1 0.667); raw counts give more recall and much lower precision.
+- **Gate 7 (differential).** On chr21:28–30 Mb (`results_gate7_practice.json`, generated in `RESULTS.md`): minimum
+  mean count 5 or 10, distance normalisation on or off. **Frozen**: 5 reads with distance normalisation (mean FDP
+  0.036 at nominal 0.05, recall 0.16 at ×2 and 0.94 at ×4; no discovery without a planted change).

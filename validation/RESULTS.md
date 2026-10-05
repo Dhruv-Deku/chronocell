@@ -54,6 +54,23 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | 4b | Does the SV simulator predict a real rearranged genome? | K562 chr9 deletions: 0.083 vs 0.149 (distance shift) vs 0.424 (no change) | **Not validated: mechanism simulator** |
 | 5 | Can sequence + CTCF predict distances with no contact data? | 12–27 % of the ceiling on 4 of 5 test sets (0.5 % on the weak-structure set). Raw ρ gains over the separation baseline are ≤ 0.005. | **Pass (pre-registered rule), modest: a prior, not a substitute for contacts** |
 
+**Phase A and B gates** (October 2026; generated from the result files):
+
+<!-- BEGIN generated:summary_ab -->
+| Test (held-out, real data) | Measured | Verdict |
+|---|---|---|
+| Gate 1c: calibrated sizes from Hi-C (5 main sets) | CCC 0.43–0.72 after calibration (needed ≥ 0.8) | fail |
+| Gate 2d: conformal distance ranges hold 85–95 % / 40–60 % in every band | imaging input 4 of 7 sets, Hi-C input 1 of 5 | imaging fail, hic fail |
+| Gate 2e: per-pair reliability on untouched genome-scale sets (ρ ≥ 0.30) | su_genome · imaging +0.08; su_genome · hic +0.01; su_genome_amanitin · imaging +0.12; su_genome_amanitin · hic +0.01 | imaging fail, hic fail |
+| Gate 3b: a learned correction on the population model | practice chose no correction | not run |
+| Gate 4c: cohesin loss vs RAD21-degron Hi-C on 6 held-out regions | 5 of 6 regions beat trend only | pass |
+| Gate 4d: SV effects on new events with Hi-C before and after | two usable events found, three needed | blocked; variant engine stays a mechanism simulator |
+| Gate 5b: prediction with cohesin peaks | 0 of 5 test sets | fail |
+| Gate 5m: the human predictor on mouse ES-cell tracing (4DN) | 17.0 % of the ceiling; 7.2 % of the ceiling | pass (modest) |
+| Gate 6: loop calls vs ENCODE HiCCUPS calls, held-out cell lines | k562: F1 0.40 (chromosight 0.39, Mustache 0.49); imr90: F1 0.74 (chromosight 0.42, Mustache 0.47) | fail |
+| Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | mean FDP 0.002 at nominal 0.05; recall ×2 0.01, ×4 0.63 | pass |
+<!-- END generated:summary_ab -->
+
 ## Gate 1 — whole chromosome at once (Pillar 1)
 
 **Question.** v3.3 fits a population model to windows of at most 400 beads. Does the v4 model,
@@ -349,6 +366,102 @@ Verdicts: imaging pair **fail** (0 of 6); imaging bead **fail** (5 of 6); hic pa
   longer untouched for this question. A pass would have needed confirming on new data; a fail does
   not.
 
+## Gate 2d — conformal distance ranges (Phase A2)
+
+**Question.** Gates 2 and 2b showed the stated ranges are too narrow (Hi-C input) or uneven across separations
+(imaging input). Do ranges learned on practice data from the observed spread of single-copy distances
+around the model (split-conformal, in log-distance space) hold their stated coverage on held-out data?
+
+**Test** (`python validation/intervals_v2.py --test`; rule in `frozen.INTERVALS_V2`, committed with the frozen
+quantiles before the run). Practice chose, by leave-one-dataset-out, one set of quantiles per separation band
+for imaging input and one pooled set for Hi-C input. Test sets: Gate 2's six (imaging input), Gate 2b's four
+(Hi-C input) and the genome-scale set (both). Pass, per input type: in every set and every band with at least
+200 pair-copies, the 90 % range holds 85–95 % and the 50 % range 40–60 %.
+
+<!-- BEGIN generated:gate2d -->
+Test (run once): variants imaging: bands, hic: pooled; pass on every set and band: 90 % ranges hold 85–95 %, 50 % ranges 40–60 %.
+
+| Set · input | Coverage at 90 % / 50 % by separation band (width of the 90 % range, upper / lower) | Within the rule |
+|---|---|---|
+| bintu_imr90_28_30 · imaging | 0–0.1 Mb: 92 / 51 % (×9.5); 0.1–0.3 Mb: 92 / 53 % (×7.6); 0.3–1 Mb: 93 / 55 % (×6.5); 1–3 Mb: 96 / 63 % (×7.5) | no |
+| bintu_imr90_18_20 · imaging | 0–0.1 Mb: 91 / 44 % (×9.5); 0.1–0.3 Mb: 90 / 45 % (×7.6); 0.3–1 Mb: 87 / 43 % (×6.5); 1–3 Mb: 89 / 46 % (×7.5) | yes |
+| bintu_a549_28_30 · imaging | 0–0.1 Mb: 90 / 50 % (×9.5); 0.1–0.3 Mb: 91 / 50 % (×7.6); 0.3–1 Mb: 91 / 51 % (×6.5); 1–3 Mb: 93 / 54 % (×7.5) | yes |
+| bintu_hct116_34_37_auxin · imaging | 0–0.1 Mb: 93 / 53 % (×9.5); 0.1–0.3 Mb: 95 / 56 % (×7.6); 0.3–1 Mb: 93 / 52 % (×6.5); 1–3 Mb: 93 / 52 % (×7.5) | yes |
+| su_chr21 · imaging | 0–0.1 Mb: 84 / 42 % (×9.5); 0.1–0.3 Mb: 84 / 45 % (×7.6); 0.3–1 Mb: 86 / 47 % (×6.5); 1–3 Mb: 92 / 55 % (×7.5); 3–10 Mb: 94 / 55 % (×7.5); 10–300 Mb: 91 / 51 % (×6.2) | no |
+| su_chr21_rep · imaging | 0–0.1 Mb: 85 / 40 % (×9.5); 0.1–0.3 Mb: 85 / 43 % (×7.6); 0.3–1 Mb: 86 / 45 % (×6.5); 1–3 Mb: 93 / 55 % (×7.5); 3–10 Mb: 93 / 54 % (×7.5); 10–300 Mb: 90 / 49 % (×6.2) | yes |
+| bintu_imr90_28_30 · hic | 0–0.1 Mb: 89 / 49 % (×9.3); 0.1–0.3 Mb: 94 / 56 % (×9.3); 0.3–1 Mb: 94 / 58 % (×9.3); 1–3 Mb: 92 / 52 % (×9.3) | yes |
+| bintu_imr90_18_20 · hic | 0–0.1 Mb: 84 / 38 % (×9.3); 0.1–0.3 Mb: 93 / 47 % (×9.3); 0.3–1 Mb: 94 / 50 % (×9.3); 1–3 Mb: 93 / 51 % (×9.3) | no |
+| su_chr21 · hic | 0–0.1 Mb: 75 / 37 % (×9.3); 0.1–0.3 Mb: 85 / 46 % (×9.3); 0.3–1 Mb: 91 / 51 % (×9.3); 1–3 Mb: 92 / 52 % (×9.3); 3–10 Mb: 90 / 51 % (×9.3); 10–300 Mb: 89 / 47 % (×9.3) | no |
+| su_chr21_rep · hic | 0–0.1 Mb: 68 / 29 % (×9.3); 0.1–0.3 Mb: 83 / 42 % (×9.3); 0.3–1 Mb: 91 / 50 % (×9.3); 1–3 Mb: 92 / 54 % (×9.3); 3–10 Mb: 90 / 51 % (×9.3); 10–300 Mb: 87 / 47 % (×9.3) | no |
+| su_genome · imaging | 1–3 Mb: 83 / 44 % (×7.5); 3–10 Mb: 86 / 47 % (×7.5); 10–300 Mb: 90 / 51 % (×6.2) | no |
+| su_genome · hic | 1–3 Mb: 83 / 43 % (×9.3); 3–10 Mb: 87 / 47 % (×9.3); 10–300 Mb: 93 / 54 % (×9.3) | no |
+
+Verdicts: imaging input **fail**; hic input **fail**.
+<!-- END generated:gate2d -->
+
+**Reading.**
+- **Fail for both input types.** With imaging-derived input 4 of 7 sets are inside the rule in every band; the
+  misses are the IMR-90 28–30 Mb region (its widest band over-covers: 96 % / 63 %) and Su chr21 and the
+  genome-scale set (short separations under-cover: 83–86 % at 90 %). With Hi-C input only 1 of 5 sets is
+  inside: Su chr21 and its replicate hold 68–75 % of their 90 % ranges below 100 kb.
+- **Much closer than before.** The same Hi-C sets held 23–51 % (raw) and 43–73 % (recalibrated) in Gate 2b;
+  most bands now sit at 85–94 %. The remaining errors are at the shortest separations, where the model's
+  spread and the cells' spread differ most.
+- **Not trivially wide.** A 90 % range spans ×6–9.5 between its ends (reported per band), the real cell-to-cell
+  spread of single-copy distances.
+- The first run stalled when this computer was suspended and was killed before writing a result; the same
+  frozen test was completed in a second, resumable run, which reproduced the stalled run's coverages exactly.
+- **In the app** the probe is unchanged.
+
+## Gate 2e — a per-pair reliability score on untouched data (Phase A3)
+
+**Question.** Gate 2c's per-pair score ranked held-out errors weakly (imaging input) or not at all (Hi-C
+input). Do the Phase A3 candidates do better on data no reliability test has touched?
+
+**Test** (`python validation/reliability_v2.py --test`, run in chunks; rule in `frozen.RELIABILITY_V2`,
+committed before the test). Scores chosen on practice per input (best worst case): imaging input, Gate 2c's
+misfit; Hi-C input, the spread over 8 refits on resampled counts. Test sets: the genome-scale sets su_genome
+and su_genome_amanitin. Pass, per input: ρ ≥ 0.30 with its 95 % interval above 0 on both.
+
+<!-- BEGIN generated:gate2e -->
+Practice (pair-weighted stratified ρ per group):
+
+| Practice group · input | boot_sd | evidence | combined | misfit |
+|---|---|---|---|---|
+| bintu_hct116_28_30 · imaging | +0.138 | +0.092 | +0.129 | +0.063 |
+| bintu_hct116_28_30_auxin · imaging | +0.232 | +0.213 | +0.241 | +0.175 |
+| bintu_hct116_34_37 · imaging | -0.083 | +0.039 | -0.031 | +0.067 |
+| bintu_k562_28_30 · imaging | +0.105 | +0.203 | +0.191 | +0.124 |
+| su_chr2 · imaging | -0.029 | -0.019 | -0.037 | +0.063 |
+| su_genome_tx · imaging | +0.124 | +0.097 | +0.126 | +0.081 |
+| bintu_hct116_28_30 · hic | +0.003 | -0.044 | -0.032 | -0.027 |
+| bintu_hct116_34_37 · hic | -0.017 | -0.065 | -0.062 | -0.042 |
+| bintu_k562_28_30 · hic | +0.026 | -0.125 | -0.075 | -0.064 |
+| su_chr2 · hic | +0.045 | -0.055 | -0.008 | -0.019 |
+| su_genome_tx · hic | -0.031 | +0.017 | -0.011 | +0.104 |
+
+Test (run once): score imaging input **misfit**, hic input **boot_sd**; pass per input type: ρ ≥ 0.30 with the 95 % interval above 0 on every new test set.
+
+| New test set · input | Score | ρ [95 %] | Within the rule |
+|---|---|---|---|
+| su_genome · imaging | misfit | +0.083 [+0.062, +0.109] | no |
+| su_genome · hic | boot_sd | +0.013 [-0.015, +0.050] | no |
+| su_genome_amanitin · imaging | misfit | +0.116 [+0.097, +0.138] | no |
+| su_genome_amanitin · hic | boot_sd | +0.007 [-0.022, +0.042] | no |
+
+Verdicts: imaging input **fail**; hic input **fail**.
+<!-- END generated:gate2e -->
+
+**Reading.**
+- **Fail for both input types, on both untouched sets.** With imaging-derived input the misfit score ranks pair
+  errors at ρ +0.08 and +0.12 (intervals above 0, far below the 0.30 bar); with Hi-C input the refit spread is
+  indistinguishable from 0. Every other candidate, reported alongside, also stays below 0.30 (the best, misfit
+  with Hi-C input, +0.13 / +0.17, was not the practice choice).
+- Together with Gates 2 and 2c this is the third pre-registered attempt: from the input alone, ChronoCell cannot
+  say which of its distances will be wrong. **In the app** no reliability score is shown.
+- The run was chunked (one part per set and input); the first job hit the 2-hour limit after its first part when
+  this computer was suspended, and the remaining parts ran as separate chunks.
+
 ## Gate 3 — benchmark (Pillar 3)
 
 **Harness.** One command, `python -m validation.benchmark.run` (test) or `--practice`. Every
@@ -474,6 +587,32 @@ sets is the one thing not measured (above).
   the mean over splits. On the Bintu sets the bracket can sit beside the point value; read them as
   the size of the truth noise, not as a range around the mean.
 
+## Gate 3b — a learned correction on top of the population model (Phase A4)
+
+**Question.** Can a correction learned on practice data (pair features: separation, model and input
+residuals, evidence, depth, locus spacing) make the model best on more Hi-C benchmark units?
+
+**Practice and decision.** A ridge and a small network (trained on the GPU) were compared with no correction
+by leave-one-dataset-out. Both raised Lin's CCC (sizes) but lowered the held-out pattern, so the selection rule
+fixed before the run (best mean held-out pattern, and better than no correction on every held-out group) chose
+no correction. With nothing to test, the test was not run (`frozen.LEARNED_CORRECTION`).
+
+<!-- BEGIN generated:gate3b -->
+Practice (leave-one-dataset-out; mean held-out trend-removed ρ / CCC):
+
+| Candidate | Pattern ρ | CCC |
+|---|---|---|
+| none (chosen) | +0.7093 | 0.423 |
+| linear | +0.6540 | 0.678 |
+| mlp | +0.6821 | 0.685 |
+
+Test: **not run** — practice chose no correction (pre-specified selection rule). Pre-registered rule (frozen.LEARNED_CORRECTION): best on ≥ 90 % of Hi-C units and within 1 point of the current model on every imaging unit.
+<!-- END generated:gate3b -->
+
+**Reading.** A learned correction helps absolute sizes on practice (CCC 0.42 → 0.68) but not the pattern of
+distances, which is what Gate 3 scores. The benchmark method `learned_correction` exists and returns the
+base model with a note while no correction is frozen; the app is unchanged.
+
 ## Gate 4 — perturbations and variants (Pillar 4)
 
 **Cohesin depletion** (`chronocell/perturb.py`, `validation/perturbation.py`). Parameters were
@@ -548,6 +687,75 @@ Post hoc (after the verdict; cannot change it): K562 contacts across each juncti
   - So the label stays: **mechanism simulator, not validated.**
 - **Drug-lab mechanisms** (loop-extrusion, compaction and similar what-ifs) have no matching
   perturbation data here and stay labelled "not validated".
+
+## Gate 4c — cohesin loss against sequencing Hi-C on held-out regions (Phase B1)
+
+**Question.** Gate 4 checked the cohesin-loss prediction on one imaged region. Does the same model, with its
+parameters unchanged, predict what RAD21 degradation does to Hi-C on regions it has never seen?
+
+**Test** (`python validation/cohesin_hic.py --test`; rule in `frozen.COHESIN_HIC`, committed after the practice
+run on the Gate 4 practice region and before any other auxin map was read). HCT116 RAD21-mAC cells, untreated
+and 6 h auxin (Rao et al. 2017, ENCODE in situ Hi-C; intact Hi-C as a secondary pair). From the untreated map
+only: v3.3 population of each 2 Mb window → the Gate 4 cohesin-loss map → predicted change of contact
+probability. Score: Spearman of predicted and measured change (library-normalised auxin over untreated);
+baseline: the same model without the domain term (trend only). Pass: at least 3 of 6 regions beat trend only,
+with the 95 % interval of the difference above 0.
+
+<!-- BEGIN generated:gate4c -->
+Practice (the Gate 4 practice region; nothing fitted):
+
+| Pair | Region | Model ρ | Trend-only ρ | Difference [95 %] |
+|---|---|---|---|---|
+| in situ | chr21:28-30 Mb | +0.219 | +0.227 | -0.009 [-0.115, +0.104] |
+| intact | chr21:28-30 Mb | +0.410 | +0.053 | +0.357 [+0.250, +0.459] |
+
+Test (run once): pass if ≥ 3 of 6 held-out regions beat trend only on the main pair (in situ), difference > 0 with its 95 % interval above 0.
+
+| Pair | Region | Pairs | Model ρ | Trend-only ρ | Difference [95 %] | Beats trend only |
+|---|---|---|---|---|---|---|
+| in situ (main) | chr2:216-218 Mb | 17,394 | +0.486 | +0.092 | +0.394 [+0.325, +0.466] | yes |
+| in situ (main) | chr5:140-142 Mb | 14,180 | +0.212 | +0.175 | +0.037 [-0.045, +0.132] | no |
+| in situ (main) | chr7:130-132 Mb | 13,779 | +0.496 | +0.096 | +0.400 [+0.345, +0.444] | yes |
+| in situ (main) | chr10:100-102 Mb | 18,378 | +0.416 | +0.255 | +0.161 [+0.082, +0.243] | yes |
+| in situ (main) | chr12:52-54 Mb | 14,374 | +0.462 | +0.048 | +0.414 [+0.317, +0.511] | yes |
+| in situ (main) | chr17:48-50 Mb | 18,424 | +0.416 | +0.301 | +0.115 [+0.047, +0.177] | yes |
+| intact (secondary) | chr2:216-218 Mb | 9,175 | +0.601 | +0.063 | +0.537 [+0.466, +0.603] | yes |
+| intact (secondary) | chr5:140-142 Mb | 6,583 | +0.494 | -0.043 | +0.537 [+0.455, +0.627] | yes |
+| intact (secondary) | chr7:130-132 Mb | 6,962 | +0.708 | +0.106 | +0.602 [+0.552, +0.662] | yes |
+| intact (secondary) | chr10:100-102 Mb | 9,305 | +0.504 | -0.119 | +0.624 [+0.556, +0.692] | yes |
+| intact (secondary) | chr12:52-54 Mb | 6,199 | +0.548 | -0.138 | +0.686 [+0.625, +0.744] | yes |
+| intact (secondary) | chr17:48-50 Mb | 8,842 | +0.503 | -0.158 | +0.660 [+0.580, +0.744] | yes |
+
+5 of 6 main-pair regions beat trend only. Verdict: **pass**.
+<!-- END generated:gate4c -->
+
+**Reading.**
+- **Pass: 5 of 6 held-out regions** (in situ, the main pair); the sixth (chr5:140–142 Mb, the protocadherin
+  cluster) is positive but its interval includes 0. On the intact secondary pair every region beats trend only,
+  by more.
+- **What it shows.** Removing the domain pattern (the λ term fitted on imaging data in Gate 4) adds
+  +0.04 to +0.62 of rank agreement with the measured Hi-C change over the separation shift alone: the model's
+  cohesin-loss mechanism transfers from imaging to sequencing data and to new regions.
+- **What it does not show.** One cell line and one perturbation. CTCF and WAPL loss (Nora 2017, Haarhuis
+  2017) are different mechanisms the model does not describe and were not tested; Hafner 2023 has imaging,
+  not Hi-C, after auxin.
+- The run was interrupted once by a dropped network read in the secondary pair, after all six main-pair regions
+  were computed; the completed run (resumable per region, retries on dropped reads) reproduced the printed
+  values exactly.
+- **In the app** the cohesin simulator keeps its label until Gate 4d passes as well (see below).
+
+## Gate 4d — structural variants with Hi-C before and after (Phase B1): blocked
+
+**Pre-registered rule** (`frozen.SV_GATE4D`): on at least 3 engineered or patient events with Hi-C of the same
+cell type before and after, the engine's predicted change beats both the distance-shift and the no-change
+baselines, with the 95 % interval of the difference above 0.
+
+**Not run: not enough events.** Openly downloadable, checksum-published Hi-C before and after an SV with
+stated breakpoints exists here for two events only: the DXZ4 macrosatellite deletion on the active and on the
+inactive X of RPE-1 cells (ENCODE ENCSR624AJS and ENCSR566XIP, chrX:114,946,736–115,094,976 hg19). The 4DN
+Treg CRISPR deletions (Ikzf2 enhancer, Foxp3) have matched controls but no breakpoints in their metadata, and
+GEO maps publish no checksums. The variant engine therefore stays a **mechanism simulator, not validated**
+everywhere in the app and in reports.
 
 ## Gate 5 — prediction without contact data (Pillar 5)
 
@@ -661,6 +869,158 @@ account access key, which this machine does not have. An openly licensed alterna
 *Nature* 590:344, 2021, DNA seqFISH+, Zenodo 3735329) gives spot positions, not traces. Turning spots
 into single-copy traces is a separate analysis that would itself need validating. Until the test runs
 and passes, mouse assemblies get no prediction, in the app or on the command line.
+
+## Gate 5m — result (the predictor on mouse, run October 2026)
+
+The section above was written before the run and is kept as it was. The 4DN files turned out to be public on
+the 4DN AWS Open Data bucket (each file's `open_data_url`, with the MD5 the portal publishes), so the
+pre-registered test ran unchanged, without an access key (`python validation/predictor_mouse.py --test`).
+
+<!-- BEGIN generated:gate5m -->
+Test (run once; the human model unchanged): pass if both test loci have % of ceiling > 0 with its 95 % interval above 0 and raw Spearman above the training-trend baseline.
+
+| Set | Role | Traces | Loci | Predictor: % of ceiling (3 splits) | Trend baseline | Raw ρ: predictor / trend |
+|---|---|---|---|---|---|---|
+| 4DNESD28H8O7 (chr6 locus, untreated) | test | 877 | 76 | 17.0 [13.7, 24.1] | 1.2 | 0.869 / 0.866 |
+| 4DNESWDXDZSE (chr3 locus, untreated) | test | 2,270 | 96 | 7.2 [5.4, 9.5] | 0.4 | 0.918 / 0.916 |
+| 4DNESJ3TXVIR (chr6 locus, CTCF-AID untreated) | secondary | 5,171 | 76 | 17.6 | 2.4 | 0.903 / 0.899 |
+| 4DNESQ49IXDU (chr6 locus, RAD21-AID untreated) | secondary | 4,233 | 76 | 13.7 | 2.7 | 0.890 / 0.886 |
+| 4DNESTNG39BO (chr3 locus, CTCF-AID untreated) | secondary | 5,203 | 96 | 8.0 | 0.7 | 0.924 / 0.922 |
+| 4DNESLRTOSQT (chr3 locus, RAD21-AID untreated) | secondary | 3,897 | 96 | 8.3 | 0.4 | 0.909 / 0.908 |
+| 4DNES2KX6HQ5 (chr6 locus, CTCF-AID + auxin) | control | 6,088 | 76 | 15.3 | 1.8 | 0.917 / 0.913 |
+| 4DNESMN7RCSB (chr6 locus, RAD21-AID + auxin) | control | 4,658 | 76 | -0.1 | 1.2 | 0.888 / 0.889 |
+| 4DNESG62SAVA (chr3 locus, CTCF-AID + auxin) | control | 7,600 | 96 | 0.3 | 0.7 | 0.945 / 0.945 |
+| 4DNESBH54BG2 (chr3 locus, RAD21-AID + auxin) | control | 7,735 | 96 | 4.4 | -0.1 | 0.937 / 0.938 |
+
+Verdict: **pass** (95 % interval from split 0).
+<!-- END generated:gate5m -->
+
+**Reading.**
+- **Pass, modestly.** The human model, unchanged, recovers 17 % (chr6 locus) and 7 % (chr3 locus) of the
+  reproducible pattern in mouse ES cells, intervals above 0, and its raw Spearman is above the separation
+  trend's on both, by 0.002–0.003: as in human (Gate 5), a prior, not a substitute for contacts.
+- **Controls behave as expected where the signal is clear:** with cohesin (RAD21) degraded the chr6 locus
+  drops to −0.1 %, and with CTCF degraded the chr3 locus to 0.3 %; the CTCF-degraded chr6 locus keeps 15 %,
+  so the control is not uniform.
+- The run crashed once on a secondary set whose tables have 8 columns (no Cell_ID) before writing a result;
+  after the loader fix the test loci load identically (877 and 2,270 traces) and the numbers are those printed
+  by the first run.
+- **In the app** the predictor is now offered for mouse assemblies, labelled with these numbers; mouse CTCF
+  peaks must be uploaded (the ENCODE list is human only).
+
+## Gate 6 — loop calls against reference calls on held-out cell lines (Phase B3)
+
+**Question.** Does ChronoCell's loop caller agree with the field's reference calls at least as well as the
+comparable tools that run here?
+
+**Test** (`python validation/loops_gate6.py --test`; rule in `frozen.LOOPS_GATE6`, committed after the practice
+run on GM12878 and before any test window was read). Reference: the HiCCUPS loops ENCODE called on the same
+maps. Held-out cell lines K562 and IMR-90, three 10 Mb windows each at 10 kb. Comparators: chromosight and
+Mustache on the same windows. Pass: ChronoCell's F1 at least the best comparator's on both cell lines.
+
+<!-- BEGIN generated:gate6 -->
+Practice (GM12878, three 10 Mb windows; ChronoCell settings):
+
+| Setting | Precision | Recall | F1 |
+|---|---|---|---|
+| fdr0.05_none | 0.417 | 0.750 | 0.536 |
+| fdr0.05_kr | 0.900 | 0.450 | 0.600 |
+| fdr0.1_none | 0.400 | 0.767 | 0.526 |
+| fdr0.1_kr | 0.906 | 0.483 | 0.630 |
+| fdr0.2_none | 0.331 | 0.833 | 0.474 |
+| fdr0.2_kr (chosen) | 0.889 | 0.533 | 0.667 |
+
+Test (run once): pass if ChronoCell's F1 is at least the best of chromosight and Mustache on both held-out cell lines (reference: ENCODE HiCCUPS calls on the same maps).
+
+| Cell line | Method | Calls | Reference loops | Matched | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|---|
+| k562 | chronocell | 315 | 156 | 94 | 0.298 | 0.603 | 0.399 |
+| k562 | chromosight | 316 | 156 | 92 | 0.291 | 0.590 | 0.390 |
+| k562 | mustache | 231 | 156 | 94 | 0.407 | 0.603 | 0.486 |
+| imr90 | chronocell | 134 | 154 | 106 | 0.791 | 0.688 | 0.736 |
+| imr90 | chromosight | 298 | 154 | 95 | 0.319 | 0.617 | 0.420 |
+| imr90 | mustache | 255 | 154 | 97 | 0.380 | 0.630 | 0.474 |
+
+Verdict: **fail**.
+<!-- END generated:gate6 -->
+
+**Reading.**
+- **Fail by the rule (1 of 2 cell lines).** On IMR-90 ChronoCell's calls agree best with HiCCUPS (F1 0.74, precision
+  0.79; chromosight 0.42, Mustache 0.47). On K562, Mustache is ahead (F1 0.49 against 0.40; chromosight 0.39):
+  ChronoCell finds as many reference loops (recall 0.60) but makes more calls that HiCCUPS did not.
+- **What the comparison measures.** Agreement with HiCCUPS on the same map; ChronoCell's caller follows the
+  HiCCUPS recipe, so agreement is expected to favour it, and still it does not win on K562. The practice-chosen
+  FDR (0.2) trades precision for recall; K562's karyotype (amplifications) may also inflate calls.
+- **In the app** the analysis suite is labelled with this result; loop calls are offered as an analysis, not as a
+  validated detector.
+
+## Gate 7 — false-discovery control of the differential analysis (Phase B2)
+
+**Question.** On real replicate maps with no biological difference, plus changes planted at known pixels,
+does the differential analysis keep its false-discovery rate at the stated level, and how much does it find?
+
+**Test** (`python validation/diff_gate7.py --test`; rule in `frozen.DIFF_GATE7`, committed after the practice
+run and before any test region was read). Four independent untreated intact Hi-C experiments of the same
+cells, two per condition; 100 pixels per region raised ×2 or ×4 in condition B (3 draws each); five 2 Mb test
+regions. Pass: mean false-discovery proportion ≤ 0.05 at nominal 0.05.
+
+<!-- BEGIN generated:gate7 -->
+Practice (chr21:28-30 Mb):
+
+| Setting | Mean FDP | Recall ×2 | Recall ×4 | No-change discoveries |
+|---|---|---|---|---|
+| min5_dist | 0.036 | 0.16 | 0.94 | 0 |
+| min10_dist | 0.024 | 0.11 | 0.92 | 0 |
+| min5_nodist | 0.054 | 0.09 | 0.88 | 0 |
+
+Test (run once): pass if the mean false-discovery proportion over 30 spike-in runs is ≤ 0.05.
+
+| Region | No-change discoveries | Spike-in FDP (×2 / ×4) | Recall ×2 / ×4 |
+|---|---|---|---|
+| chr3:180-182 Mb | 0 | 0.000 / 0.000 | 0.00 / 0.18 |
+| chr8:126-128 Mb | 0 | 0.000 / 0.000 | 0.00 / 0.70 |
+| chr11:65-67 Mb | 0 | 0.000 / 0.004 | 0.03 / 0.74 |
+| chr14:90-92 Mb | 0 | 0.000 / 0.000 | 0.00 / 0.59 |
+| chr19:12-14 Mb | 0 | 0.000 / 0.014 | 0.03 / 0.92 |
+
+Mean FDP 0.002 [0.000, 0.004] at nominal 0.05; recall ×2 0.01, ×4 0.63. Not run: diffHic (R / Bioconductor not installed on this machine); multiHiCcompare (R / Bioconductor not installed on this machine); CHESS (pip install chess-hic fails: its dependency pysam (via FAN-C) does not build on Windows). Verdict: **pass**.
+<!-- END generated:gate7 -->
+
+**Reading.**
+- **Pass: false discoveries are controlled.** Over 30 spike-in runs in five held-out regions the mean
+  false-discovery proportion is 0.002 at a nominal 0.05, and no comparison without a planted change produced a
+  discovery.
+- **But the test is conservative and has little power with two replicates per side.** It finds 63 % of four-fold
+  changes and about 1 % of two-fold changes. Read a short list of significant pixels as "strong changes only", not
+  as the absence of smaller ones.
+- On real data in the app (untreated vs 6 h auxin, two experiments each, chr21:28–30 Mb) it tested 2,570 pixels and
+  called 4 (1 gained, 3 lost after auxin).
+- diffHic, multiHiCcompare and CHESS could not run here (recorded in the result file).
+
+## Benchmarks against other tools (Phase B9)
+
+Every tool that runs here gets the same input and the same reference as ChronoCell (Gates 6 and 7); the others
+are listed with the reason they could not run (`python validation/tools_b9.py`).
+
+<!-- BEGIN generated:b9tools -->
+| Task | Tool | Status | Where the comparison is |
+|---|---|---|---|
+| loops | HiCCUPS | not run: needs Java (Juicer tools); no Java runtime on this machine; ENCODE's HiCCUPS calls are Gate 6's reference | Gate 6 (validation/results_gate6.json) |
+| loops | chromosight | run (1.6.3, isolated environment) | Gate 6 (validation/results_gate6.json) |
+| loops | Mustache | run (1.3.3, isolated environment with NumPy 1.26; reads .mcool because hic-straw does not build here) | Gate 6 (validation/results_gate6.json) |
+| TADs | TopDom | not run: R / Bioconductor package; R is not installed on this machine | ChronoCell's TopDom-like caller (analysis suite); no pre-registered boundary gate |
+| TADs | Arrowhead | not run: needs Java (Juicer tools); no Java runtime on this machine | ChronoCell's Arrowhead-like caller; no gate |
+| TADs | insulation (cooltools) | not run: cooltools has no Windows build (needs a C compiler) | ChronoCell's insulation score |
+| compartments | dcHiC | not run: R / Bioconductor package; R is not installed on this machine | — |
+| differential | diffHic | not run: R / Bioconductor package; R is not installed on this machine | Gate 7 (validation/results_gate7.json) |
+| differential | multiHiCcompare | not run: R / Bioconductor package; R is not installed on this machine | Gate 7 |
+| differential | CHESS | not run: pip install chess-hic fails building pysam (a FAN-C dependency) on Windows | Gate 7 |
+| SV detection | HiNT | not run: not installable here (needs R and BWA / samtools) | — |
+| SV detection | hic_breakfinder | not run: C++ (Eigen, BamTools) with no Windows binary; no compiler here | — |
+| SV detection | EagleC | not run: no held-out SV truth set with Hi-C here (Gate 4d is blocked), so there is nothing to score it on | — |
+| SV impact | Akita (basenji) | not run: TensorFlow model code not packaged for pip; no SV truth set (Gate 4d) | — |
+| SV impact | Orca | not run: needs selene-sdk (no Windows build) and large weights; no SV truth set (Gate 4d) | — |
+<!-- END generated:b9tools -->
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
 

@@ -222,11 +222,14 @@ def gate2e() -> str:
         out.append("")
     if not r:
         return "\n".join(out + ["_results_reliability_v2.json: not run (python validation/reliability_v2.py --test)._"])
-    out += [f"Test (run once): score **{r['rule']['score']}**; pass per input type: ρ ≥ {r['rule']['min_rho']:.2f} with "
+    sc = r["rule"]["score"]
+    sc_txt = ", ".join(f"{k} input **{v}**" for k, v in sc.items()) if isinstance(sc, dict) else f"**{sc}**"
+    out += [f"Test (run once): score {sc_txt}; pass per input type: ρ ≥ {r['rule']['min_rho']:.2f} with "
             "the 95 % interval above 0 on every new test set.", "",
-            "| New test set · input | ρ [95 %] | Within the rule |", "|---|---|---|"]
+            "| New test set · input | Score | ρ [95 %] | Within the rule |", "|---|---|---|---|"]
     for k, v in r["sets"].items():
-        out.append(f"| {k} | {v['rho']:+.3f} [{v['ci95'][0]:+.3f}, {v['ci95'][1]:+.3f}] | {'yes' if v['within_rule'] else 'no'} |")
+        out.append(f"| {k} | {v.get('score', sc)} | {v['rho']:+.3f} [{v['ci95'][0]:+.3f}, {v['ci95'][1]:+.3f}] | "
+                   f"{'yes' if v['within_rule'] else 'no'} |")
     out += ["", "Verdicts: " + "; ".join(f"{k} input **{v}**" for k, v in r["verdict"].items()) + "."]
     return "\n".join(out)
 
@@ -242,6 +245,15 @@ def gate3b() -> str:
             out.append(f"| {c}{' (chosen)' if c == p['chosen'] else ''} | {v['mean_pattern_rho']:+.4f} | {v['mean_ccc']:.3f} |")
         out.append("")
     if not r:
+        sys.path.insert(0, str(ROOT))
+        try:
+            from frozen import LEARNED_CORRECTION as LC
+        except ImportError:
+            LC = {}
+        if LC.get("status") == "not run":
+            return "\n".join(out + [f"Test: **not run** — {LC['reason']}. Pre-registered rule (frozen.LEARNED_CORRECTION): "
+                                     f"best on ≥ {100 * LC['hic_best_fraction']:.0f} % of Hi-C units and within "
+                                     f"{LC['imaging_max_loss_points']:g} point of the current model on every imaging unit."])
         return "\n".join(out + ["_results_gate3b.json: not run (python validation/learned_correction.py --test)._"])
     out += [r["summary_line"], "", "| Unit · input | Learned correction | Best other method | Current model | Within the rule |",
             "|---|---|---|---|---|"]
@@ -541,12 +553,192 @@ def readme_accuracy() -> str:
     if g5:
         rows.append(f"| Gate 5: distances from sequence + CTCF alone (no contact data) | {g5['datasets_passing']} of "
                     f"{len(g5['settings']['test'])} test sets pass the pre-registered rule | {g5['verdict']} |")
+    rows += _phase_ab_rows()
     return "\n".join(rows)
+
+
+def _phase_ab_rows() -> list[str]:
+    """README rows of the Phase A / B gates, each from its result file (a gate not run says so)."""
+    rows = []
+    r = _load("results_hic_size.json")
+    if r:
+        m = r["sets"]["main"]
+        cc = [v["calibrated"]["lin_ccc_nm"] for v in m.values()]
+        rows.append(f"| Gate 1c: calibrated sizes from Hi-C ({len(m)} main sets) | CCC {min(cc):.2f}–{max(cc):.2f} after "
+                    f"calibration (needed ≥ 0.8) | {r['verdict']} |")
+    r = _load("results_intervals_v2.json")
+    if r:
+        n = {i: sum(1 for k, v in r["sets"].items() if k.endswith(i) and v["within_rule"]) for i in ("imaging", "hic")}
+        t = {i: sum(1 for k in r["sets"] if k.endswith(i)) for i in ("imaging", "hic")}
+        rows.append(f"| Gate 2d: conformal distance ranges hold 85–95 % / 40–60 % in every band | imaging input "
+                    f"{n['imaging']} of {t['imaging']} sets, Hi-C input {n['hic']} of {t['hic']} | "
+                    + ", ".join(f"{k} {v}" for k, v in r["verdict"].items()) + " |")
+    r = _load("results_reliability_v2.json")
+    if r:
+        rows.append("| Gate 2e: per-pair reliability on untouched genome-scale sets (ρ ≥ 0.30) | "
+                    + "; ".join(f"{k} {v['rho']:+.2f}" for k, v in r["sets"].items()) + " | "
+                    + ", ".join(f"{k} {v}" for k, v in r["verdict"].items()) + " |")
+    rows.append("| Gate 3b: a learned correction on the population model | practice chose no correction | not run |")
+    r = _load("results_cohesin_hic.json")
+    if r:
+        rows.append(f"| Gate 4c: cohesin loss vs RAD21-degron Hi-C on 6 held-out regions | {r['regions_beating_trend']} of "
+                    f"{len(r['rule']['regions'])} regions beat trend only | {r['verdict']} |")
+    rows.append("| Gate 4d: SV effects on new events with Hi-C before and after | two usable events found, three needed | "
+                "blocked; variant engine stays a mechanism simulator |")
+    r = _load("results_predictor_v2.json")
+    if r:
+        rows.append(f"| Gate 5b: prediction with cohesin peaks | {sum(v['passes'] for v in r['per_set'].values())} of "
+                    f"{len(r['per_set'])} test sets | {r['verdict']} |")
+    r = _load("results_predictor_mouse.json")
+    if r:
+        rows.append("| Gate 5m: the human predictor on mouse ES-cell tracing (4DN) | "
+                    + "; ".join(f"{v['percent_of_ceiling']:.1f} % of the ceiling" for v in r["gate5m"].values())
+                    + f" | {r['verdict']} (modest) |")
+    r = _load("results_gate6.json")
+    if r:
+        rows.append("| Gate 6: loop calls vs ENCODE HiCCUPS calls, held-out cell lines | "
+                    + "; ".join(f"{c}: F1 {v['chronocell']['f1']:.2f} (chromosight {v['chromosight'].get('f1', float('nan')):.2f}, "
+                                f"Mustache {v['mustache'].get('f1', float('nan')):.2f})" for c, v in r["sets"].items())
+                    + f" | {r['verdict']} |")
+    r = _load("results_gate7.json")
+    if r:
+        rows.append(f"| Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | "
+                    f"mean FDP {r['summary']['mean_fdp']:.3f} at nominal {r['rule']['fdr']}; recall ×2 "
+                    f"{r['summary']['recall']['2.0']:.2f}, ×4 {r['summary']['recall']['4.0']:.2f} | {r['verdict']} |")
+    return rows
+
+
+def gate4c() -> str:
+    p = _load("results_cohesin_hic_practice.json")
+    r = _load("results_cohesin_hic.json")
+    out = []
+    if p:
+        out += ["Practice (the Gate 4 practice region; nothing fitted):", "",
+                "| Pair | Region | Model ρ | Trend-only ρ | Difference [95 %] |", "|---|---|---|---|---|"]
+        for x in p["rows"]:
+            out.append(f"| {x['pair']} | {x['region']} | {x['model']:+.3f} | {x['trend_only']:+.3f} | {x['difference']:+.3f} "
+                       f"[{x['difference_ci95'][0]:+.3f}, {x['difference_ci95'][1]:+.3f}] |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_cohesin_hic.json: not run (python validation/cohesin_hic.py --test)._"])
+    R = r["rule"]
+    out += [f"Test (run once): pass if ≥ {R['min_regions']} of {len(R['regions'])} held-out regions beat trend only on the "
+            f"main pair ({R['main_pair']}), difference > 0 with its 95 % interval above 0.", "",
+            "| Pair | Region | Pairs | Model ρ | Trend-only ρ | Difference [95 %] | Beats trend only |",
+            "|---|---|---|---|---|---|---|"]
+    for x in r["rows"]:
+        out.append(f"| {x['pair']} ({x['tier']}) | {x['region']} | {x['pairs']:,} | {x['model']:+.3f} | {x['trend_only']:+.3f} | "
+                   f"{x['difference']:+.3f} [{x['difference_ci95'][0]:+.3f}, {x['difference_ci95'][1]:+.3f}] | "
+                   f"{'yes' if x['beats_trend'] else 'no'} |")
+    out += ["", f"{r['regions_beating_trend']} of {len(R['regions'])} main-pair regions beat trend only. "
+                f"Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def gate5m() -> str:
+    r = _load("results_predictor_mouse.json")
+    if not r:
+        return "_results_predictor_mouse.json: not run (python validation/predictor_mouse.py --test)._"
+    s = r["summary"]
+    out = ["Test (run once; the human model unchanged): pass if both test loci have % of ceiling > 0 with its 95 % "
+           "interval above 0 and raw Spearman above the training-trend baseline.", "",
+           "| Set | Role | Traces | Loci | Predictor: % of ceiling (3 splits) | Trend baseline | Raw ρ: predictor / trend |",
+           "|---|---|---|---|---|---|---|"]
+    for k, v in r["sets"].items():
+        a = s.get(k, {}).get("sequence + CTCF", {}).get("all_pairs", {})
+        p, g = a.get("predictor", {}), a.get("genomic_trend_no_data", {})
+        ci = r["gate5m"].get(k, {}).get("ci95")
+        ci_txt = f" [{ci[0]:.1f}, {ci[1]:.1f}]" if ci else ""
+        out.append(f"| {k} ({v['description']}) | {v['role']} | {v['copies']:,} | {v['loci']} | "
+                   f"{_f(p.get('percent_of_ceiling'), 1)}{ci_txt} | {_f(g.get('percent_of_ceiling'), 1)} | "
+                   f"{_f(p.get('raw_spearman'))} / {_f(g.get('raw_spearman'))} |")
+    out += ["", f"Verdict: **{r['verdict']}** (95 % interval from split 0)."]
+    return "\n".join(out)
+
+
+def gate6() -> str:
+    p = _load("results_gate6_practice.json")
+    r = _load("results_gate6.json")
+    out = []
+    if p:
+        out += ["Practice (GM12878, three 10 Mb windows; ChronoCell settings):", "", "| Setting | Precision | Recall | F1 |",
+                "|---|---|---|---|"]
+        for k, v in p["table"].items():
+            out.append(f"| {k}{' (chosen)' if k == p['chosen'] else ''} | {v['precision']:.3f} | {v['recall']:.3f} | "
+                       f"{v['f1']:.3f} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_gate6.json: not run (python validation/loops_gate6.py --test)._"])
+    out += ["Test (run once): pass if ChronoCell's F1 is at least the best of chromosight and Mustache on both held-out "
+            "cell lines (reference: ENCODE HiCCUPS calls on the same maps).", "",
+            "| Cell line | Method | Calls | Reference loops | Matched | Precision | Recall | F1 |",
+            "|---|---|---|---|---|---|---|---|"]
+    for cell, v in r["sets"].items():
+        for tool in ("chronocell", "chromosight", "mustache"):
+            m = v.get(tool, {})
+            if "f1" not in m:
+                out.append(f"| {cell} | {tool} | — | — | — | — | — | {m.get('status', 'not run')} |")
+                continue
+            out.append(f"| {cell} | {tool} | {m['calls']} | {m['reference']} | {m['matched']} | {m['precision']:.3f} | "
+                       f"{m['recall']:.3f} | {m['f1']:.3f} |")
+    out += ["", f"Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def gate7() -> str:
+    p = _load("results_gate7_practice.json")
+    r = _load("results_gate7.json")
+    out = []
+    if p:
+        out += ["Practice (chr21:28-30 Mb):", "", "| Setting | Mean FDP | Recall ×2 | Recall ×4 | No-change discoveries |",
+                "|---|---|---|---|---|"]
+        for k, v in p["table"].items():
+            sm = v["summary"]
+            out.append(f"| {k} | {sm['mean_fdp']:.3f} | {sm['recall']['2.0']:.2f} | {sm['recall']['4.0']:.2f} | "
+                       f"{sum(sm['null_discoveries'].values())} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_gate7.json: not run (python validation/diff_gate7.py --test)._"])
+    sm, R = r["summary"], r["rule"]
+    out += [f"Test (run once): pass if the mean false-discovery proportion over {sm['runs']} spike-in runs is ≤ {R['fdr']}.",
+            "", "| Region | No-change discoveries | Spike-in FDP (×2 / ×4) | Recall ×2 / ×4 |", "|---|---|---|---|"]
+
+    def fdp(xs):
+        return sum(x["false"] / max(x["discoveries"], 1) for x in xs) / max(len(xs), 1)
+
+    def rec(xs):
+        return sum(x["found"] / max(x["planted"], 1) for x in xs) / max(len(xs), 1)
+    for reg in dict.fromkeys(x["region"] for x in r["rows"]):
+        rows = [x for x in r["rows"] if x["region"] == reg]
+        null = next(x for x in rows if x["fold"] == 1.0)
+        f2 = [x for x in rows if x["fold"] == 2.0]
+        f4 = [x for x in rows if x["fold"] == 4.0]
+        out.append(f"| {reg} | {null['discoveries']} | {fdp(f2):.3f} / {fdp(f4):.3f} | {rec(f2):.2f} / {rec(f4):.2f} |")
+    ci = sm["mean_fdp_ci95"]
+    out += ["", f"Mean FDP {sm['mean_fdp']:.3f} [{ci[0]:.3f}, {ci[1]:.3f}] at nominal {R['fdr']}; recall ×2 "
+                f"{sm['recall']['2.0']:.2f}, ×4 {sm['recall']['4.0']:.2f}. Not run: "
+            + "; ".join(f"{k} ({v})" for k, v in r["not_run"].items()) + f". Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def b9tools() -> str:
+    r = _load("results_tools_b9.json")
+    if not r:
+        return "_results_tools_b9.json: not written (python validation/tools_b9.py)._"
+    out = ["| Task | Tool | Status | Where the comparison is |", "|---|---|---|---|"]
+    for x in r["tools"]:
+        out.append(f"| {x['task']} | {x['tool']} | {x['status']} | {x.get('result', '—')} |")
+    return "\n".join(out)
+
+
+def summary_ab() -> str:
+    """Summary rows of the Phase A / B gates for RESULTS.md (the same rows as the README table)."""
+    return "\n".join(["| Test (held-out, real data) | Measured | Verdict |", "|---|---|---|"] + _phase_ab_rows())
 
 
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
           "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
-          "scale": scale,
+          "gate4c": gate4c, "gate5m": gate5m, "gate6": gate6, "gate7": gate7, "b9tools": b9tools, "summary_ab": summary_ab, "scale": scale,
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 

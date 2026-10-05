@@ -706,3 +706,69 @@ left deleted-but-uncommitted for the owner to decide.
 **Tests:** 226 passed, 1 skipped (the FastAPI wrapper), against 201 passed, 1 skipped before this work.
 
 Contributors to the ideas behind these changes: _______________
+
+## 5 October 2026 — Phase A (accuracy core) and Phase B (product features) (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5), at the request of this machine's user (git identity
+`DHRUV`), who asked for the work to continue unattended. Every commit is on `feat/v4-evidence`, local only:
+nothing was pushed and no pull request was opened. Times are the machine clock (IST). The measured results are
+in `validation/RESULTS.md` (generated from the result files); this entry only lists what was done.
+
+**Rules followed:** everything additive (existing pages, defaults, models, commands, endpoints and result files
+unchanged); pass rules committed in `validation/frozen.py` before each test; tuning on practice data only; each
+test run once; every number in the documents from a result file through `validation/report.py`; failures
+reported next to successes.
+
+**Phase A (accuracy core).**
+- A0 `eb8887d`: PyTorch 2.11.0 with CUDA 12.8 on the RTX 5050 Laptop GPU; CPU fallback on GPU out-of-memory;
+  a GPU / CPU agreement test.
+- A6 `e07e340`: two untouched genome-scale sets registered with fixed roles; `f5a2295`, `fbc189d`: shared cached
+  units (fits + held-out truth), ENCODE Hi-C sources, depth thinning.
+- Gate 1c (sizes from Hi-C): pre-registered `c1726a9`, **fail** `41d46c2`.
+- Gate 2d (conformal ranges): pre-registered `4dad69c`, **fail** `c3e466b`.
+- Gate 2e (per-pair reliability): pre-registered `0a7998d`, **fail** (this entry's documentation commit).
+- Gate 3b (learned correction): practice chose no correction, **not run** `8763ab1`.
+- Gate 5b (prediction with cohesin peaks): pre-registered `cbebab1`, **fail** `4415433`.
+- Gate 5m (the predictor on mouse): the 4DN files turned out to be public on 4DN Open Data, so the test that was
+  pre-registered in `1af2b96` ran unchanged: runner `2f205fc`, **pass, modestly** `54075e2`; the predictor is now
+  offered for mouse, labelled.
+
+**Phase B (product features).**
+- B8 `17c1578`: Research mode switch (default on), "SYNTHETIC ·" labels, warnings on synthetic results.
+- B1–B7 library `817428f`: variant engine v2 (joins, two chromosomes, copy number, ranking), analysis suite
+  (HiCCUPS-like loops, TopDom-like / Arrowhead-like domains), replicate-aware differential analysis, region-wise
+  .hic / .cool / .mcool / .pairs reading with assembly checks, KR balancing, liftover, exports for IGV / Juicebox /
+  HiGlass, offline HTML / PDF reports, the `chronocell` command, a local job queue, saved projects, three REST
+  endpoints, `pyproject.toml`.
+- App `80fb251`: new panels (01 → 06 Analysis suite, 03 → Differential analysis, 02 → 05 Variant engine v2,
+  05 Genes → reference annotations), sidebar Projects and Jobs, a built-in bigWig reader, mouse prediction.
+- Gate 4c (cohesin loss vs RAD21-degron Hi-C): pre-registered `a1d20fb`, **pass** `88e7436`.
+- Gates 6 (loops) and 7 (differential FDR), and Gate 4d recorded as blocked: pre-registered `b22fe02`; Gate 6
+  **fail**, Gate 7 **pass** (this entry's documentation commit).
+- B9: chromosight and Mustache run from an isolated environment (`.chronocell_cache/tools-venv`); every other
+  tool is recorded with the reason it could not run here (`validation/results_tools_b9.json`).
+
+**Checked in the running app** (a separate instance on port 8502, driven in Chrome, real data): ENCODE HCT116
+RAD21-mAC in situ Hi-C for chr21:28–30 Mb loaded as the contact map; the analysis suite with KR balancing gave the
+same calls as the command line on the same map (1 loop, 2 · 6 boundaries, 14 domains); the differential tab read
+four ENCODE maps by URL (two untreated, two 6 h auxin experiments) and tested 2,570 pixels (4 significant); a
+population model was built on the GPU (17 s) and the engine applied a 300 kb deletion typed in genomic coordinates;
+Research mode off hid the Drug lab; a project was saved. Three problems found this way were fixed: the analysis
+panel called uploaded contacts "synthetic" when the structure was the reference model; the engine used the
+reference model's synthetic H3K27ac as enhancers; saving a session crashed when an object could not be pickled
+(after a module reload) and left a half-written folder. GTEx and ClinVar downloads were checked against their
+published checksums.
+
+**Interruptions.** This computer was suspended twice (about 07:35–12:00 and 12:45–15:40). Runs that stalled or
+were killed (Gate 2d, the A3 practice, Gate 2e, the test suite) were completed by resumable or chunked reruns;
+Gate 4c and Gate 5m crashed once (a dropped network read; an 8-column trace file) and were completed after the
+fix. In each case the completed run reproduced the numbers the first run had printed.
+
+**Not done, with the reason:** Gate 4d (two usable SV events found, three needed); a FASTQ → contacts pipeline
+(the aligners need Linux / WSL, and no WSL distribution is installed); HiCCUPS, Arrowhead (Java), TopDom, dcHiC,
+diffHic, multiHiCcompare (R), CHESS (pysam does not build), cooltools, hic_breakfinder, HiNT, Akita and Orca;
+bigWig and beddb writing (compiled tools only; bedGraph and .mcool are written instead).
+
+**Tests:** 262 tests in 20 files (226 passed, 1 skipped before Phase A). The last complete run passed every file (15:46–16:05, GPU). The final GPU run after the browser-check fixes passed 18 of 20 files (247 passed, 1 skipped) and was then stopped by Claude Code because the computer was low on memory; the two remaining files (test_v4_trust.py, test_v4_ui.py) passed in the previous complete run. The full CPU-only run (`CUDA_VISIBLE_DEVICES=` set to empty) was not repeated for the same reason; the GPU / CPU agreement test passes.
+
+Contributors to the ideas behind these changes: _______________
