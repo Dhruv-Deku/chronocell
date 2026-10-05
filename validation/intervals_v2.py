@@ -108,7 +108,20 @@ def pooled(hists: list[dict], bands_on: bool) -> dict[int, np.ndarray]:
     return out
 
 
-def unit_hists(spec, variant: dict) -> dict[int, np.ndarray]:
+def unit_hists(spec, variant: dict, cache: bool = False) -> dict[int, np.ndarray]:
+    """Histograms of one unit; with cache=True they are kept on disk (an interrupted test resumes; the values
+    are the same either way)."""
+    path = A.CACHE / f"i2hist_{spec.name}_{'cal' if variant.get('calibrated') else 'raw'}.npz"
+    if cache and path.exists():
+        z = np.load(path)
+        return {int(k): z[k] for k in z.files}
+    out = _unit_hists(spec, variant)
+    if cache:
+        np.savez(path, **{str(k): v for k, v in out.items()})
+    return out
+
+
+def _unit_hists(spec, variant: dict) -> dict[int, np.ndarray]:
     u = A.load(spec)
     med = u["median"].astype(np.float64)
     if variant.get("calibrated") and u["meta"]["protocol"] != "imaging":
@@ -215,7 +228,7 @@ def test() -> None:
         c = cal["inputs"][inp]
         qgrid = np.asarray(cal["quantile_levels"])
         q = {int(b): (np.asarray(v) if v is not None else None) for b, v in c["quantiles"].items()}
-        held = [unit_hists(s, c) for s in specs]
+        held = [unit_hists(s, c, cache=True) for s in specs]
         res = {}
         for b in held[0]:
             hs = [h[b] for h in held if h[b].sum() >= MIN_PAIRS]
