@@ -113,3 +113,37 @@ def test_phase_a_units_respect_dataset_roles():
         assert D.REGISTRY[s.dataset.split(":")[0]].role == "practice", s
     for s in U.TEST_HIC_MAIN + U.TEST_HIC_SECONDARY + U.TEST_IMAGING:
         assert D.REGISTRY[s.dataset.split(":")[0]].role == "test", s
+
+
+def test_learned_correction_features_and_identity():
+    from chronocell import learned_correction as LC
+    rng = np.random.default_rng(5)
+    n = 30
+    s = np.abs(np.subtract.outer(np.arange(n), np.arange(n))) * 30_000.0
+    med = 100.0 * np.maximum(s / 30_000, 1) ** 0.4 * np.exp(rng.normal(0, 0.05, (n, n)))
+    med = (med + med.T) / 2
+    np.fill_diagonal(med, 0.0)
+    f = np.clip(rng.uniform(0.01, 0.6, (n, n)), 0, 1)
+    f[3, 7] = np.nan                                                    # an unobserved pair
+    feats = LC.features(med, f, f * 1000, s, 150.0, True, 2000.0, 30_000.0)
+    iu = np.triu_indices(n, 1)
+    assert feats.shape == (n, n, len(LC.FEATURES)) and np.isnan(feats[5, 2]).all()     # lower triangle empty
+    assert np.isfinite(feats[iu][:, [0, 1, 4, 5, 6, 7, 8]]).all()
+    zero = {"kind": "linear", "mu": [0.0] * len(LC.FEATURES), "sd": [1.0] * len(LC.FEATURES), "intercept": 0.0,
+            "beta": [0.0] * len(LC.FEATURES)}
+    assert np.allclose(LC.correct(med, feats, zero)[iu], med[iu])                 # zero correction = the model
+    shift = dict(zero, intercept=np.log(2.0))
+    assert np.allclose(LC.correct(med, feats, shift)[iu], 2 * med[iu])
+
+
+def test_learned_correction_method_without_a_frozen_correction_is_the_base_model(monkeypatch):
+    sys.path.insert(0, str(VALIDATION.parent))
+    from chronocell import learned_correction as LC
+    from validation.benchmark import methods as M
+    monkeypatch.setattr(LC, "load", lambda path=None: {"chosen": "none"})
+    f = _planted(40)
+    n = len(f)
+    sep = np.abs(np.subtract.outer(np.arange(n), np.arange(n))) * 30_000
+    inp = M.Input("imaging", n, f, np.full((n, n), 500.0), f * 500, 150.0, np.zeros((n, n)), sep, [(0, n)], 0)
+    pred = M.learned_correction(inp)
+    assert pred.median_nm.shape == (n, n) and "no correction" in pred.notes[0]
