@@ -26,6 +26,7 @@ import json
 import sys
 import time
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -103,9 +104,14 @@ def thin_counts(counts: np.ndarray, frac: float, seed: int = 0) -> np.ndarray:
     return out.astype(np.float64)
 
 
+@lru_cache(maxsize=3)
+def _load_traces(base: str):
+    return D.load(base)          # genome-scale files are hundreds of MB: parse once per process
+
+
 def _traces(spec: UnitSpec):
     base, _, chrom = spec.dataset.partition(":")
-    tr = D.load(base)
+    tr = _load_traces(base)
     if not chrom:
         return tr, None, tr.xyz.astype(np.float64)
     cols = np.asarray(tr.chrom) == chrom
@@ -184,7 +190,7 @@ def single_copies(spec: UnitSpec) -> np.ndarray:
 def genome_units(key: str, input_kind: str, source: str = "rao2014", thin: float = 1.0, split: int = 0,
                  skip=("chr2", "chrY")) -> list[UnitSpec]:
     """One unit per chromosome of a genome-scale set (chr2 overlaps the practice chr2 traces; Y is too sparse)."""
-    tr = D.load(key)
+    tr = _load_traces(key)
     chroms = [c for c in dict.fromkeys(np.asarray(tr.chrom).tolist()) if c not in skip]
     return [UnitSpec(f"{key}:{c}", input_kind, source, thin, split) for c in chroms]
 
