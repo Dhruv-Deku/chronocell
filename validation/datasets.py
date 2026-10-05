@@ -129,6 +129,17 @@ REGISTRY: dict[str, Entry] = {e.key: e for e in (
     Entry("su_genome", "su_genome", "test", "IMR90", "1,041 loci on every chromosome (DNA-MERFISH, 3 replicates)",
           ("genomic-scale.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000, locus_bp=100_000,
           paired_hic="su_hic_genome", notes="chr2 loci overlap the practice set and are reported separately."),
+    # ---- Phase A (October 2026): two genome-scale sets never used before; roles fixed before download ----
+    Entry("su_genome_tx", "su_genome", "practice", "IMR90",
+          "1,041 loci on every chromosome, DNA-MERFISH with transcription and nuclear bodies (2 replicates)",
+          ("genomic-scale-with transcription and nuclear bodies.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000,
+          locus_bp=100_000, paired_hic="su_hic_genome",
+          notes="Untreated, separate experiments from su_genome. Practice: genome-scale spacing for Phase A choices."),
+    Entry("su_genome_amanitin", "su_genome", "test", "IMR90",
+          "1,041 loci on every chromosome, DNA-MERFISH after alpha-amanitin (transcription inhibited; 2 replicates)",
+          ("genomic-scale-amanitin.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000, locus_bp=100_000,
+          paired_hic="su_hic_genome",
+          notes="Test only, untouched by every earlier gate. Hi-C is from untreated IMR-90 (Rao 2014)."),
     # ---- Hi-C binned onto the imaged loci by Su et al. from Rao et al. 2014 (IMR-90 in situ Hi-C) ----
     Entry("su_hic_chr21", "su_hic", "input", "IMR90", "Hi-C, chr21 loci (50 kb bins)", ("Hi-C_contacts_chromosome21.tsv",),
           SU_BASE, SU_CITE + " Hi-C reads: " + RAO2014_CITE, SU_LICENSE),
@@ -490,8 +501,7 @@ def load_su_genome(entry: Entry, min_detected: float = 0.5) -> Traces:
     locus list (loci of other chromosomes are NaN for that copy)."""
     import pandas as pd
     path = fetch(entry, verbose=False)[0]
-    df = pd.read_csv(path, sep="\t", usecols=[0, 1, 2, 3, 4, 5, 6], low_memory=False)
-    df.columns = ["z", "x", "y", "locus", "homolog", "cell", "exp"]
+    df = _read_genome_columns(path)
     loci = df["locus"].to_numpy()
     uniq, first = np.unique(loci, return_index=True)
     names, starts = _parse_loci(uniq)
@@ -517,6 +527,23 @@ def load_su_genome(entry: Entry, min_detected: float = 0.5) -> Traces:
         keep |= own & (has.mean(axis=1) >= min_detected)
     return Traces(entry.key, xyz[keep], starts, names, exp[keep],
                   {"copies_total": int(len(xyz)), "min_detected": min_detected, "loci": len(uniq)})
+
+
+GENOME_COLUMNS = {"z": "Z(nm)", "x": "x(nm)", "y": "y(nm)", "locus": "genomic coordinate", "homolog": "homolog number",
+                  "cell": "cell number", "exp": "experiment number"}
+
+
+def _read_genome_columns(path: Path):
+    """The seven columns the genome-scale loader needs, found by header name (the three Su et al. genome-scale
+    files carry different extra columns), falling back to the first seven columns if a name is missing."""
+    import pandas as pd
+    head = pd.read_csv(path, sep="\t", nrows=0).columns.tolist()
+    norm = {h.strip().lower(): h for h in head}
+    want = [norm.get(v.lower()) for v in GENOME_COLUMNS.values()]
+    usecols = want if all(want) else head[:7]
+    df = pd.read_csv(path, sep="\t", usecols=usecols, low_memory=False)[usecols]
+    df.columns = list(GENOME_COLUMNS)
+    return df
 
 
 def _chrom_rank(names: np.ndarray) -> np.ndarray:
