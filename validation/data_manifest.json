@@ -49,6 +49,11 @@
   "bytes": 1298162,
   "url": "https://www.encodeproject.org/files/ENCFF038DDS/@@download/ENCFF038DDS.bed.gz"
  },
+ "data/encode/ENCFF178CSM.bed.gz": {
+  "sha256": "624b91bf4a2ce10fcd7adf14733b6a2e826655bd3ec43f8f61730cf3e6ff96b6",
+  "bytes": 1177743,
+  "url": "https://www.encodeproject.org/files/ENCFF178CSM/@@download/ENCFF178CSM.bed.gz"
+ },
  "data/encode/ENCFF296ZZB.bed.gz": {
   "sha256": "7f35b22342ad33b5a199a6d9f8b56109db186360a2490430b677a5a86b4030e6",
   "bytes": 5306753,
@@ -89,6 +94,11 @@
   "bytes": 1053266,
   "url": "https://www.encodeproject.org/files/ENCFF853VVI/@@download/ENCFF853VVI.bed.gz"
  },
+ "data/encode/ENCFF895JAW.bed.gz": {
+  "sha256": "39538408e50940dfc697b98b752f6213f657dda99e226728ddfbcc77e43e35bf",
+  "bytes": 699619,
+  "url": "https://www.encodeproject.org/files/ENCFF895JAW/@@download/ENCFF895JAW.bed.gz"
+ },
  "data/encode/ENCFF930WPG.bed.gz": {
   "sha256": "1e2858ea67f1d451005e50c6d898dec3ad7ce703c22f060f9fbe86a2619f7e29",
   "bytes": 714504,
@@ -103,6 +113,11 @@
   "sha256": "c979ca1e5065c2521a50773473e0d0cc018fd6f3e9bb3aa90493fe7b45d57d1b",
   "bytes": 12709705,
   "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr21.fa.gz"
+ },
+ "data/hic_cache/encode_a549_insitu_chr21_28000000_29950071_5000.npz": {
+  "sha256": "da797a751502252ff1caecff56f9e28beb597dedcab623a540d00452567a29a3",
+  "bytes": 30507,
+  "url": "https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic"
  },
  "data/hic_cache/encode_hct116_insitu_chr21_28000000_29950071_5000.npz": {
   "sha256": "fc79235bbafb10e0c7eb9df15792634e166ef32d7804489af07f2e75214d7f72",
@@ -123,6 +138,26 @@
   "sha256": "f0ed474162cdb34adb01d4344359a54baf52f11b364735bfda16fa7bdf3a6a27",
   "bytes": 156842,
   "url": "https://www.encodeproject.org/files/ENCFF573OPJ/@@download/ENCFF573OPJ.hic"
+ },
+ "data/hic_cache/encode_imr90_dilution_chr21_18625000_20577714_5000.npz": {
+  "sha256": "9e71aae0ed696589e14405bd9b038536f7a2dba19cfd041b8b9db6945de21fc4",
+  "bytes": 44620,
+  "url": "https://www.encodeproject.org/files/ENCFF636CEM/@@download/ENCFF636CEM.hic"
+ },
+ "data/hic_cache/encode_imr90_dilution_chr21_28000000_29950071_5000.npz": {
+  "sha256": "d444cedf66b05416a9e74ba71fea8a406ce5e9913258ea671e2a8519909417a9",
+  "bytes": 42352,
+  "url": "https://www.encodeproject.org/files/ENCFF636CEM/@@download/ENCFF636CEM.hic"
+ },
+ "data/hic_cache/encode_imr90_intact_chr21_18625000_20577714_5000.npz": {
+  "sha256": "a53e57cea84732a957a6b6ac035f9e75918f023f772ab309ea3e188f281b85a0",
+  "bytes": 93735,
+  "url": "https://www.encodeproject.org/files/ENCFF281ILS/@@download/ENCFF281ILS.hic"
+ },
+ "data/hic_cache/encode_imr90_intact_chr21_28000000_29950071_5000.npz": {
+  "sha256": "b068727cbb0f03d252a1fd703eb22f9048989c95e7bf5febd18f2a4448f478ca",
+  "bytes": 90835,
+  "url": "https://www.encodeproject.org/files/ENCFF281ILS/@@download/ENCFF281ILS.hic"
  },
  "data/hic_cache/encode_k562_intact_chr21_28000000_29950071_5000.npz": {
   "sha256": "f683e11ae3ea5e06a1ad65da920330a69ed265dfa07c021129f29f1c9c100e4f",

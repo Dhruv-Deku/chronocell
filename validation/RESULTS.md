@@ -133,6 +133,66 @@ Whole − windowed, imaging input, within tiles, per split: -0.54, -0.47, -0.48 
 - **Ensemble consistency** (cell-to-cell CV of the model, 0.43 on chr21) is reported next to these
   numbers and is not an accuracy.
 
+## Gate 1c — calibrated sizes from Hi-C (Phase A1)
+
+**Question.** Models built from sequencing Hi-C come out at 0.35–0.57× the imaged size (Gate 1b). Can a
+size calibration learned on practice pairs of Hi-C and imaging bring them to the right nanometres?
+
+**Test** (`python validation/hic_size_calibration.py --test`; rule in `frozen.HIC_SIZE`, committed with the
+frozen calibration before any test unit was built). The calibration multiplies every model distance by
+one factor, chosen by leave-one-dataset-out on practice units (Bintu K562 and HCT116 regions with Rao
+2014, ENCODE in situ and intact Hi-C, each also thinned to 1/4 and 1/16 of its depth; Su chr2 and its
+replicate; the genome-scale practice set). Main test sets: Bintu IMR-90 chr21:28–30 and 18–20 Mb, Su
+chr21 and its replicate (all with Rao 2014 Hi-C), and the genome-scale set. Truth: half B's median
+distances, split 0. Pass: on every main set, Lin's CCC ≥ 0.8, median size ratio 0.8–1.25, and the
+pattern not lower than the uncalibrated model's.
+
+<!-- BEGIN generated:gate1c -->
+Practice (leave-one-dataset-out; CCC of the held-out group / its size ratio):
+
+| Form | bintu_hct116_28_30 | bintu_hct116_34_37 | bintu_k562_28_30 | su_chr2 | su_genome_tx | Mean CCC |
+|---|---|---|---|---|---|---|
+| global (chosen) | 0.90 / 0.97 | 0.79 / 1.10 | 0.75 / 1.09 | 0.34 / 0.96 | 0.65 / 0.99 | 0.688 |
+| sep | 0.89 / 1.02 | 0.71 / 1.19 | 0.69 / 1.17 | 0.31 / 0.94 | 0.64 / 1.00 | 0.649 |
+| sep2 | 0.88 / 1.00 | 0.69 / 1.19 | 0.69 / 1.14 | 0.13 / 0.94 | 0.57 / 1.03 | 0.592 |
+| sep2+step | 0.89 / 0.92 | 0.81 / 1.09 | 0.78 / 1.07 | -0.03 / 0.69 | 0.58 / 0.82 | 0.605 |
+| sep2+step+depth | 0.88 / 0.93 | 0.84 / 1.06 | 0.83 / 1.09 | -0.04 / 0.71 | 0.44 / 0.68 | 0.591 |
+| sep2+step+depth+protocol | 0.89 / 0.92 | 0.92 / 1.07 | 0.87 / 1.08 | -0.05 / 0.75 | 0.34 / 0.61 | 0.594 |
+
+Test (run once): pass on every main set: CCC ≥ 0.8, size ratio 0.8–1.25, pattern unchanged.
+
+| Set | Tier | CCC (nm): uncalibrated → calibrated | Size ratio | Trend-removed ρ | Within the rule |
+|---|---|---|---|---|---|
+| bintu_imr90_28_30 | main | 0.372 → 0.718 | 0.49 → 1.20 | 0.907 | no |
+| bintu_imr90_18_20 | main | 0.040 → 0.624 | 0.35 → 0.85 | -0.049 | no |
+| su_chr21 | main | 0.328 → 0.458 | 0.57 → 1.40 | 0.844 | no |
+| su_chr21_rep | main | 0.311 → 0.428 | 0.57 → 1.41 | 0.798 | no |
+| su_genome | main | 0.166 → 0.633 | 0.46 → 1.12 | 0.522 | no |
+| bintu_imr90_28_30 · encode_imr90_intact | secondary | 0.629 → 0.446 | 0.61 → 1.49 | 0.912 | — |
+| bintu_imr90_28_30 · encode_imr90_dilution | secondary | 0.126 → 0.809 | 0.34 → 0.83 | 0.671 | yes |
+| bintu_imr90_18_20 · encode_imr90_intact | secondary | 0.069 → 0.825 | 0.42 → 1.04 | -0.000 | yes |
+| bintu_imr90_18_20 · encode_imr90_dilution | secondary | 0.023 → 0.227 | 0.28 → 0.70 | 0.028 | — |
+| bintu_a549_28_30 · encode_a549_insitu | secondary | 0.067 → 0.468 | 0.29 → 0.70 | 0.452 | — |
+| su_genome_amanitin | secondary | 0.170 → 0.594 | 0.47 → 1.14 | 0.533 | — |
+
+Verdict: **fail**.
+<!-- END generated:gate1c -->
+
+**Reading.**
+- **Fail, on every main set.** The single factor (×2.45) raises CCC everywhere, from 0.04–0.37 to
+  0.43–0.72, but no set reaches 0.8. Sizes land in range on three of the five (IMR-90 ×2 and the
+  genome-scale set) and overshoot Su chr21 and its replicate (1.40×), whose uncalibrated models were
+  already larger than the practice average.
+- **One factor does not transfer between Hi-C datasets.** On the secondary sets each IMR-90 region
+  reaches CCC 0.81–0.83 with one ENCODE file and only 0.23–0.45 with the other, and which file works
+  swaps between the two regions (dilution Hi-C on 28–30 Mb, intact Hi-C on 18–20 Mb). The size error
+  depends on the Hi-C dataset and the region in ways the practice units could not teach: every
+  practice form with separation, locus-spacing, depth or protocol terms extrapolated worse than the
+  single factor.
+- **The pattern is untouched** (one factor for all pairs), as the rule required.
+- **In the app** nothing changes: models built from Hi-C are still labelled as giving ranks, not
+  nanometres (Gate 1b).
+
 ## Gate 2 — are the stated intervals honest? (Pillar 2)
 
 **What is stated.** For every pair of loci the population predicts a distribution of distances
