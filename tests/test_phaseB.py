@@ -65,3 +65,23 @@ def test_research_mode_switch_and_synthetic_labels(app):
     assert "Senescent: at least 2 of its 3 criteria" not in txt          # the rule table is hidden
     at.toggle(key="research_mode").set_value(True).run()
     assert "Senescent: at least 2 of its 3 criteria" in _text(at)
+
+
+def test_gate4c_measured_change_and_scoring():
+    import sys
+    sys.path.insert(0, str(Path(APP).parent / "validation"))
+    import numpy as np
+    import cohesin_hic as CH
+    rng = np.random.default_rng(0)
+    n = 40
+    sep = np.abs(np.subtract.outer(np.arange(n), np.arange(n))) + 1.0
+    u = rng.poisson(2000.0 / sep).astype(float)
+    a = 3 * u                                                    # deeper library, same shape: no change
+    meas, mask = CH.measured_change(u, a)
+    assert mask.any() and not mask[np.tril_indices(n, 1)].any()
+    assert np.allclose(meas[mask], np.median(meas[mask]), atol=0.35)
+    planted = rng.normal(0, 1, (n, n))
+    planted = planted + planted.T
+    trend = -np.log2(sep)
+    s = CH.score_region({"model": planted, "trend_only": trend}, planted, mask)
+    assert s["model"] > 0.99 and s["difference"] > 0.5 and s["difference_ci95"][0] > 0
