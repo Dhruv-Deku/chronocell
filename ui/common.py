@@ -375,6 +375,11 @@ def is_synthetic(ds: "Dataset | None" = None, label: str = "") -> bool:
     return bool(ds.is_reference or "synthetic" in names or "demo/" in names)
 
 
+def contacts_are_synthetic(ds: "Dataset") -> bool:
+    """True when the contacts in view are the reference model's simulated Micro-C (not a measured map)."""
+    return "simulated Micro-C" in ds.tracks_label
+
+
 def synthetic_warning(what: str = "This result") -> None:
     """Shown above any result computed on synthetic data (Phase B8)."""
     banner(f"<b>{esc(what)} is computed on SYNTHETIC data</b> (the built-in reference model or the demo patients), "

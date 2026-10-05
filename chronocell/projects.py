@@ -36,25 +36,54 @@ def _plain(v) -> bool:
     return isinstance(v, (str, int, float, bool, type(None))) or (isinstance(v, (list, tuple)) and all(_plain(x) for x in v))
 
 
+def _picklable(results: dict) -> tuple[dict, list[str]]:
+    """The result items that can be serialised (each entry of a dict-valued item checked on its own)."""
+    keep, skipped = {}, []
+    for key, value in (results or {}).items():
+        items = value.items() if isinstance(value, dict) else [(None, value)]
+        out = {}
+        for k, v in items:
+            try:
+                pickle.dumps(v, protocol=pickle.HIGHEST_PROTOCOL)
+            except Exception as exc:                 # noqa: BLE001 - any object the pickler refuses is skipped
+                skipped.append(f"{key}{'' if k is None else f' / {k}'}: {type(exc).__name__}")
+                continue
+            if k is None:
+                keep[key] = v
+            else:
+                out[k] = v
+        if isinstance(value, dict):
+            keep[key] = out
+    return keep, skipped
+
+
 def save(name: str, settings: dict, files: dict[str, bytes] | None = None, results: dict | None = None,
          notes: str = "", root: Path | None = None) -> Path:
-    """Save (or overwrite) a project; only plain settings values are kept."""
-    d = Path(root if root is not None else ROOT) / _safe(name)
-    (d / "data").mkdir(parents=True, exist_ok=True)
+    """Save (or overwrite) a project; only plain settings values are kept. Results that cannot be serialised are
+    skipped and listed in project.json ('skipped_results'). The project is written to a temporary folder first and
+    moved into place, so a failed save never leaves a half-written project."""
+    base_dir = Path(root if root is not None else ROOT)
+    d = base_dir / _safe(name)
+    tmp = base_dir / f".{_safe(name)}.saving"
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    (tmp / "data").mkdir(parents=True, exist_ok=True)
     listed = []
     for fname, data in (files or {}).items():
         base = Path(fname).name
-        (d / "data" / base).write_bytes(data)
+        (tmp / "data" / base).write_bytes(data)
         listed.append({"name": base, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)})
+    keep, skipped = _picklable(results or {})
     meta = {"format": MARK, "name": _safe(name), "saved_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             "settings": {k: v for k, v in settings.items() if _plain(v)}, "files": listed, "notes": notes,
-            "has_results": bool(results)}
-    if results:
-        with (d / "results.pkl").open("wb") as fh:
-            pickle.dump(results, fh, protocol=pickle.HIGHEST_PROTOCOL)
-    elif (d / "results.pkl").exists():
-        (d / "results.pkl").unlink()
-    (d / "project.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
+            "has_results": bool(keep), "skipped_results": skipped}
+    if keep:
+        with (tmp / "results.pkl").open("wb") as fh:
+            pickle.dump(keep, fh, protocol=pickle.HIGHEST_PROTOCOL)
+    (tmp / "project.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
+    if d.exists():
+        shutil.rmtree(d)
+    tmp.replace(d)
     return d
 
 
