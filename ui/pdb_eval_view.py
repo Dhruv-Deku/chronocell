@@ -17,7 +17,7 @@ import streamlit as st
 
 from chronocell import theme as T, viz
 from chronocell.analytics import pdb_evaluator as PE
-from ui.common import Dataset, banner, esc, fmt, html, readout, warning_card
+from ui.common import Dataset, banner, esc, fmt, html, is_synthetic, readout, synthetic_warning, warning_card
 
 ss = st.session_state
 STATE_TAG = {"Normal": "ok", "Senescent": "warn", "Diseased": "warn", "Indeterminate": ""}
@@ -104,7 +104,14 @@ def render(options: list[tuple[str, Dataset]], populations: dict | None = None) 
             warning_card("This structure cannot be evaluated", str(exc))
             return
         pop = _evaluate_population(key, members) if members is not None and len(members) > 1 else None
-        ss.pe_last = {"key": key, "name": name, "unit": unit_note, "ev": ev, "pop": pop, "resolution": resolution}
+        synthetic = False
+        if pick.startswith("structure:"):
+            synthetic = is_synthetic(options[int(pick.split(":")[1])][1], labels[pick])
+        elif pick.startswith("population:"):
+            dkey = pick.split(":", 1)[1].rsplit(":", 3)[0]
+            synthetic = any(d.key == dkey and is_synthetic(d, lab) for lab, d in options)
+        ss.pe_last = {"key": key, "name": name, "unit": unit_note, "ev": ev, "pop": pop, "resolution": resolution,
+                      "synthetic": synthetic}
     last = ss.get("pe_last")
     if not last:
         html('<p class="cc-note">Choose a structure and press <b>Evaluate</b>.</p>')
@@ -114,9 +121,15 @@ def render(options: list[tuple[str, Dataset]], populations: dict | None = None) 
 
 def _show(last: dict) -> None:
     ev: PE.Evaluation = last["ev"]
+    research = bool(ss.get("research_mode", True))
+    if last.get("synthetic"):
+        synthetic_warning("This evaluation")
+    tag = f'<span class="cc-tag {STATE_TAG.get(ev.state, "")}">{ev.state}</span> &nbsp;' if research else ""
     html(f'<p class="cc-eyebrow" style="margin-top:10px">{esc(last["name"])}</p>'
-         f'<p class="cc-meta"><span class="cc-tag {STATE_TAG.get(ev.state, "")}">{ev.state}</span> '
-         f'&nbsp;{ev.n:,} points · coordinates in {esc(last["unit"] or "nm")}</p>')
+         f'<p class="cc-meta">{tag}{ev.n:,} points · coordinates in {esc(last["unit"] or "nm")}</p>')
+    if not research:
+        html('<p class="cc-note">Research mode is off: the rule-based Normal / Diseased / Senescent label and its criteria '
+             'are hidden, because they are not validated against labelled structures. The geometry below is measured.</p>')
     left, right = st.columns([1, 1.1], gap="large")
     with left:
         readout([
@@ -136,16 +149,17 @@ def _show(last: dict) -> None:
              fmt(ev.scaling_break, 3), ""),
             ("Density spikes · anomaly runs", f"{100 * ev.spike_fraction:.1f} % · {len(ev.anomaly_runs)}", ""),
         ])
-    with right:
-        crit = pd.DataFrame([{"State": c.state, "Criterion": c.name, "Value": round(c.value, 3) if np.isfinite(c.value) else None,
-                              "Threshold": c.threshold, "Met": "yes" if c.met else "no", "Threshold source": c.source}
-                             for c in ev.criteria])
-        st.dataframe(crit, hide_index=True, width="stretch", height=290)
-        html('<p class="cc-note">Senescent: at least 2 of its 3 criteria. Diseased: at least 2 of its 3. Normal: γ<sub>c</sub> '
-             'in range and neither rule set met. Otherwise Indeterminate. Thresholds marked <i>specification</i> come from '
-             'the ChronoCell v4 brief; <i>assumption</i> marks values chosen here because the brief gave none. The '
-             'references for R<sub>g</sub> and density are a compact globule of the same N and bond length at the volume '
-             'fraction of ChronoCell\'s reference globule (0.19).</p>')
+    if research:                      # the rule-based state criteria (not validated): Research mode only
+        with right:
+            crit = pd.DataFrame([{"State": c.state, "Criterion": c.name,
+                                  "Value": round(c.value, 3) if np.isfinite(c.value) else None, "Threshold": c.threshold,
+                                  "Met": "yes" if c.met else "no", "Threshold source": c.source} for c in ev.criteria])
+            st.dataframe(crit, hide_index=True, width="stretch", height=290)
+            html('<p class="cc-note">Senescent: at least 2 of its 3 criteria. Diseased: at least 2 of its 3. Normal: '
+                 'γ<sub>c</sub> in range and neither rule set met. Otherwise Indeterminate. Thresholds marked '
+                 '<i>specification</i> come from the ChronoCell v4 brief; <i>assumption</i> marks values chosen here '
+                 'because the brief gave none. The references for R<sub>g</sub> and density are a compact globule of the '
+                 'same N and bond length at the volume fraction of ChronoCell\'s reference globule (0.19).</p>')
     c1, c2 = st.columns(2, gap="large")
     with c1:
         html('<p class="cc-eyebrow">Distance against separation</p>')
@@ -162,7 +176,8 @@ def _show(last: dict) -> None:
         rows = [{"Metric": k, "Median": round(v["median"], 3), "10th pct": round(v["p10"], 3), "90th pct": round(v["p90"], 3)}
                 for k, v in pop.items() if isinstance(v, dict) and "median" in v]
         st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
-        html('<p class="cc-note">States across members: ' + ", ".join(f"{k} {v}" for k, v in pop["states"].items())
-             + '. This is ensemble spread (how consistent the population is), not accuracy.</p>')
+        states = ("States across members: " + ", ".join(f"{k} {v}" for k, v in pop["states"].items()) + ". "
+                  if research else "")
+        html(f'<p class="cc-note">{states}This is ensemble spread (how consistent the population is), not accuracy.</p>')
     st.download_button("Evaluation (JSON)", json.dumps(ev.summary(), indent=1, default=float),
                        "chronocell_state_evaluation.json", "application/json", key="pe_json", icon=":material/download:")
