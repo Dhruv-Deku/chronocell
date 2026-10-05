@@ -164,3 +164,14 @@ HIC_SIZE = {"min_ccc": 0.8, "size_ratio": (0.8, 1.25), "pattern_tolerance": 1e-9
             "main": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep", "su_genome"],
             "secondary": ["bintu_imr90_28_30 intact", "bintu_imr90_28_30 dilution", "bintu_imr90_18_20 intact",
                           "bintu_imr90_18_20 dilution", "bintu_a549_28_30 in situ", "su_genome_amanitin"]}
+
+# Gate 3b (Phase A4, a learned correction on top of the population model; validation/learned_correction.py and the
+# benchmark method "learned_correction"). Rule, from the Phase A brief and fixed before the practice run: best % of
+# the reproducible pattern on >= 90 % of the Hi-C test units of Gate 3's plan, AND no loss of more than 1 point
+# against the current model on any imaging-input unit. Practice (results_learned_correction_practice.json;
+# leave-one-dataset-out over the practice units) compared no correction, a ridge correction and a small MLP
+# (trained on the GPU) on pair features; the pre-specified selection (highest mean held-out pattern rho, and
+# beating "none" on every held-out group) chose NO correction: both learned corrections raised Lin's CCC (sizes)
+# but lowered the held-out pattern. There is nothing to test, so Gate 3b is not run and its test units stay unused.
+LEARNED_CORRECTION = {"hic_best_fraction": 0.90, "imaging_max_loss_points": 1.0, "status": "not run",
+                      "reason": "practice chose no correction (pre-specified selection rule)"}
