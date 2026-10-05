@@ -215,3 +215,19 @@ COHESIN_HIC = {"pairs": ["in situ", "intact"], "main_pair": "in situ", "min_regi
                "regions": [("chr2", 216_000_000), ("chr5", 140_000_000), ("chr7", 130_000_000),
                            ("chr10", 100_000_000), ("chr12", 52_000_000), ("chr17", 48_000_000)],
                "res": 10_000, "window": 2_000_000, "min_reads": 10, "min_sep_bins": 2, "boot": 200, "r_c_nm": 150.0}
+
+# Gate 2e (Phase A3, a per-pair reliability score on data no reliability test has touched;
+# validation/reliability_v2.py). Pre-registered after the practice comparison (results_reliability_v2_practice.json,
+# run in two chunks, imaging then Hi-C) and before any test unit was scored. Candidates (input only): spread of
+# the log median over 8 refits on resampled input (boot_sd), contacts around the pair (evidence), their rank
+# average (combined), and Gate 2c's misfit. Chosen per input by the best worst case over the practice groups:
+# imaging input = misfit (the only candidate positive on every practice group, +0.063 to +0.175; boot_sd -0.083,
+# evidence -0.019, combined -0.037 at worst); Hi-C input = boot_sd (worst -0.031; evidence -0.125, combined
+# -0.075, misfit -0.064). No candidate reached 0.30 on any practice group, so a pass is not expected.
+# Test sets: the genome-scale su_genome and su_genome_amanitin (chromosome units, split 0, pooled pair-weighted;
+# 95 % interval by resampling the units), each with imaging and with Hi-C input. Gate 2's six sets are not reused.
+# Error and scoring as Gate 2c (scale-free pair error; Spearman of score vs minus error within 10 separation strata).
+# Pass, separately per input type: on BOTH test sets rho >= 0.30 with the 95 % interval above 0. Only a passing input
+# type may show a reliability in the probe and the 3D view, labelled with its measured standing; otherwise nothing.
+RELIABILITY_V2 = {"score": {"imaging": "misfit", "hic": "boot_sd"}, "min_rho": 0.30, "boot_refits": 8, "strata": 10,
+                  "split": 0, "test": ["su_genome", "su_genome_amanitin"]}
