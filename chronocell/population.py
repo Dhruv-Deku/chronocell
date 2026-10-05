@@ -445,9 +445,14 @@ def fit_population(freq: np.ndarray, n_observed: np.ndarray | float | None = Non
     """Fit a population of chains to a dense contact-frequency matrix of any size.
 
     Same inputs and outputs as ensemble.fit_ensemble (an EnsembleResult), plus `result.model`, the
-    fitted GaussianChain, from which any per-pair statistic is exact.
+    fitted GaussianChain, from which any per-pair statistic is exact. With device "auto" a CUDA
+    out-of-memory error refits on the CPU (recorded in result.config["device_fallback"]).
     """
     cfg = cfg or PopulationConfig()
+    return ENS.with_cpu_fallback(lambda c: _fit_population(freq, n_observed, r_c_nm, c, progress), cfg)
+
+
+def _fit_population(freq, n_observed, r_c_nm, cfg: PopulationConfig, progress) -> ENS.EnsembleResult:
     t0 = time.time()
     dev = _device(cfg.device)
     dtype = torch.float32 if cfg.dtype == "float32" else torch.float64

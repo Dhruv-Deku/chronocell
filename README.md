@@ -290,7 +290,7 @@ ChronoCell-5D/
 - **The drug lab is a mechanism simulator.** It shows what a drug's mechanism *could* do to a fold, not how well a drug works in patients.
 - **Gene "active / silenced" labels are predictions** from 3D accessibility and signal. RNA-seq can be added to check them.
 - **The PDB State Evaluator's classes are rule-based descriptors**, with thresholds stated as assumptions in `chronocell/analytics/pdb_evaluator.py`, not trained or validated disease labels.
-- **GPU.** The CUDA path is implemented but was not tested here (no CUDA device); every measured runtime is CPU.
+- **GPU.** Tested on an RTX 5050 Laptop GPU (CUDA 12.8): fits agree with the CPU within a stated tolerance, and a GPU out-of-memory error refits on the CPU. The runtime tables are CPU measurements; GPU timings are not measured yet.
 - **Synthetic data is labelled.** The reference model and demo patients are synthetic, and the app labels them as such everywhere.
 
 ## Licence
