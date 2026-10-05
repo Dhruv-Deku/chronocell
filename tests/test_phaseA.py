@@ -165,3 +165,23 @@ def test_conformal_intervals_quantiles_coverage_and_tie_rule():
              "bands|imaging": {"worst_abs_err_90": 0.066}, "pooled|imaging": {"worst_abs_err_90": 0.074}}
     assert I.choose(table, "hic") == "pooled|hic"           # within the tie margin: the simpler variant
     assert I.choose(table, "imaging") == "bands|imaging"    # better by more than the margin
+
+
+def test_fofct_reader_pools_files_and_keeps_nm(tmp_path):
+    import predictor_mouse as PM
+    head = ("##FOF-CT_version=v0.1,,,,,,,,\n##XYZ_unit=micron,,,,,,,,\n\"#Software_Authors: x, y\",,,,,,,,\n"
+            "##columns=(Spot_ID, Trace_ID, X, Y, Z,Chrom, Chrom_Start, Chrom_End, Cell_ID)\n")
+    rows = []
+    for t in (1, 2):
+        for k in range(4):
+            if t == 2 and k == 3:
+                continue                                    # one locus missing in trace 2
+            rows.append(f"{len(rows)},{t},{100.0 * k + t},{0.0},{0.0},chr6,{1001 + 30000 * k},{31001 + 30000 * k},{t}")
+    a, b = tmp_path / "a.csv", tmp_path / "b.csv"
+    a.write_text(head + "\n".join(rows) + "\n")
+    b.write_text(head + "\n".join(rows[:4]) + "\n")
+    tr = PM.read_fofct([a, b])
+    assert tr.xyz.shape == (3, 4, 3)                        # trace ids made unique per file
+    assert tr.meta["scale_to_nm"] == 1.0 and tr.meta["locus_bp"] == 30000
+    assert np.allclose(np.diff(tr.starts), 30000) and tr.chrom[0] == "chr6"
+    assert np.isnan(tr.xyz[1, 3]).all() and np.isclose(tr.xyz[0, 2, 0], 201.0)
