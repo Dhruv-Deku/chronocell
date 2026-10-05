@@ -46,12 +46,13 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 
 | Page | What it does |
 |---|---|
-| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, and the measured coverage of that interval for your input type. **No contacts for a window?** Build the population from a prediction instead: CTCF ChIP-seq peaks of the cell type (upload, paste, or fetch from ENCODE by cell type) plus the DNA sequence, labelled *predicted* everywhere. When a window has both, the two maps are shown side by side with their agreement, never blended. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. |
-| **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements from presets, a custom definition or **your own VCF / BEDPE file**. *04 Variant impact* lists the changed contacts, affected genes and enhancer–promoter pairs, with 90 % intervals from refits. It is labelled with its measured standing: "mechanism simulator, not validated". Export movies and GIFs. |
-| **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. |
+| **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, and the measured coverage of that interval for your input type. **No contacts for a window?** Build the population from a prediction instead: CTCF ChIP-seq peaks of the cell type (upload, paste, or fetch from ENCODE by cell type) plus the DNA sequence, labelled *predicted* everywhere. When a window has both, the two maps are shown side by side with their agreement, never blended. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. **06 Analysis suite**: loops (HiCCUPS-like), boundaries and domains (insulation, TopDom-like, Arrowhead-like), compartments and P(s) from the window's contacts, exported for IGV and Juicebox (Gate 6). |
+| **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements from presets, a custom definition or **your own VCF / BEDPE file**. *04 Variant impact* lists the changed contacts, affected genes and enhancer–promoter pairs, with 90 % intervals from refits. It is labelled with its measured standing: "mechanism simulator, not validated". Export movies and GIFs. **05 Variant impact engine v2**: rearrangements described by their breakend joins (also across two chromosomes), typed derivative chromosomes, or copy number; domain boundaries, genes (with ClinVar counts), enhancer–promoter pairs, refit intervals and a ranking across a file's variants. Still a mechanism simulator (Gate 4d blocked; the shared cohesin model passed Gate 4c). |
+| **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. **Differential analysis** (third sub-tab): two conditions with replicate maps (.hic, .mcool, .cool, .pairs, read by region): differential contacts with a replicate-aware test and false-discovery control, loop gain / loss, boundary changes, compartment switches (Gate 7). |
 | **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. |
 | **05 · Genes** | All 19,386 human genes (hg38) or 20,995 mouse genes (mm39) placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. Click a row to pick a gene; it is then marked in the 3D view. |
 | **06 · Guide** | A plain-language guide to every page and number. |
+| **Sidebar** | **Research mode** (on by default; off hides the mechanism simulators and the rule-based state labels), **Projects** (save and reopen a session), **Jobs** (a local queue: one GPU job at a time). |
 | **🤖 ChronoAgent** | Reads the measurements on screen and writes an interpretation. Exports a Markdown report, a PDB structure and a PDF dossier. |
 
 Genome assemblies are configuration (`chronocell/data/genomes/<assembly>/`): human hg38 and mouse mm39
@@ -141,6 +142,16 @@ The table below is generated from the result files by `python validation/report.
 | Gate 4: cohesin loss (RAD21 degron, Bintu et al. 2018), held-out region | change agreement 0.868 vs 0.336 for a trend-only shift | pass, one region |
 | Gate 4b: structural variants (K562 chr9 deletions vs GM12878, Rao 2014 Hi-C) | model 0.083, distance shift 0.149, no change 0.424 | not validated (mechanism simulator) |
 | Gate 5: distances from sequence + CTCF alone (no contact data) | 4 of 5 test sets pass the pre-registered rule | pass |
+| Gate 1c: calibrated sizes from Hi-C (5 main sets) | CCC 0.43–0.72 after calibration (needed ≥ 0.8) | fail |
+| Gate 2d: conformal distance ranges hold 85–95 % / 40–60 % in every band | imaging input 4 of 7 sets, Hi-C input 1 of 5 | imaging fail, hic fail |
+| Gate 2e: per-pair reliability on untouched genome-scale sets (ρ ≥ 0.30) | su_genome · imaging +0.08; su_genome · hic +0.01; su_genome_amanitin · imaging +0.12; su_genome_amanitin · hic +0.01 | imaging fail, hic fail |
+| Gate 3b: a learned correction on the population model | practice chose no correction | not run |
+| Gate 4c: cohesin loss vs RAD21-degron Hi-C on 6 held-out regions | 5 of 6 regions beat trend only | pass |
+| Gate 4d: SV effects on new events with Hi-C before and after | two usable events found, three needed | blocked; variant engine stays a mechanism simulator |
+| Gate 5b: prediction with cohesin peaks | 0 of 5 test sets | fail |
+| Gate 5m: the human predictor on mouse ES-cell tracing (4DN) | 17.0 % of the ceiling; 7.2 % of the ceiling | pass (modest) |
+| Gate 6: loop calls vs ENCODE HiCCUPS calls, held-out cell lines | k562: F1 0.40 (chromosight 0.39, Mustache 0.49); imr90: F1 0.74 (chromosight 0.42, Mustache 0.47) | fail |
+| Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | mean FDP 0.002 at nominal 0.05; recall ×2 0.01, ×4 0.63 | pass |
 <!-- END generated:readme_accuracy -->
 
 **In plain words:**
@@ -207,6 +218,20 @@ python validation/chromosome_runtime.py                          # runtime and m
 python validation/report.py                                      # regenerate the tables in RESULTS.md / README
 ```
 
+After `pip install -e .` the `chronocell` command wraps the Phase B analyses (each writes tables, BED / BEDPE /
+bedGraph, Juicebox annotations, `summary.json` and a run record with input SHA-256s):
+
+```bash
+chronocell analyze map.mcool --region chr21:28000000-30000000 --res 10000 --norm kr --out out/analysis
+chronocell diff --a ctrl1.hic ctrl2.hic --b treat1.hic treat2.hic --region chr21:28000000-30000000 --res 10000 --out out/diff
+chronocell impact map.mcool --region chr9:130000000-131500000 --res 10000 --variants sv.vcf --refits 8 --out out/sv
+chronocell batch samples.csv --out out/batch           # sample,path,region,resolution[,condition]; resumable
+chronocell report out/diff --pdf                       # offline HTML (+ PDF) report with the gate standing
+python -m chronocell.jobs worker                       # the local job queue (also from the app's sidebar)
+python validation/cohesin_hic.py --test                # Gate 4c   (and diff_gate7.py, loops_gate6.py,
+python validation/predictor_mouse.py --test            # Gate 5m    reliability_v2.py, intervals_v2.py, ...)
+```
+
 ## REST API (optional)
 
 The endpoints are plain functions in `chronocell/api.py`, and FastAPI serves them over HTTP when it is
@@ -222,6 +247,9 @@ python -m chronocell.api --port 8000        # interactive docs at http://127.0.0
 | `POST /api/v1/reconstruct` | `contacts: {i, j, count}`, `n_beads`, `model: "population"` (v3.3, ≤ 400 beads), `"population_v4"` (≤ 6,000 beads) or `"single"` | 3D coordinates, metrics, **both accuracy scores** kept separate, timings |
 | `POST /api/v1/metrics` | `coords_nm` (N×3), optional `contacts` | R_g, span, ν, overlaps; contact-map fit if contacts are given |
 | `GET /api/v1/benchmark` | none | the held-out microscopy benchmark |
+| `POST /api/v1/analyze` | `contacts: {i, j, count, n, resolution}` | loops, boundaries, domains, summary (Gate 6 standing) |
+| `POST /api/v1/diff` | `condition_a`, `condition_b`: lists of contact maps; `fdr` | significant pixels, loop / boundary / compartment changes |
+| `POST /api/v1/impact` | `sources` (one or two windows) and `joins`, `segments` or `copy_number` | derivatives, top changes, genes, boundaries, E–P pairs (mechanism simulator) |
 
 Every call is appended to a run log (`.chronocell_cache/api_run_log.jsonl`): time, endpoint, software version, parameters as sizes only, a SHA-256 of the exact input, run time and outcome.
 
@@ -285,8 +313,10 @@ ChronoCell-5D/
 - **Research and education only.** This is not a diagnostic tool and not medical advice.
 - **Absolute distances from sequencing Hi-C are not calibrated.** Ranks transfer to real cells; nanometres do not (Gate 1b).
 - **Intervals are lower bounds for some inputs.** Recalibrated intervals were close to nominal for imaging-derived contacts but too narrow for close pairs (Gate 2). With sequencing Hi-C input they are far too narrow, even after a recalibration fitted on practice Hi-C (Gate 2b). There is no reliability score: neither the per-bead (Gate 2) nor the per-pair (Gate 2c) candidate reached the bar.
-- **Prediction without contacts is a prior.** It recovers a modest share of the pattern on human data (Gate 5), reflects compartments and insulation rather than loops, and is offered for hg38 only: the mouse test is pre-registered but not run (Gate 5m).
-- **The structural-variant simulator is not validated.** On the one real rearrangement tested it did not beat a genomic-distance shift. It also assumes the variant list fully describes how the pieces are joined.
+- **Prediction without contacts is a prior.** It recovers a modest share of the pattern on human data (Gate 5), reflects compartments and insulation rather than loops. On mouse ES-cell tracing it passed its pre-registered test, modestly (Gate 5m), and is offered for mouse with your own CTCF peaks.
+- **The structural-variant simulator is not validated.** On the one real rearrangement tested it did not beat a genomic-distance shift. The v2 engine takes explicit joins (so it no longer assumes deleted intervals say how pieces are joined), but its own test with Hi-C before and after a variant could not run: two usable events were found, three are needed (Gate 4d). The cohesin-loss model it shares passed on held-out Hi-C (Gate 4c).
+- **Absolute sizes from Hi-C stay uncalibrated** after a practice-fitted factor (Gate 1c), and the conformal distance ranges did not hold their coverage in every band (Gate 2d); the probe is unchanged.
+- **Loop calls and differential tests have measured limits.** Loop calls agree with HiCCUPS better than chromosight and Mustache on IMR-90 but not on K562 (Gate 6, fail). The differential test keeps false discoveries far below its stated rate but, with two replicates per condition, finds most four-fold and very few two-fold changes (Gate 7). No per-pair reliability score passed (Gate 2e).
 - **The drug lab is a mechanism simulator.** It shows what a drug's mechanism *could* do to a fold, not how well a drug works in patients.
 - **Gene "active / silenced" labels are predictions** from 3D accessibility and signal. RNA-seq can be added to check them.
 - **The PDB State Evaluator's classes are rule-based descriptors**, with thresholds stated as assumptions in `chronocell/analytics/pdb_evaluator.py`, not trained or validated disease labels.

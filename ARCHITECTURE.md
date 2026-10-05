@@ -720,3 +720,46 @@ prediction (intervals not tested).
 before the test that uses it. `protocol.py` is the shared held-out protocol (half A in, half B as the
 answer key, trend-removed Spearman as a % of the half A vs half B ceiling). `datasets.py` is the dataset
 registry with practice / test roles, downloads and checksums.
+
+## 12. Phase B: variant impact, analysis suite, differential analysis, data handling, platform (October 2026)
+
+Everything here is additive: the pages, defaults, models, commands, endpoints and result files of section 11 are
+unchanged, and each new feature carries its measured standing (`validation/RESULTS.md`). `chronocell/` still has
+no Streamlit imports. Third-party tools run only from an isolated environment (`.chronocell_cache/tools-venv`), so
+the app's own environment is never changed by them.
+
+### 12.1 Design note per item
+
+| Item | Modules | Place in the app | CLI / API | Tests | Gate |
+|---|---|---|---|---|---|
+| B1 variant impact engine v2 | `sv_engine.py` (joins → derivative chromosomes, several sources, copy number, read-outs, ranking), `annotations.py` (ClinVar, GTEx, user-supplied COSMIC) | 02 · 4D dynamics → 05 Variant impact engine v2 (`ui/variant_engine_view.py`); the old 04 panel is unchanged | `chronocell impact`; `POST /api/v1/impact` | engine walks, exact agreement with `perturb` on deletions / inversions, translocation read-outs, copy number; AppTest | 4c (cohesin loss, Hi-C), 4d (SVs, blocked) |
+| B2 two-condition comparison | `differential.py` (moderated t, BH FDR, tracks, loop / boundary / compartment changes) | 03 · Compare → Differential analysis (`ui/diff_view.py`) | `chronocell diff`; `POST /api/v1/diff` | null and planted changes; AppTest | 7 |
+| B3 analysis suite | `analysis.py` (HiCCUPS-like loops, TopDom-like, Arrowhead-like, compartments, insulation, P(s)); `domains.py` reused unchanged | 01 · 3D structure → 06 Analysis suite (`ui/analysis_view.py`) | `chronocell analyze`; `POST /api/v1/analyze` | planted loops and domains; AppTest | 6 |
+| B4 data handling | `contacts_io.py` (region-wise .hic / .cool / .mcool / .pairs, assembly detection, errors), `normalize.kr_balance`, `liftover.py`, `bigwig.py` | Differential analysis and partner windows read files or URLs by region | `chronocell batch` (sample sheet, resumable) | fixtures for every format and error | — |
+| B5 integration | `annotations.py`, `bigwig.py` (pure-Python bigWig reader used when pyBigWig is missing), RNA-seq as before | 05 · Genes → Reference annotations; variant report gene table | — | local fixture files | — (information only) |
+| B6 reports and exports | `report_html.py` (offline HTML + PDF with gate standing and run record), `exports.py` (BED / BEDPE / bedGraph, Juicebox 2D and short format, .mcool) | download buttons on each new panel | `chronocell report` | HTML has no scripts; PDF builds | — |
+| B7 local platform | `jobs.py` (queue: one GPU job at a time, CPU jobs up to a limit, Stop, recovery), `projects.py`, `cli.py`, `pyproject.toml` | sidebar: Projects, Jobs (`ui/platform_view.py`) | `chronocell analyze | diff | impact | batch | report | predict`; `python -m chronocell.jobs` | queue, recovery, projects; AppTest | — |
+| B8 Research mode | `ui/settings.py` | sidebar switch (default on) | — | AppTest | — |
+| B9 other tools | `validation/loops_gate6.py`, `validation/diff_gate7.py`, `validation/tools_b9.py` | — | — | matching and summaries | 6, 7 |
+
+### 12.2 The variant engine in one paragraph
+
+Each loaded window is a *source* with its population model's pair-variance matrix (nm²). A rearrangement is a set
+of joins between breakend sides (L = the piece ending at a cut, R = the piece starting there). Cutting every source
+at the breakpoints and walking the adjacencies from each window end gives the derivative chromosomes; pieces no walk
+reaches are acentric and lost. A derivative's ensemble is built exactly as `perturb.derive` builds one (pieces keep
+their joint law; reused pieces are independent copies; each junction is a new bond), generalised to several sources
+that are independent of each other. Hi-C in reference coordinates sums contacts over every chromosome the cell
+carries (normal homologs and derivatives with their copy numbers), so a heterozygous variant changes half the signal.
+Read-outs: contact change, insulation boundaries lost / gained and neo-domains across junctions, genes (copy number,
+broken, inverted, next to a junction, contacts changed), enhancer–promoter pairs, refit intervals, a ranking score.
+
+### 12.3 Packaging and tools
+
+`pip install -e .` installs the `chronocell` command (entry point `chronocell.cli:main`); every
+`python -m chronocell.<module>` command keeps working. Optional tools for the B9 comparisons live in
+`.chronocell_cache/tools-venv`, pinned in `requirements-tools.txt` (chromosight 1.6.3, cooler 0.10.4, Mustache 1.3.3 with NumPy 1.26.4 and a stub for
+hic-straw, which Mustache needs only for .hic input and which does not build on Windows). Not available on this
+machine, with reasons in `validation/results_tools_b9.json`: HiCCUPS / Arrowhead (Java), TopDom, dcHiC, diffHic,
+multiHiCcompare (R), CHESS (pysam does not build), cooltools, hic_breakfinder, HiNT, Akita, Orca, and a FASTQ →
+contacts pipeline (bwa / chromap / pairtools need Linux or WSL, and no WSL distribution is installed).
