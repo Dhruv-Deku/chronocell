@@ -1,0 +1,254 @@
+{
+ "mode": "practice (leave-one-dataset-out over the three training regions)",
+ "table": {
+  "ctcf|0.0001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3080771570425084,
+    "bintu_hct116_28_30": 0.22582445585809352,
+    "bintu_hct116_34_37": 0.3350889996581991
+   },
+   "mean": 0.28966353751960033
+  },
+  "ctcf|0.001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3016455726393167,
+    "bintu_hct116_28_30": 0.21553058639795783,
+    "bintu_hct116_34_37": 0.3653714661372014
+   },
+   "mean": 0.29418254172482533
+  },
+  "ctcf|0.01": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.253870398396385,
+    "bintu_hct116_28_30": 0.16457676820483164,
+    "bintu_hct116_34_37": 0.39611358154459514
+   },
+   "mean": 0.27152024938193725
+  },
+  "ctcf|0.1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.21499855881472826,
+    "bintu_hct116_28_30": 0.14355625420017537,
+    "bintu_hct116_34_37": 0.3145098072825952
+   },
+   "mean": 0.2243548734324996
+  },
+  "ctcf|1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.20568046139509089,
+    "bintu_hct116_28_30": 0.14465136817371319,
+    "bintu_hct116_34_37": 0.3056428544488952
+   },
+   "mean": 0.21865822800589974
+  },
+  "ctcf|10": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.1995324694554724,
+    "bintu_hct116_28_30": 0.14985806280856734,
+    "bintu_hct116_34_37": 0.30689935218122205
+   },
+   "mean": 0.21876329481508727
+  },
+  "ctcf+atac|0.0001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.37316816297807637,
+    "bintu_hct116_28_30": 0.14734456904086887,
+    "bintu_hct116_34_37": 0.24339087857211258
+   },
+   "mean": 0.2546345368636859
+  },
+  "ctcf+atac|0.001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.368090025416782,
+    "bintu_hct116_28_30": 0.14891425516125179,
+    "bintu_hct116_34_37": 0.2506305641753052
+   },
+   "mean": 0.2558782815844463
+  },
+  "ctcf+atac|0.01": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3116373266878561,
+    "bintu_hct116_28_30": 0.1442751359377981,
+    "bintu_hct116_34_37": 0.2518093243412336
+   },
+   "mean": 0.23590726232229595
+  },
+  "ctcf+atac|0.1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.25309643837074064,
+    "bintu_hct116_28_30": 0.12829763407610595,
+    "bintu_hct116_34_37": 0.20554608716375616
+   },
+   "mean": 0.1956467198702009
+  },
+  "ctcf+atac|1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.2428883329268315,
+    "bintu_hct116_28_30": 0.13932264675897543,
+    "bintu_hct116_34_37": 0.21558634616166977
+   },
+   "mean": 0.19926577528249223
+  },
+  "ctcf+atac|10": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.23883069796207435,
+    "bintu_hct116_28_30": 0.17303854776223826,
+    "bintu_hct116_34_37": 0.2356102011265614
+   },
+   "mean": 0.21582648228362467
+  },
+  "ctcf+h3k27ac|0.0001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.2984348570368782,
+    "bintu_hct116_28_30": 0.19152783385123606,
+    "bintu_hct116_34_37": 0.3213633245340137
+   },
+   "mean": 0.2704420051407093
+  },
+  "ctcf+h3k27ac|0.001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.29167606535267754,
+    "bintu_hct116_28_30": 0.1821910336446617,
+    "bintu_hct116_34_37": 0.33751228043348813
+   },
+   "mean": 0.27045979314360913
+  },
+  "ctcf+h3k27ac|0.01": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.2493390111652865,
+    "bintu_hct116_28_30": 0.1533042162066669,
+    "bintu_hct116_34_37": 0.2883097486324818
+   },
+   "mean": 0.2303176586681451
+  },
+  "ctcf+h3k27ac|0.1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.21250348678163888,
+    "bintu_hct116_28_30": 0.14138074270222273,
+    "bintu_hct116_34_37": 0.22375501229411038
+   },
+   "mean": 0.19254641392599067
+  },
+  "ctcf+h3k27ac|1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.20319377045796683,
+    "bintu_hct116_28_30": 0.14371199306326646,
+    "bintu_hct116_34_37": 0.21957702682297778
+   },
+   "mean": 0.18882759678140368
+  },
+  "ctcf+h3k27ac|10": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.20022290296592513,
+    "bintu_hct116_28_30": 0.15008404617967325,
+    "bintu_hct116_34_37": 0.2255134898156614
+   },
+   "mean": 0.19194014632041992
+  },
+  "ctcf+rad21|0.0001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.31251491263522063,
+    "bintu_hct116_28_30": 0.4001839556140373,
+    "bintu_hct116_34_37": 0.4981200058220761
+   },
+   "mean": 0.4036062913571113
+  },
+  "ctcf+rad21|0.001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.32601867574196747,
+    "bintu_hct116_28_30": 0.4384721557475041,
+    "bintu_hct116_34_37": 0.5217077261522274
+   },
+   "mean": 0.428732852547233
+  },
+  "ctcf+rad21|0.01": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3029120596011838,
+    "bintu_hct116_28_30": 0.43802597503943,
+    "bintu_hct116_34_37": 0.5551100417820747
+   },
+   "mean": 0.4320160254742295
+  },
+  "ctcf+rad21|0.1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3249395709092533,
+    "bintu_hct116_28_30": 0.4094706657537027,
+    "bintu_hct116_34_37": 0.45868673907872065
+   },
+   "mean": 0.39769899191389224
+  },
+  "ctcf+rad21|1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.26981218305809257,
+    "bintu_hct116_28_30": 0.23352474318356103,
+    "bintu_hct116_34_37": 0.2879015355900628
+   },
+   "mean": 0.2637461539439055
+  },
+  "ctcf+rad21|10": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.20902112538301185,
+    "bintu_hct116_28_30": 0.1472688652049536,
+    "bintu_hct116_34_37": 0.23687737970106046
+   },
+   "mean": 0.19772245676300862
+  },
+  "ctcf+all|0.0001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.34246467894206106,
+    "bintu_hct116_28_30": 0.37001094239200916,
+    "bintu_hct116_34_37": 0.40175347303116077
+   },
+   "mean": 0.3714096981217436
+  },
+  "ctcf+all|0.001": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.36724093866779145,
+    "bintu_hct116_28_30": 0.41647761443532705,
+    "bintu_hct116_34_37": 0.4285705202309052
+   },
+   "mean": 0.4040963577780079
+  },
+  "ctcf+all|0.01": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3421929823999122,
+    "bintu_hct116_28_30": 0.4303225286646718,
+    "bintu_hct116_34_37": 0.4684699788167743
+   },
+   "mean": 0.4136618299604528
+  },
+  "ctcf+all|0.1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.3565657767534573,
+    "bintu_hct116_28_30": 0.4107872825556631,
+    "bintu_hct116_34_37": 0.3574182706789486
+   },
+   "mean": 0.37492377666268967
+  },
+  "ctcf+all|1": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.282539761329463,
+    "bintu_hct116_28_30": 0.2583967916860756,
+    "bintu_hct116_34_37": 0.183977637658746
+   },
+   "mean": 0.24163806355809483
+  },
+  "ctcf+all|10": {
+   "held_out_trend_removed_rho": {
+    "bintu_k562_28_30": 0.2438867904098896,
+    "bintu_hct116_28_30": 0.17770024705392312,
+    "bintu_hct116_34_37": 0.15057727482399663
+   },
+   "mean": 0.19072143742926975
+  }
+ },
+ "chosen": {
+  "feature_set": "ctcf+rad21",
+  "ridge_lambda": 0.01
+ },
+ "not_run": {
+  "Akita (Fudenberg et al., Nat Methods 2020)": "TensorFlow model; TensorFlow has no native GPU support on Windows, and its training data include IMR-90 and HCT116 Hi-C genome-wide, so the chr21 test regions cannot be guaranteed held out.",
+  "C.Origami (Tan et al., Nat Biotechnol 2023)": "needs pyBigWig (no Windows build here) and was trained on IMR-90 Hi-C including chr21, so an IMR-90 chr21 test would be in-sample.",
+  "Orca (Zhou, Nat Genet 2022)": "predicts H1 and HFF Micro-C only (not the imaged cell lines) and needs the Selene stack and multi-GB weights; not attempted here."
+ }
+}

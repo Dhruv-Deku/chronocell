@@ -129,3 +129,20 @@ RELIABILITY = {"score": "misfit", "min_spearman": 0.20, "strata": 10, "bootstrap
                "test_imaging": ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30",
                                 "bintu_hct116_34_37_auxin", "su_chr21", "su_chr21_rep"],
                "test_hic": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep"]}
+
+# Gate 5b (Phase A5, prediction without contact data from more inputs; validation/predictor_v2.py).
+# Pre-registered after the practice comparison (results_predictor_v2_practice.json) and before any test run.
+# Model frozen in validation/predictor_v2_model.json: Gate 5's 12 CTCF + GC features plus ENCODE RAD21 (cohesin)
+# peak features (per-locus signal similarity and anchors, RAD21 sites between the loci, each also times
+# log10 separation), ridge 0.01, chosen by leave-one-dataset-out over the three non-IMR-90 untreated practice
+# regions it was trained on (K562 chr21:28-30, HCT116 chr21:28-30 and 34-37), so every test set is a held-out
+# cell type. ATAC and H3K27ac did not help on practice and are not used. The frozen Gate 5 model is unchanged
+# and stays the app's default.
+# Test sets and scoring: Gate 5's (PREDICTOR["test"], the cohesin-depleted set as a control, half-B medians,
+# all pairs, 3 splits for the Bintu sets, 95 % interval from split 0).
+# Pass ("may be offered as an option"): on at least 3 of the 5 test sets, % of the reproducible pattern >= 50
+# with its 95 % interval above 0 AND higher than the frozen Gate 5 model's % on that set
+# (validation/results_predictor.json).
+PREDICTOR_V2 = {"train": ["bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_34_37"], "test": PREDICTOR["test"],
+                "control": PREDICTOR["control"], "marks": ["rad21"], "min_percent": 50.0, "min_sets": 3,
+                "beat_gate5": True}

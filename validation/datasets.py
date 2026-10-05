@@ -280,6 +280,29 @@ def fetch_url(url: str, path: Path, md5: str | None = None, retries: int = 6) ->
     return path
 
 
+MARK_PEAKS = {   # (mark, cell line) -> (file accession, experiment, MD5 published by the ENCODE portal); GRCh38 narrowPeak
+    ("atac", "IMR90"): ("ENCFF243NTP", "ENCSR200OML", "c8d2e9227aaa1d44fbc6ca93584234e4"),
+    ("atac", "K562"): ("ENCFF558BLC", "ENCSR483RKN", "3cd5e262b185a5459cfeaa5a2f1a2f18"),
+    ("atac", "HCT116"): ("ENCFF296ZZB", "ENCSR872WGW", "4fc13ef6b70a40921ce7907999cd40f8"),
+    ("atac", "A549"): ("ENCFF899OMR", "ENCSR032RGS", "feed36997c097111e6dd09cd4c29109c"),
+    ("h3k27ac", "IMR90"): ("ENCFF730BVO", "ENCSR002YRE", "568f9b5d553717209d81b8cd1faf8369"),
+    ("h3k27ac", "K562"): ("ENCFF038DDS", "ENCSR000AKP", "b24e283c2be89cbc2679eeb1688e4962"),
+    ("h3k27ac", "HCT116"): ("ENCFF853VVI", "ENCSR000EUT", "4070ce453b98442d67955779a2e240f2"),
+    ("h3k27ac", "A549"): ("ENCFF932ORM", "ENCSR778NQS", "223dd13cc80497a7410421cbce56b1e8"),
+    ("rad21", "IMR90"): ("ENCFF895JAW", "ENCSR000EFJ", "b504932fded0f25a013dadcafb1bb4c9"),
+    ("rad21", "K562"): ("ENCFF930WPG", "ENCSR000BKV", "b21e4e3e0b4afb82902692db97d35bfc"),
+    ("rad21", "HCT116"): ("ENCFF391AAM", "ENCSR000BSB", "66f1c23ae099104ebeadb25e9257d6da"),
+    ("rad21", "A549"): ("ENCFF178CSM", "ENCSR193NSH", "193707fabd2939c67f979d4611843fab"),
+}
+
+
+def mark_peaks_path(mark: str, cell_line: str) -> Path:
+    """ENCODE peaks of one mark (ATAC-seq, H3K27ac or RAD21 ChIP-seq) in one cell line, MD5-checked (Phase A5)."""
+    acc, _, md5 = MARK_PEAKS[(mark, cell_line)]
+    return fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz",
+                     DATA / "encode" / f"{acc}.bed.gz", md5)
+
+
 def ctcf_peaks_path(cell_line: str) -> Path:
     acc, _, md5 = CTCF_PEAKS[cell_line]
     return fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz",

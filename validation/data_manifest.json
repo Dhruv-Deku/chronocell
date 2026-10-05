@@ -44,10 +44,30 @@
   "bytes": 20080720,
   "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/K562_chr21-28-30Mb.csv"
  },
+ "data/encode/ENCFF038DDS.bed.gz": {
+  "sha256": "85681a36be22e5384db81e79d56f13c0e5d7a83d98033656e3225d676dcf1737",
+  "bytes": 1298162,
+  "url": "https://www.encodeproject.org/files/ENCFF038DDS/@@download/ENCFF038DDS.bed.gz"
+ },
+ "data/encode/ENCFF296ZZB.bed.gz": {
+  "sha256": "7f35b22342ad33b5a199a6d9f8b56109db186360a2490430b677a5a86b4030e6",
+  "bytes": 5306753,
+  "url": "https://www.encodeproject.org/files/ENCFF296ZZB/@@download/ENCFF296ZZB.bed.gz"
+ },
+ "data/encode/ENCFF391AAM.bed.gz": {
+  "sha256": "f3af296ca5e2fe35e9719c924894813d78bdc14f42f57795e046a47ff4a6a07c",
+  "bytes": 868329,
+  "url": "https://www.encodeproject.org/files/ENCFF391AAM/@@download/ENCFF391AAM.bed.gz"
+ },
  "data/encode/ENCFF470EAN.bed.gz": {
   "sha256": "75565fdab146677b46972327309d2e4df8cd60c83acba1e986ec11c0a0df9700",
   "bytes": 1443448,
   "url": "https://www.encodeproject.org/files/ENCFF470EAN/@@download/ENCFF470EAN.bed.gz"
+ },
+ "data/encode/ENCFF558BLC.bed.gz": {
+  "sha256": "f71c04db3c5c55a7760a79016e2642979ce078b1b5ee88227898ed78c7bf7fd4",
+  "bytes": 4989495,
+  "url": "https://www.encodeproject.org/files/ENCFF558BLC/@@download/ENCFF558BLC.bed.gz"
  },
  "data/encode/ENCFF582SNT.bed.gz": {
   "sha256": "ccfc21d5f4b7f97b1225da799ec9a56df23440270d6444774d0b2a88d78d14eb",
@@ -64,6 +84,16 @@
   "bytes": 595548,
   "url": "https://www.encodeproject.org/files/ENCFF670ULH/@@download/ENCFF670ULH.bed.gz"
  },
+ "data/encode/ENCFF853VVI.bed.gz": {
+  "sha256": "dc159291cabb64af8a8594c009bf1952423b621d40585f2ca8351c2e1b669d96",
+  "bytes": 1053266,
+  "url": "https://www.encodeproject.org/files/ENCFF853VVI/@@download/ENCFF853VVI.bed.gz"
+ },
+ "data/encode/ENCFF930WPG.bed.gz": {
+  "sha256": "1e2858ea67f1d451005e50c6d898dec3ad7ce703c22f060f9fbe86a2619f7e29",
+  "bytes": 714504,
+  "url": "https://www.encodeproject.org/files/ENCFF930WPG/@@download/ENCFF930WPG.bed.gz"
+ },
  "data/hg38/chr2.fa.gz": {
   "sha256": "748007e198312d16d6277dcdd48d4f050109273cacf1a7a09860f965f2060555",
   "bytes": 78561132,
@@ -73,6 +103,31 @@
   "sha256": "c979ca1e5065c2521a50773473e0d0cc018fd6f3e9bb3aa90493fe7b45d57d1b",
   "bytes": 12709705,
   "url": "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr21.fa.gz"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr21_28000000_29950071_5000.npz": {
+  "sha256": "fc79235bbafb10e0c7eb9df15792634e166ef32d7804489af07f2e75214d7f72",
+  "bytes": 125297,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_insitu_chr21_34625000_37118096_5000.npz": {
+  "sha256": "5295cca4ef2c10169b2b8c4902f073323b184d89444289c01cdbe7f1c8e58bd2",
+  "bytes": 213980,
+  "url": "https://www.encodeproject.org/files/ENCFF750AOC/@@download/ENCFF750AOC.hic"
+ },
+ "data/hic_cache/encode_hct116_intact_chr21_28000000_29950071_5000.npz": {
+  "sha256": "3055a3357f5aeec918ed9808971d3f371990b22c175eb063149f53c2a9462312",
+  "bytes": 93764,
+  "url": "https://www.encodeproject.org/files/ENCFF573OPJ/@@download/ENCFF573OPJ.hic"
+ },
+ "data/hic_cache/encode_hct116_intact_chr21_34625000_37118096_5000.npz": {
+  "sha256": "f0ed474162cdb34adb01d4344359a54baf52f11b364735bfda16fa7bdf3a6a27",
+  "bytes": 156842,
+  "url": "https://www.encodeproject.org/files/ENCFF573OPJ/@@download/ENCFF573OPJ.hic"
+ },
+ "data/hic_cache/encode_k562_intact_chr21_28000000_29950071_5000.npz": {
+  "sha256": "f683e11ae3ea5e06a1ad65da920330a69ed265dfa07c021129f29f1c9c100e4f",
+  "bytes": 98303,
+  "url": "https://www.encodeproject.org/files/ENCFF621AIY/@@download/ENCFF621AIY.hic"
  },
  "data/hic_cache/rao2014_gm12878_chr9_16000000_36000000_25000.npz": {
   "sha256": "1273e7e8caa560b407f82161600390d05dd97f254ceb4bfdfc6aec74599913ab",
@@ -138,6 +193,16 @@
   "sha256": "ca5f166de1c7ccb01c58de4d9d44788f3eb0e1a9da53826ef70b59b93d582618",
   "bytes": 77496415,
   "url": "https://zenodo.org/records/3928890/files/chromosome2_p-arm_replicate.tsv?download=1"
+ },
+ "data/su2020/genomic-scale-amanitin.tsv": {
+  "sha256": "13120ba1c3c7401efee85592502ef2f4a5c14d284dd542bdac4ca522e0d353dd",
+  "bytes": 537247243,
+  "url": "https://zenodo.org/records/3928890/files/genomic-scale-amanitin.tsv?download=1"
+ },
+ "data/su2020/genomic-scale-with transcription and nuclear bodies.tsv": {
+  "sha256": "6a646e2f6ca8831eb2d246ac092e2701fddef2af4ca3cac17fae097fcaa1ebdb",
+  "bytes": 654711554,
+  "url": "https://zenodo.org/records/3928890/files/genomic-scale-with%20transcription%20and%20nuclear%20bodies.tsv?download=1"
  },
  "data/su2020/genomic-scale.tsv": {
   "sha256": "88b0d1cc181815634d50dbbaa3a8a8bb80007669a0087126bd29bd0785f7bcfb",
