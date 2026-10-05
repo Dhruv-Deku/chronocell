@@ -147,3 +147,21 @@ def test_learned_correction_method_without_a_frozen_correction_is_the_base_model
     inp = M.Input("imaging", n, f, np.full((n, n), 500.0), f * 500, 150.0, np.zeros((n, n)), sep, [(0, n)], 0)
     pred = M.learned_correction(inp)
     assert pred.median_nm.shape == (n, n) and "no correction" in pred.notes[0]
+
+
+def test_conformal_intervals_quantiles_coverage_and_tie_rule():
+    import intervals_v2 as I
+    rng = np.random.default_rng(2)
+    r = rng.normal(0.0, 0.5, 200_000)
+    h = np.histogram(np.clip(r, I.GRID[0], I.GRID[-1]), bins=I.GRID)[0].astype(float)
+    lo, hi = I.quantiles(h, [0.05, 0.95])
+    assert abs(lo + 0.5 * 1.645) < 0.01 and abs(hi - 0.5 * 1.645) < 0.01
+    assert abs(I.coverage(h, lo, hi) - 0.90) < 0.002
+    h2 = h.copy()
+    h2[0] += h.sum() / 9                                    # zero distances (-inf, clipped to the grid floor)
+    assert I.coverage(h2, lo, hi) < 0.82                    # count as misses, never dropped
+    table = {"bands|hic": {"worst_abs_err_90": 0.20}, "pooled|hic": {"worst_abs_err_90": 0.175},
+             "bands+A1|hic": {"worst_abs_err_90": 0.20}, "pooled+A1|hic": {"worst_abs_err_90": 0.1749},
+             "bands|imaging": {"worst_abs_err_90": 0.066}, "pooled|imaging": {"worst_abs_err_90": 0.074}}
+    assert I.choose(table, "hic") == "pooled|hic"           # within the tie margin: the simpler variant
+    assert I.choose(table, "imaging") == "bands|imaging"    # better by more than the margin
