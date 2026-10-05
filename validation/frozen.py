@@ -146,3 +146,21 @@ RELIABILITY = {"score": "misfit", "min_spearman": 0.20, "strata": 10, "bootstrap
 PREDICTOR_V2 = {"train": ["bintu_k562_28_30", "bintu_hct116_28_30", "bintu_hct116_34_37"], "test": PREDICTOR["test"],
                 "control": PREDICTOR["control"], "marks": ["rad21"], "min_percent": 50.0, "min_sets": 3,
                 "beat_gate5": True}
+
+# Gate 1c (Phase A1, calibrated sizes from Hi-C; validation/hic_size_calibration.py). Pre-registered after the
+# practice comparison (results_hic_size_practice.json) and before any test unit was built. Calibration frozen in
+# chronocell/data/hic_size_calibration.json: model distance x exp(h); leave-one-dataset-out over the practice
+# units (Bintu K562 / HCT116 regions with Rao 2014, ENCODE in situ and intact Hi-C at 1, 1/4, 1/16 depth; Su chr2
+# and its replicate; the genome-scale practice set) chose the single global factor (h = 0.8953, x2.45): every
+# form with separation, locus-spacing, depth or protocol terms extrapolated worse to the held-out dataset.
+# Test sets (split 0, Hi-C input with the Gate 1 settings and the app's b0 anchor): main = Bintu IMR-90
+# chr21:28-30 and 18-20 Mb (Rao 2014), Su chr21 and its replicate (Rao 2014 binned by Su et al.), the genome-scale
+# set su_genome (chromosome units pooled); secondary, reported only = the Bintu IMR-90 regions with ENCODE intact
+# and dilution Hi-C, Bintu A549 with ENCODE in situ Hi-C, and su_genome_amanitin (treated cells, untreated Hi-C).
+# Pass ("calibrated Hi-C sizes" may be offered as an option): on EVERY main set, Lin's CCC >= 0.8 AND median size
+# ratio (calibrated / measured) in 0.8-1.25 AND the trend-removed Spearman not lower than the uncalibrated model's
+# (identical by construction: one factor for all pairs; checked to 1e-9).
+HIC_SIZE = {"min_ccc": 0.8, "size_ratio": (0.8, 1.25), "pattern_tolerance": 1e-9, "split": 0,
+            "main": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep", "su_genome"],
+            "secondary": ["bintu_imr90_28_30 intact", "bintu_imr90_28_30 dilution", "bintu_imr90_18_20 intact",
+                          "bintu_imr90_18_20 dilution", "bintu_a549_28_30 in situ", "su_genome_amanitin"]}
