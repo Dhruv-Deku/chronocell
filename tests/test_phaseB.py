@@ -590,3 +590,22 @@ def test_app_guide_lists_phase_b_with_standing(app_b):
     from types import SimpleNamespace as NS
     assert contacts_are_synthetic(NS(tracks_label="Reference tracks & simulated Micro-C contacts"))
     assert not contacts_are_synthetic(NS(tracks_label="Reference tracks · contacts from Upload · x.mcool"))
+
+
+def test_cpu_jobs_hide_the_gpu(tmp_path, monkeypatch):
+    from chronocell import jobs as JQ
+    monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)     # GPU jobs inherit the caller's environment
+    seen = {}
+
+    class FakeProc:
+        pid = 1
+
+    def fake_popen(args, **kw):
+        seen["env"] = kw["env"]
+        return FakeProc()
+    monkeypatch.setattr(JQ.subprocess, "Popen", fake_popen)
+    q = JQ.Queue(tmp_path)
+    q._launch(q.submit(["report", str(tmp_path)], "cpu"))
+    assert seen["env"]["CUDA_VISIBLE_DEVICES"] == "-1"         # an empty value does not hide the GPU on Windows
+    q._launch(q.submit(["report", str(tmp_path)], "gpu"))
+    assert seen["env"].get("CUDA_VISIBLE_DEVICES") != "-1"

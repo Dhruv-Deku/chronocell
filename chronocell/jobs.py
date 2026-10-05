@@ -122,7 +122,7 @@ class Queue:
         log.flush()
         env = dict(os.environ, PYTHONUNBUFFERED="1")
         if job["device"] == "cpu":
-            env["CUDA_VISIBLE_DEVICES"] = ""
+            env["CUDA_VISIBLE_DEVICES"] = "-1"       # an empty value does not hide the GPU on Windows; -1 does
         proc = subprocess.Popen([sys.executable, "-m", "chronocell.cli"] + args, stdout=log, stderr=subprocess.STDOUT,
                                 cwd=str(Path(__file__).resolve().parent.parent), env=env)
         job.update(state="running", started=_now(), pid=proc.pid)
