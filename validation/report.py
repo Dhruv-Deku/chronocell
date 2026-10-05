@@ -161,6 +161,130 @@ def gate2c() -> str:
     return "\n".join(out)
 
 
+# --------------------------------------------------------------------------------------------- Phase A
+def gate1c() -> str:
+    r = _load("results_hic_size.json")
+    p = _load("results_hic_size_practice.json")
+    out = []
+    if p:
+        out += ["Practice (leave-one-dataset-out; CCC of the held-out group / its size ratio):", "",
+                "| Form | " + " | ".join(next(iter(p["forms"].values()))["per_group"]) + " | Mean CCC |",
+                "|---|" + "---|" * (len(next(iter(p["forms"].values()))["per_group"]) + 1)]
+        for f, v in p["forms"].items():
+            out.append(f"| {f}{' (chosen)' if f == p['chosen'] else ''} | " + " | ".join(
+                f"{g['lin_ccc_nm']:.2f} / {g['size_ratio']:.2f}" for g in v["per_group"].values()) + f" | {v['mean_ccc']:.3f} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_hic_size.json: not run (python validation/hic_size_calibration.py --test)._"])
+    R = r["rule"]
+    out += [f"Test (run once): pass on every main set: CCC ≥ {R['min_ccc']}, size ratio {R['size_ratio'][0]}–"
+            f"{R['size_ratio'][1]}, pattern unchanged.", "",
+            "| Set | Tier | CCC (nm): uncalibrated → calibrated | Size ratio | Trend-removed ρ | Within the rule |",
+            "|---|---|---|---|---|---|"]
+    for tier in ("main", "secondary"):
+        for name, v in r["sets"][tier].items():
+            b, a = v["uncalibrated"], v["calibrated"]
+            out.append(f"| {name} | {tier} | {b['lin_ccc_nm']:.3f} → {a['lin_ccc_nm']:.3f} | {b['size_ratio']:.2f} → "
+                       f"{a['size_ratio']:.2f} | {a['trend_removed_rho']:.3f} | {'yes' if v['within_rule'] else 'no' if tier == 'main' else '—'} |")
+    out += ["", f"Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def gate2d() -> str:
+    r = _load("results_intervals_v2.json")
+    if not r:
+        return "_results_intervals_v2.json: not run (python validation/intervals_v2.py --test)._"
+    bands = r["bands_bp"]
+    lab = {str(k): f"{bands[k] / 1e6:g}–{bands[k + 1] / 1e6:g} Mb" for k in range(len(bands) - 1)}
+    out = [f"Test (run once): variants {', '.join(f'{k}: {v}' for k, v in r['intervals'].items())}; pass on every set and "
+           f"band: 90 % ranges hold {100 * r['rule']['cov90'][0]:.0f}–{100 * r['rule']['cov90'][1]:.0f} %, 50 % ranges "
+           f"{100 * r['rule']['cov50'][0]:.0f}–{100 * r['rule']['cov50'][1]:.0f} %.", "",
+           "| Set · input | Coverage at 90 % / 50 % by separation band (width of the 90 % range, upper / lower) | Within the rule |",
+           "|---|---|---|"]
+    for name, v in r["sets"].items():
+        cells = "; ".join(f"{lab[b]}: {100 * x['0.9']:.0f} / {100 * x['0.5']:.0f} % (×{x['width90']:.1f})"
+                          for b, x in v["bands"].items())
+        out.append(f"| {name} | {cells} | {'yes' if v['within_rule'] else 'no'} |")
+    out += ["", "Verdicts: " + "; ".join(f"{k} input **{v}**" for k, v in r["verdict"].items()) + "."]
+    return "\n".join(out)
+
+
+def gate2e() -> str:
+    p = _load("results_reliability_v2_practice.json")
+    r = _load("results_reliability_v2.json")
+    out = []
+    if p:
+        cands = list(next(iter(p["table"].values())))
+        out += ["Practice (pair-weighted stratified ρ per group):", "", "| Practice group · input | " + " | ".join(cands) + " |",
+                "|---|" + "---|" * len(cands)]
+        for g, v in p["table"].items():
+            out.append(f"| {g} | " + " | ".join(f"{v[c]['rho']:+.3f}" for c in cands) + " |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_reliability_v2.json: not run (python validation/reliability_v2.py --test)._"])
+    out += [f"Test (run once): score **{r['rule']['score']}**; pass per input type: ρ ≥ {r['rule']['min_rho']:.2f} with "
+            "the 95 % interval above 0 on every new test set.", "",
+            "| New test set · input | ρ [95 %] | Within the rule |", "|---|---|---|"]
+    for k, v in r["sets"].items():
+        out.append(f"| {k} | {v['rho']:+.3f} [{v['ci95'][0]:+.3f}, {v['ci95'][1]:+.3f}] | {'yes' if v['within_rule'] else 'no'} |")
+    out += ["", "Verdicts: " + "; ".join(f"{k} input **{v}**" for k, v in r["verdict"].items()) + "."]
+    return "\n".join(out)
+
+
+def gate3b() -> str:
+    p = _load("results_learned_correction_practice.json")
+    r = _load("results_gate3b.json")
+    out = []
+    if p:
+        out += ["Practice (leave-one-dataset-out; mean held-out trend-removed ρ / CCC):", "",
+                "| Candidate | Pattern ρ | CCC |", "|---|---|---|"]
+        for c, v in p["table"].items():
+            out.append(f"| {c}{' (chosen)' if c == p['chosen'] else ''} | {v['mean_pattern_rho']:+.4f} | {v['mean_ccc']:.3f} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_gate3b.json: not run (python validation/learned_correction.py --test)._"])
+    out += [r["summary_line"], "", "| Unit · input | Learned correction | Best other method | Current model | Within the rule |",
+            "|---|---|---|---|---|"]
+    for u in r["units"]:
+        out.append(f"| {u['unit']} · {u['input']} | {u['learned']:.1f} % | {u['best_other_name']} {u['best_other']:.1f} % | "
+                   f"{u['current']:.1f} % | {'yes' if u['ok'] else 'no'} |")
+    out += ["", f"Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def gate5b() -> str:
+    p = _load("results_predictor_v2_practice.json")
+    r = _load("results_predictor_v2.json")
+    out = []
+    if p:
+        best = {}
+        for k, v in p["table"].items():
+            fs, lam = k.split("|")
+            if fs not in best or v["mean"] > best[fs][1]:
+                best[fs] = (lam, v["mean"])
+        out += ["Practice (leave-one-dataset-out over K562 / HCT116 regions; best ridge per feature set):", "",
+                "| Feature set | Ridge | Held-out trend-removed ρ (mean) |", "|---|---|---|"]
+        for fs, (lam, m) in best.items():
+            out.append(f"| {fs}{' (chosen)' if fs == p['chosen']['feature_set'] else ''} | {lam} | {m:+.3f} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_predictor_v2.json: not run (python validation/predictor_v2.py --test)._"])
+    R = r["rule"]
+    out += [f"Test (run once): pass on ≥ {R['min_sets']} of 5 sets: ≥ {R['min_percent']:.0f} % of the pattern, interval "
+            "above 0, and above Gate 5's model.", "", "| Test set | Predictor v2: % of ceiling [95 %] | Gate 5 model | Pass |",
+            "|---|---|---|---|"]
+    for k, v in r["per_set"].items():
+        ci = v["ci95"]
+        out.append(f"| {k} | {v['percent_of_ceiling']:.1f} [{ci[0]:.1f}, {ci[1]:.1f}] | {v['gate5_percent']:.1f} | "
+                   f"{'yes' if v['passes'] else 'no'} |")
+    ctl = r["summary"].get("bintu_hct116_34_37_auxin", {}).get("sequence + CTCF + marks", {}).get("all_pairs", {}).get("predictor_v2")
+    if ctl:
+        out.append(f"| bintu_hct116_34_37_auxin (control) | {ctl['percent_of_ceiling']:.1f} | — | — |")
+    out += ["", f"{r['datasets_passing']} of {len(r['per_set'])} test sets pass. Verdict: **{r['verdict']}**. Not run: "
+                + "; ".join(r["not_run"]) + " (reasons in validation/predictor_v2.py)."]
+    return "\n".join(out)
+
+
 # --------------------------------------------------------------------------------------------- Gate 3
 def gate3() -> str:
     b = _load("benchmark/results.json")
@@ -421,7 +545,8 @@ def readme_accuracy() -> str:
 
 
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
-          "gate5": gate5, "scale": scale,
+          "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
+          "scale": scale,
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 

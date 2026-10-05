@@ -533,6 +533,55 @@ control (CTCF-anchored loops need cohesin) and is not in the rule.
   sequence + CTCF (no contact data)", with these numbers. When contacts are present the
   data-driven model is used. Blending prediction and data was not tested and is not offered.
 
+## Gate 5b — prediction without contact data, with more inputs (Phase A5)
+
+**Question.** Does adding accessibility (ATAC-seq), active chromatin (H3K27ac) and cohesin (RAD21)
+peaks of the same cell line lift the prediction without contact data towards half of the
+reproducible pattern?
+
+**Test** (`python validation/predictor_v2.py --test`; rule in `frozen.PREDICTOR_V2`, committed with
+the frozen model before the run). Training: the three untreated non-IMR-90 practice regions (K562,
+HCT116 ×2), so every test set is a held-out cell type. Feature set and ridge penalty by
+leave-one-dataset-out on those three. Scoring as Gate 5. Pass: on at least 3 of the 5 test sets,
+≥ 50 % of the pattern with its 95 % interval above 0 and above Gate 5's model.
+
+<!-- BEGIN generated:gate5b -->
+Practice (leave-one-dataset-out over K562 / HCT116 regions; best ridge per feature set):
+
+| Feature set | Ridge | Held-out trend-removed ρ (mean) |
+|---|---|---|
+| ctcf | 0.001 | +0.294 |
+| ctcf+atac | 0.001 | +0.256 |
+| ctcf+h3k27ac | 0.001 | +0.270 |
+| ctcf+rad21 (chosen) | 0.01 | +0.432 |
+| ctcf+all | 0.01 | +0.414 |
+
+Test (run once): pass on ≥ 3 of 5 sets: ≥ 50 % of the pattern, interval above 0, and above Gate 5's model.
+
+| Test set | Predictor v2: % of ceiling [95 %] | Gate 5 model | Pass |
+|---|---|---|---|
+| bintu_imr90_28_30 | -10.5 [-12.6, -9.3] | 26.7 | no |
+| bintu_imr90_18_20 | 0.2 [-13.8, 13.7] | 0.5 | no |
+| bintu_a549_28_30 | 4.9 [0.8, 7.7] | 12.2 | no |
+| su_chr21 | 9.4 [7.6, 9.0] | 20.2 | no |
+| su_chr21_rep | 10.8 [9.2, 10.6] | 22.6 | no |
+| bintu_hct116_34_37_auxin (control) | 45.1 | — | — |
+
+0 of 5 test sets pass. Verdict: **fail**. Not run: Akita (Fudenberg et al., Nat Methods 2020); C.Origami (Tan et al., Nat Biotechnol 2023); Orca (Zhou, Nat Genet 2022) (reasons in validation/predictor_v2.py).
+<!-- END generated:gate5b -->
+
+**Reading.**
+- **Fail, on every test set, and worse than Gate 5's simpler model on each.**
+  - On practice, cohesin peaks helped the held-out region (leave-one-out ρ +0.43 against +0.29 for
+    CTCF and GC alone). On new cell types they do not transfer: IMR-90 chr21:28–30 Mb even turns
+    negative.
+  - Gate 5's model, which also trained on IMR-90 (chr2), stays the better prior for IMR-90.
+  - ATAC and H3K27ac did not help even on practice.
+- **The control is not a held-out result.** The cohesin-depleted set is HCT116 chr21:34–37 Mb, the
+  region the model trained on (untreated), so its 45 % mostly measures the training region again.
+- **Engines not run:** Akita, C.Origami and Orca, for the reasons listed under the table. The frozen
+  Gate 5 model remains the app's prediction; nothing from Gate 5b reaches the app.
+
 ## Gate 5m — the predictor on mouse (pre-registered, not run)
 
 **Why.** The predictor was trained and tested on human data. The app offers it for hg38 only.
