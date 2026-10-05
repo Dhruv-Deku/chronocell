@@ -1,0 +1,58 @@
+{
+ "mode": "practice (GM12878, 3 windows)",
+ "table": {
+  "fdr0.05_none": {
+   "calls": 108,
+   "reference": 60,
+   "matched": 45,
+   "precision": 0.4166666666666667,
+   "recall": 0.75,
+   "f1": 0.5357142857142857
+  },
+  "fdr0.05_kr": {
+   "calls": 30,
+   "reference": 60,
+   "matched": 27,
+   "precision": 0.9,
+   "recall": 0.45,
+   "f1": 0.6
+  },
+  "fdr0.1_none": {
+   "calls": 115,
+   "reference": 60,
+   "matched": 46,
+   "precision": 0.4,
+   "recall": 0.7666666666666667,
+   "f1": 0.5257142857142857
+  },
+  "fdr0.1_kr": {
+   "calls": 32,
+   "reference": 60,
+   "matched": 29,
+   "precision": 0.90625,
+   "recall": 0.48333333333333334,
+   "f1": 0.6304347826086957
+  },
+  "fdr0.2_none": {
+   "calls": 151,
+   "reference": 60,
+   "matched": 50,
+   "precision": 0.33112582781456956,
+   "recall": 0.8333333333333334,
+   "f1": 0.47393364928909953
+  },
+  "fdr0.2_kr": {
+   "calls": 36,
+   "reference": 60,
+   "matched": 32,
+   "precision": 0.8888888888888888,
+   "recall": 0.5333333333333333,
+   "f1": 0.6666666666666667
+  }
+ },
+ "chosen": "fdr0.2_kr",
+ "choice": {
+  "fdr": 0.2,
+  "balance": "kr"
+ }
+}
