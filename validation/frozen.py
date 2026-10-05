@@ -175,3 +175,24 @@ HIC_SIZE = {"min_ccc": 0.8, "size_ratio": (0.8, 1.25), "pattern_tolerance": 1e-9
 # but lowered the held-out pattern. There is nothing to test, so Gate 3b is not run and its test units stay unused.
 LEARNED_CORRECTION = {"hic_best_fraction": 0.90, "imaging_max_loss_points": 1.0, "status": "not run",
                       "reason": "practice chose no correction (pre-specified selection rule)"}
+
+# Gate 2d (Phase A2, honest uncertainty ranges; validation/intervals_v2.py). Pre-registered after the practice
+# comparison (results_intervals_v2_practice.json) and before any test unit's truth was read for this question.
+# Intervals frozen in chronocell/data/intervals_v2.json: split-conformal quantiles of log(single-copy distance /
+# model median distance), learned on practice units only (Bintu K562 / HCT116 regions, Su chr2 and its replicate,
+# the genome-scale practice set; split 0), separately per input type. Leave-one-dataset-out on practice chose, by
+# the smallest worst-case |coverage at 90 % - 0.90| (ties within 0.005 to the simplest variant): imaging input =
+# one set of quantiles per separation band (0-0.1, 0.1-0.3, 0.3-1, 1-3, 3-10, > 10 Mb); Hi-C input = one set
+# pooled over bands. The A1 size calibration does not change these intervals (a global factor cancels in the
+# ratio) and is not used. A zero distance (identical rounded coordinates) counts as below every interval.
+# Test sets (split 0, truth = half B's single copies): imaging input = Gate 2's six test sets and su_genome
+# (chromosome units pooled); Hi-C input = Gate 2b's four (Rao 2014 Hi-C, Gate 1 settings, the app's b0 anchor)
+# and su_genome. Pass, separately per input type: on EVERY test set and in every separation band with at least
+# 200 pair-copies, the 90 % range holds 85-95 % AND the 50 % range holds 40-60 %. The median width of the 90 %
+# range (upper / lower bound) is reported next to it, so a trivially wide interval cannot pass silently.
+# A passing input type may be offered in the distance probe as an option, its note reading the coverage from
+# results_intervals_v2.json; otherwise the probe is unchanged.
+INTERVALS_V2 = {"cov90": (0.85, 0.95), "cov50": (0.40, 0.60), "min_pair_copies": 200, "split": 0,
+                "test_imaging": ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30",
+                                 "bintu_hct116_34_37_auxin", "su_chr21", "su_chr21_rep", "su_genome"],
+                "test_hic": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep", "su_genome"]}
