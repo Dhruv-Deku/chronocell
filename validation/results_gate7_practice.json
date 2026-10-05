@@ -1,0 +1,285 @@
+{
+ "mode": "practice (chr21:28-30 Mb)",
+ "table": {
+  "min5_dist": {
+   "setting": {
+    "min_count": 5.0,
+    "distance_normalise": true
+   },
+   "summary": {
+    "mean_fdp": 0.036117889344616926,
+    "mean_fdp_ci95": [
+     0.036117889344616926,
+     0.036117889344616926
+    ],
+    "recall": {
+     "2.0": 0.15666666666666665,
+     "4.0": 0.94
+    },
+    "null_discoveries": {
+     "chr21:28-30 Mb": 0
+    },
+    "runs": 6
+   },
+   "rows": [
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 1.0,
+     "seed": null,
+     "discoveries": 0,
+     "false": 0,
+     "planted": 0,
+     "found": 0,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 0,
+     "discoveries": 23,
+     "false": 0,
+     "planted": 100,
+     "found": 23,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 1,
+     "discoveries": 13,
+     "false": 0,
+     "planted": 100,
+     "found": 13,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 2,
+     "discoveries": 11,
+     "false": 0,
+     "planted": 100,
+     "found": 11,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 0,
+     "discoveries": 103,
+     "false": 8,
+     "planted": 100,
+     "found": 95,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 1,
+     "discoveries": 99,
+     "false": 6,
+     "planted": 100,
+     "found": 93,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 2,
+     "discoveries": 102,
+     "false": 8,
+     "planted": 100,
+     "found": 94,
+     "tested": 5677
+    }
+   ]
+  },
+  "min10_dist": {
+   "setting": {
+    "min_count": 10.0,
+    "distance_normalise": true
+   },
+   "summary": {
+    "mean_fdp": 0.024295379109043707,
+    "mean_fdp_ci95": [
+     0.024295379109043707,
+     0.024295379109043707
+    ],
+    "recall": {
+     "2.0": 0.11333333333333334,
+     "4.0": 0.9166666666666666
+    },
+    "null_discoveries": {
+     "chr21:28-30 Mb": 0
+    },
+    "runs": 6
+   },
+   "rows": [
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 1.0,
+     "seed": null,
+     "discoveries": 0,
+     "false": 0,
+     "planted": 0,
+     "found": 0,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 0,
+     "discoveries": 17,
+     "false": 0,
+     "planted": 100,
+     "found": 17,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 1,
+     "discoveries": 7,
+     "false": 0,
+     "planted": 100,
+     "found": 7,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 2,
+     "discoveries": 10,
+     "false": 0,
+     "planted": 100,
+     "found": 10,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 0,
+     "discoveries": 98,
+     "false": 5,
+     "planted": 100,
+     "found": 93,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 1,
+     "discoveries": 99,
+     "false": 4,
+     "planted": 100,
+     "found": 95,
+     "tested": 3065
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 2,
+     "discoveries": 92,
+     "false": 5,
+     "planted": 100,
+     "found": 87,
+     "tested": 3065
+    }
+   ]
+  },
+  "min5_nodist": {
+   "setting": {
+    "min_count": 5.0,
+    "distance_normalise": false
+   },
+   "summary": {
+    "mean_fdp": 0.05357967462347258,
+    "mean_fdp_ci95": [
+     0.05357967462347258,
+     0.05357967462347258
+    ],
+    "recall": {
+     "2.0": 0.09333333333333334,
+     "4.0": 0.8766666666666666
+    },
+    "null_discoveries": {
+     "chr21:28-30 Mb": 0
+    },
+    "runs": 6
+   },
+   "rows": [
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 1.0,
+     "seed": null,
+     "discoveries": 0,
+     "false": 0,
+     "planted": 0,
+     "found": 0,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 0,
+     "discoveries": 24,
+     "false": 1,
+     "planted": 100,
+     "found": 23,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 1,
+     "discoveries": 3,
+     "false": 0,
+     "planted": 100,
+     "found": 3,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 2.0,
+     "seed": 2,
+     "discoveries": 2,
+     "false": 0,
+     "planted": 100,
+     "found": 2,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 0,
+     "discoveries": 102,
+     "false": 9,
+     "planted": 100,
+     "found": 93,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 1,
+     "discoveries": 96,
+     "false": 9,
+     "planted": 100,
+     "found": 87,
+     "tested": 5677
+    },
+    {
+     "region": "chr21:28-30 Mb",
+     "fold": 4.0,
+     "seed": 2,
+     "discoveries": 92,
+     "false": 9,
+     "planted": 100,
+     "found": 83,
+     "tested": 5677
+    }
+   ]
+  }
+ },
+ "run_utc": "2026-10-05T07:11:05+00:00"
+}

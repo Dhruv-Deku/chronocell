@@ -231,3 +231,61 @@ COHESIN_HIC = {"pairs": ["in situ", "intact"], "main_pair": "in situ", "min_regi
 # type may show a reliability in the probe and the 3D view, labelled with its measured standing; otherwise nothing.
 RELIABILITY_V2 = {"score": {"imaging": "misfit", "hic": "boot_sd"}, "min_rho": 0.30, "boot_refits": 8, "strata": 10,
                   "split": 0, "test": ["su_genome", "su_genome_amanitin"]}
+
+# Gate 7 (Phase B2, false-discovery control of the differential analysis; validation/diff_gate7.py). Pre-registered
+# after the practice run on chr21:28-30 Mb (results_gate7_practice.json) and before any test region was read.
+# Data: four independent untreated intact Hi-C experiments of HCT116 RAD21-AID cells (ENCODE, Aiden lab), split into
+# condition A = ENCSR401WPL + ENCSR002OIN and condition B = ENCSR579TBL + ENCSR697MNL: no biological change between
+# A and B. Spike-ins: in each region 100 pixels (3-100 bins apart, mean >= 20 reads) get their counts in both B
+# replicates multiplied by 2 or by 4 (3 random draws each); every other significant pixel is a false discovery.
+# Settings (chosen on practice: the most recall with mean FDP <= 0.05): min_count 5, distance normalisation on,
+# FDR 0.05, pairs up to 2 Mb at 10 kb. Practice: mean FDP 0.036, recall 0.16 (x2) and 0.94 (x4), no discovery in
+# the no-change comparison.
+# Pass: mean false-discovery proportion over all spike-in runs of the five test regions <= 0.05 (the stated level),
+# reported with its 95 % interval (regions resampled), recall at x2 and x4, and the discoveries in each no-change
+# comparison. diffHic and multiHiCcompare (R / Bioconductor) and CHESS are not run: R is not installed here, and
+# installing CHESS (pip install chess-hic) fails building pysam (a FAN-C dependency) on Windows; recorded in the
+# result file.
+DIFF_GATE7 = {"fdr": 0.05, "setting": {"min_count": 5.0, "distance_normalise": True}, "spike": 100, "folds": [2.0, 4.0],
+              "seeds": [0, 1, 2], "res": 10_000, "window": 2_000_000,
+              "regions": [("chr3", 180_000_000), ("chr8", 126_000_000), ("chr11", 65_000_000), ("chr14", 90_000_000),
+                          ("chr19", 12_000_000)],
+              "not_run": {"diffHic": "R / Bioconductor not installed on this machine",
+                          "multiHiCcompare": "R / Bioconductor not installed on this machine",
+                          "CHESS": "pip install chess-hic fails: its dependency pysam (via FAN-C) does not build on Windows"}}
+
+# Gate 6 (Phase B3, loop calls against reference calls on held-out cell lines; validation/loops_gate6.py). Pre-registered
+# after the practice run on GM12878 (results_gate6_practice.json) and before any test window was read.
+# Reference: the HiCCUPS loops ENCODE called on the same maps ("hic-loop-calling-step", GRCh38, portal MD5). So the
+# gate measures agreement with HiCCUPS, the field's standard caller, not biological truth.
+# ChronoCell settings chosen on practice (best F1 of 6): FDR 0.2 per neighbourhood with KR balancing (practice
+# precision 0.889, recall 0.533, F1 0.667 over three 10 Mb GM12878 windows). On one practice window chromosight
+# (F1 0.49) and Mustache (F1 0.44) were run only to check that they work here (Mustache needs NumPy < 2, pinned in
+# the isolated tools environment, and reads the .mcool because hic-straw does not build).
+# Test: K562 (ENCSR545YBD: map ENCFF616PUW, loops ENCFF693XIL) and IMR-90 (ENCSR852KQC: ENCFF188SSH, ENCFF527JOL),
+# windows chr4:100-110, chr7:100-110, chr11:60-70 Mb at 10 kb; loops 30 kb-2 Mb apart inside the windows; a call
+# matches a reference loop when both anchors are within 25 kb (one-to-one). Comparators on the same windows:
+# chromosight 1.6.3 and Mustache 1.3.3 with their defaults (ICE-balanced .mcool). Not run: HiCCUPS (Java, Juicer
+# tools; it is the reference), TopDom (R), Arrowhead (Java), dcHiC (R), cooltools (no Windows build).
+# Pass: on BOTH test cell lines, ChronoCell's F1 is at least the higher F1 of chromosight and Mustache (precision and
+# recall reported alongside).
+LOOPS_GATE6 = {"choice": {"fdr": 0.2, "balance": "kr"}, "tolerance_bp": 25_000, "min_sep": 30_000, "max_sep": 2_000_000,
+               "res": 10_000, "window": 10_000_000,
+               "test": {"k562": [("chr4", 100_000_000), ("chr7", 100_000_000), ("chr11", 60_000_000)],
+                        "imr90": [("chr4", 100_000_000), ("chr7", 100_000_000), ("chr11", 60_000_000)]},
+               "tools": {"chromosight": "1.6.3", "mustache": "1.3.3"}}
+
+# Gate 4d (Phase B1, structural-variant effects on new events with Hi-C before AND after, same cell type).
+# Pre-registered before any variant-state Hi-C was read. Rule: on at least 3 events, the variant engine's predicted
+# change (sv_engine, the event's joins, a population fitted to the "before" map) agrees with the measured change
+# (after / before) better than BOTH the distance-shift and the no-change baselines, with the 95 % interval of each
+# difference above 0 (block bootstrap over loci, as Gate 4b). Status: BLOCKED - openly downloadable,
+# checksum-published before / after Hi-C with stated breakpoints was found for two events only (ENCODE RPE-1 DXZ4
+# deletion on Xa, ENCSR624AJS, and on Xi, ENCSR566XIP; chrX:114,946,736-115,094,976 hg19); the 4DN Treg CRISPR
+# deletions (4DNESKIGI9SP, 4DNESHQUSH4D, control 4DNES4ZVGG33) state no breakpoints, and GEO maps publish no
+# checksums. Until a third event is available and the test passes, the engine stays "mechanism simulator, not
+# validated".
+SV_GATE4D = {"min_events": 3, "baselines": ["distance_shift", "no_change"], "status": "blocked",
+             "candidates": {"ENCSR624AJS": "RPE-1 DXZ4 deletion, active X", "ENCSR566XIP": "RPE-1 DXZ4 deletion, inactive X"},
+             "reason": "two events with stated breakpoints and checksum-published before / after Hi-C; three are needed"}
+
