@@ -522,6 +522,20 @@ def _sha256(path: str | Path) -> str:
     return h.hexdigest()
 
 
+MOUSE_ASSEMBLIES = ("mm10", "mm39")
+
+
+def assembly_supported(assembly_name: str, meta: dict) -> bool:
+    """The training assembly (hg38), or a mouse assembly once the pre-registered mouse test (Gate 5m) has passed."""
+    if assembly_name == meta.get("assembly"):
+        return True
+    if assembly_name in MOUSE_ASSEMBLIES:
+        from .accuracy import mouse_predictor_evidence
+        ev = mouse_predictor_evidence()
+        return bool(ev and ev["verdict"] == "pass")
+    return False
+
+
 def run_cli(chrom: str, start: int, end: int, peaks_path: str | Path, out: str | Path, fasta: str | Path | None = None,
             bin_bp: int = 30_000, assembly_name: str = "hg38") -> dict:
     """Predict the median-distance map of [start, end) in bins of bin_bp from CTCF peaks + sequence; write
@@ -532,7 +546,7 @@ def run_cli(chrom: str, start: int, end: int, peaks_path: str | Path, out: str |
     if loaded is None:
         raise SystemExit(f"The predictor file is missing: {MODEL_PATH}")
     model, meta = loaded
-    if assembly_name != meta.get("assembly"):
+    if not assembly_supported(assembly_name, meta):
         raise SystemExit(f"The predictor was trained and tested on human {meta.get('assembly')} only; "
                          f"{assembly_name} is not supported (validation/RESULTS.md, Gate 5).")
     name = genome.normalize_chrom(chrom, assembly_name)
@@ -593,7 +607,7 @@ def main(argv: list[str] | None = None) -> None:
     import argparse
     ap = argparse.ArgumentParser(prog="python -m chronocell.predict",
                                  description="Predict a median 3D distance map from CTCF peaks + sequence, with no contact "
-                                             "data (the frozen Gate 5 model; hg38 only). Writes OUT (.npy, nm) and a "
+                                             "data (the frozen Gate 5 model; hg38, and mouse once Gate 5m has passed). Writes OUT (.npy, nm) and a "
                                              "JSON record next to it. The output is predicted, not measured.")
     ap.add_argument("--chrom", required=True)
     ap.add_argument("--start", type=int, required=True, help="region start (bp, 0-based)")

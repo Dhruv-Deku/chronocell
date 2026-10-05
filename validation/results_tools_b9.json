@@ -1,0 +1,100 @@
+{
+ "machine": {
+  "java": null,
+  "R": null,
+  "tools_venv": "C:\\Users\\DHRUV\\Downloads\\projectdeku\\ChronoCell-5D-main\\.chronocell_cache\\tools-venv\\Scripts\\python.exe"
+ },
+ "tools": [
+  {
+   "task": "loops",
+   "tool": "HiCCUPS",
+   "status": "not run: needs Java (Juicer tools); no Java runtime on this machine; ENCODE's HiCCUPS calls are Gate 6's reference",
+   "result": "Gate 6 (validation/results_gate6.json)"
+  },
+  {
+   "task": "loops",
+   "tool": "chromosight",
+   "status": "run (1.6.3, isolated environment)",
+   "result": "Gate 6 (validation/results_gate6.json)"
+  },
+  {
+   "task": "loops",
+   "tool": "Mustache",
+   "status": "run (1.3.3, isolated environment with NumPy 1.26; reads .mcool because hic-straw does not build here)",
+   "result": "Gate 6 (validation/results_gate6.json)"
+  },
+  {
+   "task": "TADs",
+   "tool": "TopDom",
+   "status": "not run: R / Bioconductor package; R is not installed on this machine",
+   "result": "ChronoCell's TopDom-like caller (analysis suite); no pre-registered boundary gate"
+  },
+  {
+   "task": "TADs",
+   "tool": "Arrowhead",
+   "status": "not run: needs Java (Juicer tools); no Java runtime on this machine",
+   "result": "ChronoCell's Arrowhead-like caller; no gate"
+  },
+  {
+   "task": "TADs",
+   "tool": "insulation (cooltools)",
+   "status": "not run: cooltools has no Windows build (needs a C compiler)",
+   "result": "ChronoCell's insulation score"
+  },
+  {
+   "task": "compartments",
+   "tool": "dcHiC",
+   "status": "not run: R / Bioconductor package; R is not installed on this machine",
+   "result": "\u2014"
+  },
+  {
+   "task": "differential",
+   "tool": "diffHic",
+   "status": "not run: R / Bioconductor package; R is not installed on this machine",
+   "result": "Gate 7 (validation/results_gate7.json)"
+  },
+  {
+   "task": "differential",
+   "tool": "multiHiCcompare",
+   "status": "not run: R / Bioconductor package; R is not installed on this machine",
+   "result": "Gate 7"
+  },
+  {
+   "task": "differential",
+   "tool": "CHESS",
+   "status": "not run: pip install chess-hic fails building pysam (a FAN-C dependency) on Windows",
+   "result": "Gate 7"
+  },
+  {
+   "task": "SV detection",
+   "tool": "HiNT",
+   "status": "not run: not installable here (needs R and BWA / samtools)",
+   "result": "\u2014"
+  },
+  {
+   "task": "SV detection",
+   "tool": "hic_breakfinder",
+   "status": "not run: C++ (Eigen, BamTools) with no Windows binary; no compiler here",
+   "result": "\u2014"
+  },
+  {
+   "task": "SV detection",
+   "tool": "EagleC",
+   "status": "not run: no held-out SV truth set with Hi-C here (Gate 4d is blocked), so there is nothing to score it on",
+   "result": "\u2014"
+  },
+  {
+   "task": "SV impact",
+   "tool": "Akita (basenji)",
+   "status": "not run: TensorFlow model code not packaged for pip; no SV truth set (Gate 4d)",
+   "result": "\u2014"
+  },
+  {
+   "task": "SV impact",
+   "tool": "Orca",
+   "status": "not run: needs selene-sdk (no Windows build) and large weights; no SV truth set (Gate 4d)",
+   "result": "\u2014"
+  }
+ ],
+ "written_utc": "2026-10-05T10:18:52+00:00"
+}

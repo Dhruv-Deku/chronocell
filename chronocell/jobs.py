@@ -51,8 +51,8 @@ def _alive(pid: int | None) -> bool:
 
 
 class Queue:
-    def __init__(self, root: Path = ROOT, max_cpu: int = MAX_CPU):
-        self.root = Path(root)
+    def __init__(self, root: Path | None = None, max_cpu: int = MAX_CPU):
+        self.root = Path(root) if root is not None else ROOT          # module value read at call time
         self.max_cpu = max_cpu
 
     def _path(self, jid: str) -> Path:
@@ -168,8 +168,9 @@ class Queue:
             time.sleep(poll)
 
 
-def start_worker(root: Path = ROOT) -> int:
+def start_worker(root: Path | None = None) -> int:
     """Start a background worker process (used by the app's Jobs panel); returns its PID."""
+    root = Path(root) if root is not None else ROOT
     root.mkdir(parents=True, exist_ok=True)
     pidfile = root / "worker.pid"
     if pidfile.exists():

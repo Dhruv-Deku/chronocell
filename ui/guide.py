@@ -159,7 +159,8 @@ def render(version: str) -> None:
         {"You have": "Raw sequencing (FASTA + bigWig + mcool)", "Formats": "Colab notebook on a T4 GPU",
          "Where": "colab/ChronoCell5D_Colab.ipynb → unzip output into coordinates/"},
     ], hide_index=True, width="stretch")
-    html('<p class="cc-note">* bigWig needs the optional package pyBigWig; .hic needs hic-straw (or convert with hic2cool). '
+    html('<p class="cc-note">* bigWig is read with pyBigWig when installed, otherwise with the built-in reader; .hic is '
+         'read with hic-straw when installed, otherwise with the built-in reader. '
          'Files are matched to Healthy / Disease / Senescent by words in their name or folder (healthy, control, tumour, '
          'cancer, senescent…), or by uploading them into a state.</p>')
 
@@ -183,3 +184,34 @@ def render(version: str) -> None:
          '<br><b>Synthetic / simulated:</b> the reference model and the demo patients (labelled everywhere), the 4D '
          'disease scenarios, and the drug lab (a mechanism simulator). Gene "active / silenced" labels are predictions '
          'from structure. ChronoAgent\'s therapy section lists research ideas, never medical advice.</div>')
+
+    _phase_b()
+
+
+def _phase_b() -> None:
+    """New analyses (Phase B), each with its measured standing read from the validation result files."""
+    from chronocell import report_html as RH
+    std = {g: RH.gate_standing(g)[0] for g in ("4c", "4d", "6", "7")}
+    mouse = ACC.mouse_predictor_evidence()
+    html('<h2 class="cc-h2">Analyses for your own maps</h2>')
+    left, right = st.columns(2, gap="large")
+    with left:
+        html('<div class="cc-callout"><h4>Analysis suite · 01 → 06</h4>Finds <b>loops</b> (two distant pieces of DNA held '
+             'together, like a bead pinned to another bead), <b>neighbourhoods</b> (TADs) and the active / quiet '
+             f'<b>compartments</b> in the contacts of the window, and exports them for IGV and Juicebox. {std["6"]}.</div>')
+        html('<div class="cc-callout"><h4>Differential analysis · 03 → third tab</h4>Two conditions (say untreated and '
+             'treated), each with its replicate maps: which contacts, loops, boundaries and compartments change. With two '
+             f'or more replicates per condition each change gets a false-discovery-controlled test. {std["7"]}.</div>')
+    with right:
+        html('<div class="cc-callout"><h4>Variant impact engine v2 · 02 → 05</h4>Describe a rearrangement by how its '
+             'broken ends are re-joined (or by copy number), even across two chromosomes, and see contacts, '
+             'neighbourhoods, genes and enhancer–promoter pairs change, ranked by how likely they are to disrupt gene '
+             f'regulation. A <b>mechanism simulator, not validated</b>: {std["4d"]}; the cohesin-loss model it shares '
+             f'the ensemble with: {std["4c"]}.</div>')
+        mtxt = ("passed on two mouse ES-cell loci (" + "; ".join(f"{v['percent_of_ceiling']:.0f} % of the pattern"
+                                                               for v in mouse["loci"].values()) + ")"
+                if mouse and mouse["verdict"] == "pass" else "not offered (the mouse test has not passed)")
+        html('<div class="cc-callout"><h4>Platform</h4><b>Research mode</b> (sidebar) hides the mechanism simulators and '
+             'the rule-based state labels when off. <b>Projects</b> save a session; <b>Jobs</b> run heavy work in the '
+             'background, one GPU job at a time. <b>Mouse</b> prediction without contacts: ' + mtxt + '.</div>')
+

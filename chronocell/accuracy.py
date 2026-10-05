@@ -233,6 +233,19 @@ def sv_evidence() -> dict | None:
         return None
 
 
+def mouse_predictor_evidence() -> dict | None:
+    """Gate 5m (the human sequence + CTCF predictor on mouse ES-cell tracing, pre-registered) as measured, or None if
+    it has not been run; every number is read from validation/results_predictor_mouse.json."""
+    try:
+        r = json.loads((VALIDATION / "results_predictor_mouse.json").read_text(encoding="utf-8"))
+        loci = {k: {"region": r["sets"][k]["region"], "percent_of_ceiling": v["percent_of_ceiling"], "ci95": v["ci95"],
+                    "raw_spearman": v["raw_spearman"], "baseline_raw_spearman": v["baseline_raw_spearman"]}
+                for k, v in r["gate5m"].items()}
+        return {"verdict": r["verdict"], "loci": loci, "assembly_tested": r["rule"]["assembly"]}
+    except (OSError, ValueError, KeyError):
+        return None
+
+
 def method_evidence() -> dict:
     """Headline numbers of every held-out test that has been run, read from validation/*.json (measured
     values only; a test that has not been run is reported as such, never filled in)."""

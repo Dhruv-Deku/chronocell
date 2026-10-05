@@ -18,7 +18,6 @@ import base64
 import gzip
 import io
 import urllib.request
-from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
@@ -28,6 +27,22 @@ CLINVAR_URL = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/gene_speci
 GTEX_URL = ("https://storage.googleapis.com/adult-gtex/bulk-gex/v10/rna-seq/"
             "GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct.gz")
 UA = {"User-Agent": "ChronoCell-5D (research; annotations)"}
+
+
+def _memo_found(fn):
+    """Cache a loader's result once the file exists (a missing file is looked for again on the next call)."""
+    store: dict = {}
+
+    def wrapper(download: bool = False):
+        if "v" not in store:
+            v = fn(download)
+            if v is None:
+                return None
+            store["v"] = v
+        return store["v"]
+    wrapper.cache_clear = store.clear
+    wrapper.__doc__ = fn.__doc__
+    return wrapper
 SOURCES = {
     "clinvar": {"url": CLINVAR_URL, "checksum": "NCBI .md5 file", "licence": "NCBI ClinVar: public domain (US government work); cite "
                 "Landrum MJ et al., Nucleic Acids Res 46, D1062 (2018)."},
@@ -49,7 +64,7 @@ def _clinvar_path(download: bool) -> Path | None:
     return download_verified(CLINVAR_URL, out, md5)
 
 
-@lru_cache(maxsize=2)
+@_memo_found
 def clinvar_genes(download: bool = False) -> dict[str, int] | None:
     """Gene symbol -> alleles reported pathogenic / likely pathogenic in ClinVar (None if not downloaded)."""
     path = _clinvar_path(download)
@@ -77,7 +92,7 @@ def _gtex_path(download: bool) -> Path | None:
     return download_verified(GTEX_URL, out, base64.b64decode(b64).hex())
 
 
-@lru_cache(maxsize=1)
+@_memo_found
 def gtex_median_tpm(download: bool = False) -> pd.DataFrame | None:
     """Genes x tissues median TPM (index: gene symbol), or None if not downloaded."""
     path = _gtex_path(download)

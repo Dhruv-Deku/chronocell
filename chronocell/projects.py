@@ -37,9 +37,9 @@ def _plain(v) -> bool:
 
 
 def save(name: str, settings: dict, files: dict[str, bytes] | None = None, results: dict | None = None,
-         notes: str = "", root: Path = ROOT) -> Path:
+         notes: str = "", root: Path | None = None) -> Path:
     """Save (or overwrite) a project; only plain settings values are kept."""
-    d = Path(root) / _safe(name)
+    d = Path(root if root is not None else ROOT) / _safe(name)
     (d / "data").mkdir(parents=True, exist_ok=True)
     listed = []
     for fname, data in (files or {}).items():
@@ -58,9 +58,9 @@ def save(name: str, settings: dict, files: dict[str, bytes] | None = None, resul
     return d
 
 
-def list_projects(root: Path = ROOT) -> list[dict]:
+def list_projects(root: Path | None = None) -> list[dict]:
     out = []
-    for p in sorted(Path(root).glob("*/project.json")):
+    for p in sorted(Path(root if root is not None else ROOT).glob("*/project.json")):
         try:
             m = json.loads(p.read_text(encoding="utf-8"))
         except (OSError, ValueError):
@@ -70,10 +70,10 @@ def list_projects(root: Path = ROOT) -> list[dict]:
     return out
 
 
-def load(name: str, root: Path = ROOT) -> dict:
+def load(name: str, root: Path | None = None) -> dict:
     """Settings, data files (checked against their saved SHA-256) and results of a project saved by this app
     under `root`. Pickled results are read only from that folder, which only this app writes."""
-    d = Path(root) / _safe(name)
+    d = Path(root if root is not None else ROOT) / _safe(name)
     meta = json.loads((d / "project.json").read_text(encoding="utf-8"))
     if meta.get("format") != MARK:
         raise ValueError("Not a ChronoCell project folder.")
@@ -91,7 +91,7 @@ def load(name: str, root: Path = ROOT) -> dict:
             "saved_utc": meta["saved_utc"]}
 
 
-def delete(name: str, root: Path = ROOT) -> None:
-    d = Path(root) / _safe(name)
+def delete(name: str, root: Path | None = None) -> None:
+    d = Path(root if root is not None else ROOT) / _safe(name)
     if (d / "project.json").exists():
         shutil.rmtree(d)

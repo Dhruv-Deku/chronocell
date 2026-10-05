@@ -269,6 +269,9 @@ def render(ds: Dataset, conditions: list[Dataset], b0: float, frame: int) -> Non
         if mode == "Simulated scenario" and spec is not None:
             with st.expander("04   Variant impact · contacts, genes, E–P pairs", expanded=False):
                 VI.render(ds, frame, float(b0), spec[0], dict(spec[1]), spec[2])
+        with st.expander("05   Variant impact engine v2 · joins, two chromosomes, copy number, ranking", expanded=False):
+            from ui import variant_engine_view
+            variant_engine_view.render(ds, frame, float(b0))
 
     # ---- title + stage ----------------------------------------------------------------------
     with head_l:
