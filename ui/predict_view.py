@@ -125,7 +125,8 @@ def _encode_peaks() -> tuple[bytes | None, str, dict]:
 def _peaks(ch: genome.Chrom) -> tuple[dict | None, str, str, dict]:
     """CTCF peaks of this chromosome from ENCODE, an upload or pasted lines: (peaks, source name, SHA-256,
     extra record fields)."""
-    src = st.segmented_control("CTCF peaks", PEAK_SOURCES, default=PEAK_SOURCES[0], required=True, key="pred_peaks_src")
+    options = PEAK_SOURCES if ch.assembly == "hg38" else PEAK_SOURCES[:1]      # the ENCODE list is human (GRCh38) only
+    src = st.segmented_control("CTCF peaks", options, default=options[0], required=True, key="pred_peaks_src")
     meta: dict = {}
     if src == PEAK_SOURCES[1]:
         data, name, meta = _encode_peaks()
@@ -155,11 +156,19 @@ def render(ds: Dataset, lo: int, hi: int, fit_key: str, b0: float) -> None:
     model, meta = loaded
     _status(meta)
     ch = ds.chrom
-    if ch.assembly != meta.get("assembly"):
+    if not PD.assembly_supported(ch.assembly, meta):
         html(f'<p class="cc-note">The predictor was trained and tested on human {esc(meta.get("assembly", ""))} only; it is '
-             f'not offered for {esc(ch.genome.display)}. A mouse test is pre-registered but not yet run (its data need a '
-             '4DN access key): validation/RESULTS.md, Gate 5m.</p>')
+             f'not offered for {esc(ch.genome.display)} (validation/RESULTS.md, Gates 5 and 5m).</p>')
         return
+    if ch.assembly != meta.get("assembly"):
+        from chronocell import accuracy as ACC
+        ev = ACC.mouse_predictor_evidence()
+        loci = "; ".join(f"{v['region']}: {v['percent_of_ceiling']:.1f} % of the reproducible pattern (95 % interval "
+                         f"{v['ci95'][0]:.1f} to {v['ci95'][1]:.1f})" for v in ev["loci"].values())
+        banner(f"<b>Mouse: the human model, unchanged.</b> Pre-registered mouse test (Gate 5m, ORCA tracing in mouse ES "
+               f"cells, {esc(ev['assembly_tested'])}): passed on both loci, {esc(loci)}. Raw gains over the separation "
+               "trend are small: a prior, not a substitute for contacts. Give mouse CTCF peaks of your cells (upload "
+               "or paste); the ENCODE list is human only.", "info")
     from chronocell import population as POP
     n = hi - lo
     if n > POP.MAX_BEADS:

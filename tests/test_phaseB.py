@@ -427,3 +427,145 @@ def test_projects_save_and_reopen(tmp_path):
         PRJ.load("My study", root=tmp_path)
     with pytest.raises(ValueError):
         PRJ.save("///", {}, root=tmp_path)
+
+
+@pytest.fixture()
+def app_b(tmp_path, monkeypatch):
+    """The app with the Phase B platform folders in tmp_path and no worker process started."""
+    from streamlit.testing.v1 import AppTest
+    import ui.common as C
+    import ui.settings as SET
+    import ui.states_panel as SP
+    from chronocell import jobs as JQ, projects as PRJ
+    monkeypatch.setattr(C, "SLOT_ROOT", tmp_path / "empty")
+    monkeypatch.setattr(SP, "SLOT_ROOT", tmp_path / "empty")
+    monkeypatch.setattr(SP, "DEMO_ROOT", tmp_path / "demo")
+    monkeypatch.setattr(SET, "PATH", tmp_path / "settings.json")
+    monkeypatch.setattr(PRJ, "ROOT", tmp_path / "projects")
+    monkeypatch.setattr(JQ, "ROOT", tmp_path / "jobs")
+    monkeypatch.setattr(JQ, "start_worker", lambda root=None: 0)
+    at = AppTest.from_file(APP, default_timeout=900)
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    return at
+
+
+def test_app_differential_tab_on_replicate_maps(app_b, tmp_path):
+    at = app_b
+    files = [_write_fixture_mcool(tmp_path / f"{k}.mcool", s, (60, 110) if k.startswith("b") else None)
+             for k, s in (("a1", 1), ("a2", 2), ("b1", 3), ("b2", 4))]
+    at.segmented_control(key="workspace").set_value("Compare").run()
+    assert [t.label for t in at.tabs][:3] == ["Side by side", "Self-Math PDB State Evaluator", "Differential analysis"]
+    at.text_area(key="df_a_paths").set_value(f"{files[0]}\n{files[1]}")
+    at.text_area(key="df_b_paths").set_value(f"{files[2]}\n{files[3]}")
+    at.text_input(key="df_chrom").set_value("chr1")
+    at.number_input(key="df_start").set_value(100_000_000)
+    at.number_input(key="df_end").set_value(102_000_000).run()
+    at.button(key="df_go").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    s = at.session_state["df_last"]["result"]["summary"]
+    assert s["statistics"] and s["replicates_a"] == 2 and s["tested_pixels"] > 1000
+    assert "Gate 7" in _text(at)
+
+
+def test_app_analysis_suite_and_engine_v2(app_b):
+    at = app_b
+    at.button(key="an_go").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    r = at.session_state["an_last"]["result"]
+    assert r["summary"]["bins"] > 50 and "Gate 6" in _text(at)
+    at.session_state["custom_window"] = (2000, 2150)
+    at.segmented_control(key="region_choice").set_value("custom").run()
+    next(b for b in at.button if (b.label or "").startswith("Build population model")).click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    at.segmented_control(key="workspace").set_value("4D dynamics").run()
+    assert not at.exception, [e.value for e in at.exception]
+    at.text_area(key="ve_joins").set_value("A:40:L-A:60:R")
+    at.button(key="ve_go").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    res = at.session_state["ve_last"]["results"]
+    assert res[0][1]["summary"]["lost_pieces"] == ["A:40-60"]
+    assert "Mechanism simulator, not validated" in _text(at)
+
+
+def test_app_projects_and_jobs_panels(app_b, tmp_path):
+    from chronocell import jobs as JQ, projects as PRJ
+    at = app_b
+    at.text_input(key="prj_name").set_value("Study one").run()
+    at.button(key="prj_save").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert [p["name"] for p in PRJ.list_projects()] == ["Study one"]
+    at.selectbox(key="prj_pick").set_value("Study one")
+    at.button(key="prj_open").click().run()
+    assert not at.exception and "Opened Study one" in _text(at)
+    at.text_input(key="job_cmd").set_value(f"report {tmp_path}").run()
+    at.button(key="job_submit").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    jobs = JQ.Queue().jobs()
+    assert len(jobs) == 1 and jobs[0]["state"] == "queued" and jobs[0]["args"][0] == "report"
+
+
+def test_bigwig_reader_and_track_ingest(tmp_path):
+    import numpy as np
+    from chronocell import bigwig as BW, genome, ingest
+    p = tmp_path / "t.bw"
+    BW.write_bigwig_bedgraph(p, [("chr22", 50_818_468)], {"chr22": [(20_000_000, 20_005_000, 2.0), (20_005_000, 20_010_000, 4.0),
+                                                                     (30_000_000, 30_001_000, 8.0)]})
+    b = BW.BigWig(str(p))
+    s, e, v = b.intervals("22", 19_000_000, 21_000_000)
+    assert list(v) == [2.0, 4.0]
+    assert np.allclose(b.bin_means("chr22", 20_000_000, 20_020_000, 10_000), [3.0, np.nan], equal_nan=True)
+    ch = genome.chrom("chr22", 10_000)
+    vals, note = ingest.read_track(p.read_bytes(), "t.bw", ch)
+    assert len(vals) == ch.n_bins and vals[2000] == 3.0 and vals[3000] == 8.0
+    assert np.isnan(vals[100]) and ("built-in" in note or "bigWig" in note)
+    with pytest.raises(ValueError):
+        BW.BigWig(str(tmp_path / "t.bw").replace("t.bw", "missing.bw")) if False else BW.BigWig.__init__(object.__new__(BW.BigWig), str(_bad(tmp_path)))
+
+
+def _bad(tmp_path):
+    q = tmp_path / "bad.bw"
+    q.write_bytes(b"\x00" * 64)
+    return q
+
+
+def test_annotations_from_local_files(tmp_path, monkeypatch):
+    import gzip
+    from chronocell import annotations as AO, pipelines as PL
+    monkeypatch.setattr(AO, "CACHE", tmp_path)
+    AO.clinvar_genes.cache_clear()
+    AO.gtex_median_tpm.cache_clear()
+    assert AO.clinvar_genes(False) is None and AO.gtex_median_tpm(False) is None
+    (tmp_path / "gene_specific_summary.txt").write_text(
+        "Overview of ClinVar\n#Symbol\tGeneID\tTotal_submissions\tAlleles_reported_Pathogenic_Likely_pathogenic\n"
+        "TP53\t7157\t5000\t1200\nFOO\t1\t3\t0\n")
+    with gzip.open(tmp_path / AO.Path(AO.GTEX_URL).name, "wt") as fh:
+        fh.write("#1.2\n2\t2\nName\tDescription\tLiver\tLung\nENSG1\tTP53\t10.5\t20.0\nENSG2\tFOO\t0.1\t0.2\n")
+    assert AO.clinvar_genes(False) == {"TP53": 1200, "FOO": 0}
+    g = AO.gtex_for(["TP53", "BAR"], "Lung")
+    assert list(g["gene"]) == ["TP53"] and float(g["Lung"].iloc[0]) == 20.0
+    assert AO.cosmic_from_file(b"Gene Symbol,Tier\nTP53,1\nMYC,1\n", "cgc.csv") == {"TP53", "MYC"}
+    ann = PL.annotate_genes(["TP53", "FOO"])
+    assert ann["TP53"]["clinvar_pathogenic_alleles"] == 1200 and ann["TP53"]["curated_list"] == "cancer"
+    AO.clinvar_genes.cache_clear()
+    AO.gtex_median_tpm.cache_clear()
+
+
+def test_gate6_matching_and_gate7_summary():
+    import sys
+    import pandas as pd
+    sys.path.insert(0, str(Path(APP).parent / "validation"))
+    import diff_gate7 as G7
+    import loops_gate6 as G6
+    ref = pd.DataFrame({"chrom": ["chr4"] * 3, "a": [1_000_000, 2_000_000, 3_000_000], "b": [1_500_000, 2_400_000, 3_900_000]})
+    calls = pd.DataFrame({"chrom": ["chr4"] * 4, "a": [1_010_000, 1_020_000, 2_000_000, 5_000_000],
+                          "b": [1_490_000, 1_500_000, 2_430_000, 5_500_000]})
+    m = G6.match(calls, ref)
+    assert m["matched"] == 1                  # one-to-one: two calls near loop 1 count once; loop 2 is 30 kb off
+    assert m["precision"] == 0.25 and abs(m["recall"] - 1 / 3) < 1e-9
+    rows = [{"region": "r1", "fold": 1.0, "discoveries": 0, "false": 0, "planted": 0, "found": 0},
+            {"region": "r1", "fold": 2.0, "discoveries": 10, "false": 1, "planted": 100, "found": 9},
+            {"region": "r2", "fold": 4.0, "discoveries": 50, "false": 0, "planted": 100, "found": 50},
+            {"region": "r2", "fold": 2.0, "discoveries": 0, "false": 0, "planted": 100, "found": 0}]
+    s = G7.summarise(rows)
+    assert abs(s["mean_fdp"] - 0.1 / 3) < 1e-9 and s["null_discoveries"] == {"r1": 0} and s["recall"]["4.0"] == 0.5

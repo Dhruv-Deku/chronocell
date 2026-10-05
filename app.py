@@ -381,6 +381,10 @@ html(f'<p class="cc-purpose">{WORKSPACES[workspace][2]}</p>')
 # ======================================================================================
 bio = states_panel.sidebar(chrom_choice, genome.chrom(chrom_choice, None, asm_name).n_bins)
 agent_cfg = agent_panel.sidebar_settings()
+with st.sidebar:                    # Phase B7, below the existing sidebar sections
+    from ui import platform_view
+    platform_view.projects_panel()
+    platform_view.jobs_panel()
 
 if workspace == "Guide":            # plain-language guide: needs no data
     guide.render(VERSION)
@@ -1496,6 +1500,11 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             html('<p class="cc-note">Colour the fold by <b>A/B compartment</b> or <b>TAD domains</b> under Display.</p>')
         except Exception as exc:
             warning_card("Neighbourhoods could not be computed for this window", str(exc))
+
+    # ---- 06 Analysis suite (Phase B3) ------------------------------------------------------
+    with st.expander("06   Analysis suite (loops, domains, compartments · exports)", expanded=False):
+        from ui import analysis_view
+        analysis_view.render(ds, lo, hi)
 
 # ======================================================================================
 # ChronoAgent (fragment: questions and analyses re-render only the panel)

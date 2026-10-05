@@ -49,13 +49,23 @@ def _peaks(v: np.ndarray, k: int = 5, spacing: int = 30) -> list[int]:
 def render(options: list[tuple[str, Dataset]], default_left: int, default_right: int, b0: float,
            populations: dict | None = None) -> None:
     """Page 03. The first tab is the original side-by-side comparison (shown by default); the second
-    is the Self-Math PDB State Evaluator (ui/pdb_eval_view.py)."""
-    side, evaluator = st.tabs(["Side by side", "Self-Math PDB State Evaluator"])
+    is the Self-Math PDB State Evaluator (ui/pdb_eval_view.py); the third (Phase B2) is the two-condition
+    differential analysis of contact maps (ui/diff_view.py)."""
+    side, evaluator, differential = st.tabs(["Side by side", "Self-Math PDB State Evaluator", "Differential analysis"])
     with side:
         _side_by_side(options, default_left, default_right, b0)
     with evaluator:
         from ui import pdb_eval_view
         pdb_eval_view.render(options, populations)
+    with differential:
+        from ui import diff_view
+        ds0 = options[default_right][1] if options else None
+        if ds0 is not None:
+            ch = ds0.chrom
+            diff_view.render(ch.name, int(ch.bin_start(ds0.bin0)), int(ch.bin_end(ds0.bin0 + min(ds0.n, 200) - 1)),
+                             ch.assembly)
+        else:
+            diff_view.render()
 
 
 def _side_by_side(options: list[tuple[str, Dataset]], default_left: int, default_right: int, b0: float) -> None:

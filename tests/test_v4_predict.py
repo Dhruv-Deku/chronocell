@@ -136,12 +136,19 @@ def test_cli_writes_the_map_and_a_record_with_hashes(tmp_path, capsys):
     assert "PREDICTED, not measured" in capsys.readouterr().out
 
 
-def test_cli_refuses_what_was_not_validated(tmp_path):
+def test_cli_refuses_what_was_not_validated(tmp_path, monkeypatch):
     import json
+    from chronocell import accuracy as ACC
     fa, peaks = _cli_inputs(tmp_path)
+    # mouse is offered only once the pre-registered mouse test (Gate 5m) has passed
+    monkeypatch.setattr(ACC, "mouse_predictor_evidence", lambda: None)
     with pytest.raises(SystemExit, match="hg38 only"):
         PD.main(["--chrom", "chr1", "--start", "0", "--end", "300000", "--peaks", str(peaks), "--fasta", str(fa),
                  "--assembly", "mm39", "--out", str(tmp_path / "m.npy")])
+    _, meta = PD.load_model()
+    assert not PD.assembly_supported("mm39", meta) and not PD.assembly_supported("hg19", meta)
+    monkeypatch.setattr(ACC, "mouse_predictor_evidence", lambda: {"verdict": "pass", "loci": {}, "assembly_tested": "mm10"})
+    assert PD.assembly_supported("mm39", meta) and not PD.assembly_supported("hg19", meta)
     with pytest.raises(SystemExit, match="outside the chromosome"):
         PD.main(["--chrom", "chr21", "--start", "0", "--end", "999000000", "--peaks", str(peaks), "--fasta", str(fa),
                  "--out", str(tmp_path / "m.npy")])

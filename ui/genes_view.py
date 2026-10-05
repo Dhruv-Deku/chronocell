@@ -191,3 +191,50 @@ def render(ds: Dataset, b0: float, frame: int, state_expression: tuple[pd.Series
     html(f'<p class="cc-note">Gene annotation: {esc(G.source_note(ch.assembly))}. Status is a <b>prediction</b> from how crowded each '
          'promoter is in 3D and how strong its activity mark is, relative to the region shown; flags mark curated '
          'cancer and neuro-disease genes.</p>')
+    _reference_annotations(view)
+
+
+def _reference_annotations(view: pd.DataFrame) -> None:
+    """Phase B5: GTEx median expression per tissue, ClinVar counts and a user-supplied COSMIC list, for the genes in
+    the table above. Information only; nothing here changes the predictions."""
+    from chronocell import annotations as AO
+    with st.expander("Reference annotations · GTEx expression by tissue, ClinVar, COSMIC (information only)", expanded=False):
+        html('<p class="cc-note">Public references, downloaded on demand and checked against the checksum each source '
+             'publishes. They describe other samples (GTEx donors, ClinVar submissions), not this one, and are never a '
+             'diagnosis.</p>')
+        c1, c2 = st.columns(2)
+        gtex = AO.gtex_median_tpm(False)
+        if gtex is None and c1.button("Download GTEx median TPM (v10, ~9 MB)", key="gx_dl", icon=":material/download:"):
+            with st.spinner("Downloading GTEx…"):
+                try:
+                    AO.gtex_median_tpm.cache_clear()
+                    gtex = AO.gtex_median_tpm(True)
+                except OSError as exc:
+                    warning_card("GTEx could not be downloaded", str(exc))
+        clin = AO.clinvar_genes(False)
+        if clin is None and c2.button("Download the ClinVar gene summary (NCBI)", key="cv_dl", icon=":material/download:"):
+            with st.spinner("Downloading ClinVar…"):
+                try:
+                    AO.clinvar_genes.cache_clear()
+                    clin = AO.clinvar_genes(True)
+                except OSError as exc:
+                    warning_card("ClinVar could not be downloaded", str(exc))
+        cgc = st.file_uploader("COSMIC Cancer Gene Census export (optional; needs your own COSMIC licence)",
+                               type=["csv", "tsv", "txt"], key="cosmic_up")
+        genes = view["gene"].astype(str).tolist()
+        out = pd.DataFrame({"gene": genes})
+        if gtex is not None:
+            tissue = st.selectbox("GTEx tissue", list(gtex.columns), key="gx_tissue")
+            out[f"GTEx TPM · {tissue}"] = [float(gtex[tissue].get(g, np.nan)) for g in genes]
+        if clin is not None:
+            out["ClinVar pathogenic / likely pathogenic alleles"] = [clin.get(g) for g in genes]
+        if cgc is not None:
+            try:
+                cg = AO.cosmic_from_file(cgc.getvalue(), cgc.name)
+                out["in COSMIC CGC"] = ["yes" if g in cg else "" for g in genes]
+            except (ValueError, UnicodeDecodeError) as exc:
+                warning_card("That COSMIC file could not be read", str(exc))
+        if out.shape[1] > 1:
+            st.dataframe(out, hide_index=True, width="stretch", height=260, key="ref_annot_table")
+        else:
+            html('<p class="cc-note">Download a reference above to fill the table.</p>')
