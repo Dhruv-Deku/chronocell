@@ -1,5 +1,8 @@
 # Exact versions ChronoCell-5D 4.0 was tested with (python -m pytest, Python 3.10.11).
 # CPU PyTorch:  pip install --index-url https://download.pytorch.org/whl/cpu torch==2.11.0
+# NVIDIA GPU:   pip install --index-url https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128
+#               (tested on an RTX 5050 Laptop GPU, driver 592.82, CUDA 12.8; same results as the CPU
+#               within the tolerance in tests/test_phaseA.py)
 #               pip install -r requirements.lock
 # The Docker image records the full resolved environment in /app/pip-freeze.txt.
 streamlit==1.64.0
