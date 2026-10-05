@@ -24,6 +24,11 @@ MAX_BEADS = 1500
 _JOIN = re.compile(r"^\s*([\w.]+):([\d,_]+):([LR])\s*-\s*([\w.]+):([\d,_]+):([LR])\s*$")
 
 
+def measured_signal(ds: Dataset) -> bool:
+    """An activity track that was measured (not the reference model's synthetic tracks or a placeholder)."""
+    return not ds.signal_is_placeholder and not ds.tracks_label.startswith("Reference tracks")
+
+
 def _window_source(ds: Dataset, frame: int):
     """(Source A, lo, hi, population key) from the largest population of this dataset and frame."""
     from chronocell import sv_engine as SV
@@ -36,11 +41,11 @@ def _window_source(ds: Dataset, frame: int):
         c = (lo + hi) // 2
         w = (max(lo, c - MAX_BEADS // 2), min(hi, c + MAX_BEADS // 2))
         src = SV.source_from_result("A", res, (w[0] - lo, w[1] - lo), chrom=ds.chrom.name, bin0=ds.bin0 + w[0],
-                                    resolution=ds.chrom.resolution, signal=None if ds.signal_is_placeholder else
-                                    np.asarray(ds.epi[w[0]:w[1]], float))
+                                    resolution=ds.chrom.resolution, signal=np.asarray(ds.epi[w[0]:w[1]], float)
+                                    if measured_signal(ds) else None)
         return src, w[0], w[1], key
     src = SV.source_from_result("A", res, None, chrom=ds.chrom.name, bin0=ds.bin0 + lo, resolution=ds.chrom.resolution,
-                                signal=None if ds.signal_is_placeholder else np.asarray(ds.epi[lo:hi], float))
+                                signal=np.asarray(ds.epi[lo:hi], float) if measured_signal(ds) else None)
     return src, lo, hi, key
 
 
@@ -250,7 +255,8 @@ def render(ds: Dataset, frame: int, b0: float) -> None:
         st.dataframe(pd.DataFrame(r["boundaries"]), hide_index=True, width="stretch", key="ve_bnd")
     with t3:
         if not r["ep"]:
-            html('<p class="cc-note">None, or no measured activity track loaded (H3K27ac / ATAC as the enhancer proxy).</p>')
+            html('<p class="cc-note">None, or no measured activity track loaded (H3K27ac / ATAC as the enhancer proxy; the '
+                 'synthetic reference tracks are not used).</p>')
         st.dataframe(pd.DataFrame(r["ep"]), hide_index=True, width="stretch", key="ve_ep")
     with t4:
         imp = r["impact"]

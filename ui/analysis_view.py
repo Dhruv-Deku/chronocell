@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from ui.common import Dataset, banner, esc, html, readout
+from ui.common import Dataset, banner, contacts_are_synthetic, esc, html, readout
 
 ss = st.session_state
 
@@ -53,7 +53,7 @@ def render(ds: Dataset, lo: int, hi: int) -> None:
     if not ds.has_contacts:
         html('<p class="cc-note">Needs contacts (Data → Graph, or a state\'s Hi-C / Micro-C file).</p>')
         return
-    if ds.is_reference:
+    if contacts_are_synthetic(ds):
         banner("Input is the <b>SYNTHETIC</b> reference contact map: the calls illustrate the method only.", "warn")
     standing_banner("6")
     c1, c2 = st.columns(2)

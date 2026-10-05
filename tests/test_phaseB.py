@@ -569,3 +569,24 @@ def test_gate6_matching_and_gate7_summary():
             {"region": "r2", "fold": 2.0, "discoveries": 0, "false": 0, "planted": 100, "found": 0}]
     s = G7.summarise(rows)
     assert abs(s["mean_fdp"] - 0.1 / 3) < 1e-9 and s["null_discoveries"] == {"r1": 0} and s["recall"]["4.0"] == 0.5
+
+
+def test_project_save_skips_unpicklable_results(tmp_path):
+    import threading
+    from chronocell import projects as PRJ
+    d = PRJ.save("p", {"a": 1}, None, {"ensembles": {"ok": [1, 2], "bad": threading.Lock()}, "telemetry": [3]}, root=tmp_path)
+    meta = __import__("json").loads((d / "project.json").read_text())
+    assert meta["skipped_results"] == ["ensembles / bad: TypeError"] and not (tmp_path / ".p.saving").exists()
+    assert PRJ.load("p", root=tmp_path)["results"] == {"ensembles": {"ok": [1, 2]}, "telemetry": [3]}
+
+
+def test_app_guide_lists_phase_b_with_standing(app_b):
+    at = app_b
+    at.segmented_control(key="workspace").set_value("Guide").run()
+    assert not at.exception, [e.value for e in at.exception]
+    txt = _text(at)
+    assert "Analyses for your own maps" in txt and "Gate 6" in txt and "Gate 7" in txt and "Mouse" in txt
+    from ui.common import contacts_are_synthetic
+    from types import SimpleNamespace as NS
+    assert contacts_are_synthetic(NS(tracks_label="Reference tracks & simulated Micro-C contacts"))
+    assert not contacts_are_synthetic(NS(tracks_label="Reference tracks · contacts from Upload · x.mcool"))

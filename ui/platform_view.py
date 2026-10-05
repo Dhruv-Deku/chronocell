@@ -9,6 +9,7 @@ Everything stays on this computer.
 
 from __future__ import annotations
 
+import json
 import shlex
 import shutil
 from pathlib import Path
@@ -52,6 +53,10 @@ def projects_panel() -> None:
             results = {"ensembles": ss.get("ensembles", {}), "telemetry": ss.get("telemetry", [])}
             try:
                 d = PRJ.save(name, settings, None, results, notes="Saved from the app.")
+                skipped = json.loads((d / "project.json").read_text(encoding="utf-8")).get("skipped_results", [])
+                if skipped:
+                    ss.prj_msg = (f"Saved {d.name}; {len(skipped)} result(s) could not be stored and were skipped "
+                                  f"({'; '.join(skipped[:3])}). Rebuild them after opening.")
                 rep = d / "reports"
                 for key, sub in REPORT_KEYS:
                     out = (ss.get(key) or {}).get("out")

@@ -85,8 +85,9 @@ def _gtex_path(download: bool) -> Path | None:
         return None
     from .predict import download_verified
     req = urllib.request.Request(GTEX_URL, method="HEAD", headers=UA)
-    h = urllib.request.urlopen(req, timeout=60).headers.get("x-goog-hash", "")
-    b64 = next((p.split("=", 1)[1] for p in h.split(",") if p.strip().startswith("md5=")), None)
+    headers = urllib.request.urlopen(req, timeout=60).headers
+    parts = [x.strip() for h in (headers.get_all("x-goog-hash") or []) for x in h.split(",")]   # crc32c=..., md5=...
+    b64 = next((x.split("=", 1)[1] for x in parts if x.startswith("md5=")), None)
     if not b64:
         raise OSError("The GTEx bucket did not publish an MD5 for the file; not downloaded.")
     return download_verified(GTEX_URL, out, base64.b64decode(b64).hex())
