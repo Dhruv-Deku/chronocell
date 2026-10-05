@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chronocell-5d"
+version = "4.0"
+description = "Chromatin 3D structure, population models and contact-map analysis from Hi-C / Micro-C / imaging (research use only)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "streamlit>=1.50",
+  "plotly>=6.0",
+  "numpy>=1.26",
+  "pandas>=2.0",
+  "scipy>=1.10",
+  "h5py>=3.9",
+  "fpdf2>=2.7",
+  "torch>=2.2",          # CPU build from PyPI; for the GPU see requirements.lock (CUDA 12.8 wheel index)
+]
+
+[project.optional-dependencies]
+api = ["fastapi", "uvicorn", "httpx"]
+test = ["pytest>=8"]
+
+[project.scripts]
+chronocell = "chronocell.cli:main"
+
+[tool.setuptools]
+packages = ["chronocell", "chronocell.analytics"]
+
+[tool.setuptools.package-data]
+chronocell = ["data/*.json", "data/*.json.gz", "data/*.jaspar", "data/genomes/*/*"]

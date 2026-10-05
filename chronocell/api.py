@@ -1,5 +1,6 @@
 """
-REST API for programmatic use: /api/v1/reconstruct, /api/v1/metrics, /api/v1/benchmark.
+REST API for programmatic use: /api/v1/reconstruct, /api/v1/metrics, /api/v1/benchmark, and (Phase B)
+/api/v1/analyze, /api/v1/diff, /api/v1/impact.
 
 The request handlers are plain functions (dict in -> dict out) and are tested without any web
 framework. `create_app()` wraps them in FastAPI when it is installed:
@@ -247,6 +248,90 @@ def handle_benchmark(payload: dict | None = None) -> dict:
 
 
 # ----------------------------------------------------------------------------------------
+# Phase B endpoints: analysis suite, differential analysis, variant impact
+# ----------------------------------------------------------------------------------------
+MAX_ANALYZE_BINS = 20_000
+MAX_DIFF_BINS = 2_000
+MAX_IMPACT_BEADS = 1_500
+
+
+def _region_contacts(c: dict, label: str):
+    """{'i','j','count','n','resolution'[, 'chrom','start','weights']} -> chronocell.contacts_io.Contacts."""
+    from .contacts_io import Contacts
+    if not isinstance(c, dict):
+        raise RequestError(f"'{label}' must be an object.")
+    if "n" not in c:
+        raise RequestError(f"'{label}' needs 'n' (number of bins).")
+    ci, cj, cm, n = _contacts({"contacts": c, "n_beads": c.get("n")})
+    res = int(c.get("resolution", 0) or 0)
+    if res <= 0:
+        raise RequestError(f"'{label}' needs a positive 'resolution' (bp).")
+    w = np.asarray(c["weights"], float) if c.get("weights") is not None else None
+    return Contacts(np.minimum(ci, cj), np.maximum(ci, cj), cm, n, str(c.get("chrom", "chr?")), int(c.get("start", 0)), res, w)
+
+
+def handle_analyze(payload: dict) -> dict:
+    from . import pipelines as PL
+    c = _region_contacts(payload.get("contacts"), "contacts")
+    if c.n > MAX_ANALYZE_BINS:
+        raise RequestError(f"At most {MAX_ANALYZE_BINS:,} bins per request.")
+    r = PL.analyze(c, loops=bool(payload.get("loops", True)))
+    return {"summary": r["summary"], "loops": r["loops"].to_dict("records"), "boundaries": r["boundaries"].to_dict("records"),
+            "domains": r["domains"].to_dict("records"), "notes": r["notes"]}
+
+
+def handle_diff(payload: dict) -> dict:
+    from . import pipelines as PL
+    a, b = payload.get("condition_a"), payload.get("condition_b")
+    if not isinstance(a, list) or not isinstance(b, list) or not a or not b:
+        raise RequestError("'condition_a' and 'condition_b' must be non-empty lists of contact maps.")
+    A = [_region_contacts(x, "condition_a") for x in a]
+    B = [_region_contacts(x, "condition_b") for x in b]
+    if A[0].n > MAX_DIFF_BINS:
+        raise RequestError(f"At most {MAX_DIFF_BINS:,} bins per request.")
+    r = PL.diff(A, B, float(payload.get("fdr", 0.05)), int(payload.get("max_sep_bp", 2_000_000)),
+                float(payload.get("min_count", 5.0)), loops=bool(payload.get("loops", True)))
+    sig = r["significant"]
+    return {"summary": r["summary"], "significant": sig.head(5000).to_dict("records"), "notes": r["notes"],
+            "boundaries": None if r["boundaries"] is None else r["boundaries"].to_dict("records"),
+            "compartments": None if r["compartments"] is None else r["compartments"].to_dict("records"),
+            "loops": None if r["loops"] is None else r["loops"].to_dict("records")}
+
+
+def handle_impact(payload: dict) -> dict:
+    """sources: [{name, contacts}] (one or two windows); then joins [{source1, cut1, side1, source2, cut2, side2}]
+    with zygosity, or segments ["A:0-120 + B:40-90(-)", ...], or copy_number [[a, b, CN], ...] (first source)."""
+    from . import pipelines as PL, sv_engine as SV
+    srcs_in = payload.get("sources")
+    if not isinstance(srcs_in, list) or not 1 <= len(srcs_in) <= 2:
+        raise RequestError("'sources' must list one or two windows.")
+    contacts = [(_region_contacts(s.get("contacts"), "sources[].contacts"), str(s.get("name") or "AB"[k])) for k, s in enumerate(srcs_in)]
+    if sum(c.n for c, _ in contacts) > MAX_IMPACT_BEADS:
+        raise RequestError(f"At most {MAX_IMPACT_BEADS:,} beads in total per request.")
+    srcs = [PL.fit_source(name, c)[0] for c, name in contacts]
+    sizes = {s.name: s.n for s in srcs}
+    if payload.get("joins"):
+        joins = [SV.Join(j["source1"], int(j["cut1"]), j["side1"], j["source2"], int(j["cut2"]), j["side2"])
+                 for j in payload["joins"]]
+        kt = SV.karyotype_from_joins(sizes, joins, payload.get("zygosity", "heterozygous"))
+    elif payload.get("segments"):
+        kt = SV.karyotype_from_segments(sizes, [SV.parse_segments(t) for t in payload["segments"]])
+    elif payload.get("copy_number"):
+        kt = SV.karyotype_from_copy_number(srcs[0].n, [tuple(x) for x in payload["copy_number"]], srcs[0].name)
+    else:
+        raise RequestError("Give 'joins', 'segments' or 'copy_number'.")
+    r = PL.impact(srcs, kt, payload.get("assembly"))
+    imp = r["impact"]
+    iu = np.triu_indices(len(imp.log2_fc), 2)
+    v = imp.log2_fc[iu]
+    ok = np.isfinite(v)
+    top = np.argsort(-np.abs(np.where(ok, v, 0)))[:50]
+    changes = [{"i": int(iu[0][t]), "j": int(iu[1][t]), "log2_fc": float(v[t])} for t in top if ok[t]]
+    return {"summary": r["summary"], "top_changes": changes, "genes": r["genes"], "boundaries": r["boundaries"],
+            "ep_pairs": r["ep"], "notes": r["notes"]}
+
+
+# ----------------------------------------------------------------------------------------
 # Public entry points (with run logging) and the FastAPI wrapper
 # ----------------------------------------------------------------------------------------
 def reconstruct(payload: dict, log: AuditLog | None = None) -> dict:
@@ -259,6 +344,18 @@ def metrics(payload: dict, log: AuditLog | None = None) -> dict:
 
 def benchmark(log: AuditLog | None = None) -> dict:
     return _run("benchmark", {}, handle_benchmark, log)
+
+
+def analyze(payload: dict, log: AuditLog | None = None) -> dict:
+    return _run("analyze", payload, handle_analyze, log)
+
+
+def diff(payload: dict, log: AuditLog | None = None) -> dict:
+    return _run("diff", payload, handle_diff, log)
+
+
+def impact(payload: dict, log: AuditLog | None = None) -> dict:
+    return _run("impact", payload, handle_impact, log)
 
 
 def create_app(log: AuditLog | None = None):
@@ -288,6 +385,18 @@ def create_app(log: AuditLog | None = None):
     @app.get(f"/api/{API_VERSION}/benchmark")
     def _benchmark() -> dict:
         return call(benchmark)
+
+    @app.post(f"/api/{API_VERSION}/analyze")
+    def _analyze(payload: dict = Body(...)) -> dict:
+        return call(analyze, payload)
+
+    @app.post(f"/api/{API_VERSION}/diff")
+    def _diff(payload: dict = Body(...)) -> dict:
+        return call(diff, payload)
+
+    @app.post(f"/api/{API_VERSION}/impact")
+    def _impact(payload: dict = Body(...)) -> dict:
+        return call(impact, payload)
 
     return app
 
