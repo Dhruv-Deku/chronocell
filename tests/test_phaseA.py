@@ -92,3 +92,24 @@ def test_cuda_out_of_memory_falls_back_to_the_cpu_only_on_auto():
     with pytest.raises(torch.cuda.OutOfMemoryError):
         E.with_cpu_fallback(fit, E.EnsembleConfig(device="cuda"))          # an explicit device is never overridden
     assert calls == ["cuda"]
+
+
+def test_binomial_thinning_keeps_the_expected_share_of_reads():
+    import phase_a as A
+    rng = np.random.default_rng(3)
+    c = rng.poisson(50, (40, 40)).astype(float)
+    c = np.triu(c, 1) + np.triu(c, 1).T + np.diag(np.diag(c))
+    t = A.thin_counts(c, 0.25, seed=0)
+    iu = np.triu_indices(40, 1)
+    assert np.allclose(t, t.T) and (t <= c).all() and np.array_equal(np.diag(t), np.diag(c))
+    assert abs(t[iu].sum() / c[iu].sum() - 0.25) < 0.01
+    assert np.array_equal(A.thin_counts(c, 0.25, seed=0), t) and A.thin_counts(c, 1.0) is c
+
+
+def test_phase_a_units_respect_dataset_roles():
+    import datasets as D
+    import phase_a_units as U
+    for s in U.PRACTICE_HIC + U.PRACTICE_IMAGING:
+        assert D.REGISTRY[s.dataset.split(":")[0]].role == "practice", s
+    for s in U.TEST_HIC_MAIN + U.TEST_HIC_SECONDARY + U.TEST_IMAGING:
+        assert D.REGISTRY[s.dataset.split(":")[0]].role == "test", s
