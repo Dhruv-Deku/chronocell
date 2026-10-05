@@ -362,6 +362,25 @@ def banner(text: str, kind: str = "warn") -> None:
     html(f'<div class="cc-banner {kind}">{text}</div>')
 
 
+SYNTHETIC_PREFIX = "SYNTHETIC · "
+
+
+def is_synthetic(ds: "Dataset | None" = None, label: str = "") -> bool:
+    """True for the built-in reference model, the demo patients, and anything labelled synthetic."""
+    if label.startswith(SYNTHETIC_PREFIX):
+        return True
+    if ds is None:
+        return False
+    names = " ".join([ds.structure_label] + [str(i[1]) for i in ds.inputs if len(i) > 1]).lower()
+    return bool(ds.is_reference or "synthetic" in names or "demo/" in names)
+
+
+def synthetic_warning(what: str = "This result") -> None:
+    """Shown above any result computed on synthetic data (Phase B8)."""
+    banner(f"<b>{esc(what)} is computed on SYNTHETIC data</b> (the built-in reference model or the demo patients), "
+           "not on a measurement. Use it to learn the app, never as a finding.")
+
+
 def esc(text) -> str:
     """HTML-escape user- or file-derived text before it goes into unsafe_allow_html markup."""
     import html as _html

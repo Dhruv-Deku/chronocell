@@ -89,8 +89,9 @@ with _LOCK:
                                     pdf_report, physics, provenance as PROV, snapshot as SN, states as S, theme as T, viz)
             from ui import (agent_panel, compare, drug_lab, four_d, genes_view, guide, interact, predict_view,
                             states_panel)
-            from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
-                                   readout, slot_files, slot_graph, telemetry_row, warning_card)
+            from ui.common import (SLOT_ROOT, SYNTHETIC_PREFIX, Dataset, banner, clamp_window, esc, fmt, html, inject_theme,
+                                   is_synthetic, load_dataset, readout, slot_files, slot_graph, synthetic_warning,
+                                   telemetry_row, warning_card)
             break
         except (KeyError, ImportError):
             # A file saved while this run was importing: the watcher unloaded a module mid-import.
@@ -296,6 +297,19 @@ WORKSPACES = {   # key: (number, label, one-line plain-language purpose)
     "Genes": ("05", "Genes", "Find which genes sit in open, active chromatin and which are buried and likely silenced."),
     "Guide": ("06", "Guide", "What everything means, in plain words, with a 2-minute tour."),
 }
+RESEARCH_ONLY = ("Drug lab",)        # mechanism simulators hidden when Research mode is off (Phase B8)
+with st.sidebar:
+    from ui import settings as APPSET
+    research = st.toggle("Research mode", value=APPSET.load()["research_mode_default"], key="research_mode",
+                         help="On: every page, including the mechanism simulators (Drug lab) and the rule-based "
+                              "Normal / Diseased / Senescent labels, none of which is validated. Off: the product view, "
+                              "with only what has a measured standing.")
+    if st.button("Open the app this way next time", key="research_default_btn",
+                 help="Saves this choice as the default on this computer (.chronocell_cache/settings.json)."):
+        APPSET.save(research_mode_default=bool(research))
+        st.toast("Saved as the default.")
+if not research:
+    WORKSPACES = {k: v for k, v in WORKSPACES.items() if k not in RESEARCH_ONLY}
 if ss.get("workspace") not in WORKSPACES:
     ss.workspace = "3D structure"
 
@@ -418,7 +432,7 @@ elif (gp := slot_graph(chrom_choice)) is not None:
     except OSError as exc:
         load_problems.append(f"{gp.name}: {exc.strerror or exc}")
 
-labels_src = [s[0] if s else "Reference model (synthetic)" for s in sources]
+labels_src = [s[0] if s else SYNTHETIC_PREFIX + "Reference model" for s in sources]
 default_src = 1 if len(sources) > 1 else 0
 src_key = f"source_{chrom_choice}_{len(sources)}"
 b0_arg = None if auto_b0 else float(b0_manual)
