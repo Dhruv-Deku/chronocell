@@ -196,3 +196,22 @@ INTERVALS_V2 = {"cov90": (0.85, 0.95), "cov50": (0.40, 0.60), "min_pair_copies":
                 "test_imaging": ["bintu_imr90_28_30", "bintu_imr90_18_20", "bintu_a549_28_30",
                                  "bintu_hct116_34_37_auxin", "su_chr21", "su_chr21_rep", "su_genome"],
                 "test_hic": ["bintu_imr90_28_30", "bintu_imr90_18_20", "su_chr21", "su_chr21_rep", "su_genome"]}
+
+# Gate 4c (Phase B1, cohesin loss against sequencing Hi-C on more regions; validation/cohesin_hic.py).
+# Pre-registered after the practice run on the Gate 4 practice region (chr21:28-30 Mb,
+# results_cohesin_hic_practice.json) and before any auxin Hi-C of another region was read. Nothing is fitted:
+# the Gate 4 cohesin parameters (chronocell/data/perturbation_params.json, fitted on imaging) are used unchanged.
+# Data: HCT116 RAD21-mAC, untreated vs 6 h auxin (Rao et al. 2017), ENCODE GRCh38 maps read by region. Main pair:
+# in situ Hi-C ENCSR123UVP (ENCFF750AOC) -> ENCSR637QCS (ENCFF301BWY), the data the brief names; secondary,
+# reported only: intact Hi-C ENCSR958BEA (ENCFF528XGK) -> ENCSR087JOM (ENCFF317OIA, 5-Ph-IAA).
+# Regions: six 2 Mb windows at 10 kb on chromosomes the method has not seen (hg38 starts below).
+# Prediction from the untreated map only (Gate 1 Hi-C settings, v3.3 population, r_c 150 nm); measured change =
+# log2 of library-normalised (count + 1), auxin over untreated, on pairs >= 2 bins apart with >= 10 reads in the
+# two maps together. Score: Spearman of predicted vs measured change; baseline: the same model with lam = 0
+# (trend only). A region "beats trend only" if the difference is > 0 with its 95 % interval (200 resamples of
+# loci) above 0. Pass: at least 3 of the 6 regions beat trend only on the main pair. Until Gate 4c and Gate 4d
+# pass, the app keeps the cohesin simulator's current label.
+COHESIN_HIC = {"pairs": ["in situ", "intact"], "main_pair": "in situ", "min_regions": 3,
+               "regions": [("chr2", 216_000_000), ("chr5", 140_000_000), ("chr7", 130_000_000),
+                           ("chr10", 100_000_000), ("chr12", 52_000_000), ("chr17", 48_000_000)],
+               "res": 10_000, "window": 2_000_000, "min_reads": 10, "min_sep_bins": 2, "boot": 200, "r_c_nm": 150.0}
