@@ -417,5 +417,35 @@
   "sources": "chronocell/data/genomes/mm39/manifest.json",
   "citation": "Kent WJ et al., Genome Res 12:996 (2002); O'Leary NA et al., Nucleic Acids Res 44:D733 (2016)",
   "license": "UCSC Genome Browser data: free for academic, non-profit and personal use; RefSeq: public NCBI data."
+ },
+ {
+  "key": "hafner2023_orca_mesc",
+  "role": "test (Gate 5m, mouse transfer of the Gate 5 predictor; secondary and control sets reported)",
+  "cell_line": "mouse ES cells (E14TG2a; CTCF-AID and RAD21-AID lines)",
+  "assembly": "mm10",
+  "url": "https://data.4dnucleome.org/ (experiment sets 4DNESD28H8O7, 4DNESWDXDZSE and the secondary / control sets in validation/predictor_mouse.py); files from https://4dn-open-data-public.s3.amazonaws.com/",
+  "citation": "Hafner A, Park M, Berger SE, Murphy SE, Nora EP, Boettiger AN. Loop stacking organizes genome folding from TADs to chromosomes. Mol Cell 83, 1377-1392 (2023).",
+  "license": "4DN Data Portal data (4DN Open Data on AWS), public; cite the 4DN Network and the paper. Downloaded on demand; not redistributed.",
+  "checksum_source": "MD5 published in the 4DN portal's file metadata (md5sum), equal to the S3 ETag"
+ },
+ {
+  "key": "encode_mouse_ctcf_esbruce4",
+  "role": "input (Gate 5m only; never offered in the app)",
+  "cell_line": "ES-Bruce4",
+  "assembly": "mm10",
+  "url": "https://www.encodeproject.org/files/ENCFF533APC/",
+  "experiment": "ENCSR000CCB",
+  "md5": "d2c0c0c2ed1d8e11989362580ca85af7",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; cite the project and experiment. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "ucsc_mm10_chromosomes",
+  "role": "input (Gate 5m)",
+  "assembly": "mm10",
+  "url": "https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/",
+  "md5": "per file, from md5sum.txt in the same directory",
+  "citation": "Genome Reference Consortium GRCm38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002).",
+  "license": "UCSC mm10 (GRCm38) sequence, freely available for download and use; downloaded on demand."
  }
 ]
