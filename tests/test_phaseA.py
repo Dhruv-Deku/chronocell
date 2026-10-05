@@ -185,3 +185,13 @@ def test_fofct_reader_pools_files_and_keeps_nm(tmp_path):
     assert tr.meta["scale_to_nm"] == 1.0 and tr.meta["locus_bp"] == 30000
     assert np.allclose(np.diff(tr.starts), 30000) and tr.chrom[0] == "chr6"
     assert np.isnan(tr.xyz[1, 3]).all() and np.isclose(tr.xyz[0, 2, 0], 201.0)
+
+
+def test_fofct_reader_matches_replicate_loci_and_8_columns(tmp_path):
+    import predictor_mouse as PM
+    head = "##XYZ_unit=micron,,,,,,,\n##columns=(Spot_ID, Trace_ID, X, Y, Z,Chrom, Chrom_Start, Chrom_End)\n"
+    a, b = tmp_path / "a.csv", tmp_path / "b.csv"
+    a.write_text(head + "".join(f"{k},1,{100.0 * k},0,0,chr6,{50590004 + 30001 * k},{50620004 + 30001 * k}\n" for k in range(3)))
+    b.write_text(head + "".join(f"{k},1,{100.0 * k},0,0,chr6,{50590005 + 30001 * k},{50620005 + 30001 * k}\n" for k in range(3)))
+    tr = PM.read_fofct([a, b])
+    assert tr.xyz.shape == (2, 3, 3) and tr.starts[0] == 50590004

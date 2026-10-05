@@ -99,8 +99,8 @@ def read_fofct(paths: list[Path], min_detected: float = MIN_DETECTED) -> D.Trace
         lines = p.read_text(encoding="utf-8").splitlines()
         unit = next((ln.split("=", 1)[1].split(",")[0].strip() for ln in lines if ln.startswith("##XYZ_unit")), unit)
         rows = [ln for ln in lines if ln.strip() and not ln.lstrip('"').startswith("#")]
-        df = pd.DataFrame([r.split(",")[:9] for r in rows],
-                          columns=["spot", "trace", "x", "y", "z", "chrom", "start", "end", "cell"])
+        df = pd.DataFrame([r.split(",")[:8] for r in rows],      # Cell_ID (9th column) is absent in some files
+                          columns=["spot", "trace", "x", "y", "z", "chrom", "start", "end"])
         df["trace"] = df["trace"].astype(np.int64) + k * 10_000_000
         frames.append(df)
     df = pd.concat(frames, ignore_index=True)
@@ -111,10 +111,13 @@ def read_fofct(paths: list[Path], min_detected: float = MIN_DETECTED) -> D.Trace
     chroms = df["chrom"].unique()
     if len(chroms) != 1:
         raise ValueError(f"expected one chromosome, found {list(chroms)}")
-    loci = np.sort(df["start"].unique())
-    ends = df.groupby("start")["end"].first().reindex(loci).to_numpy()
+    # replicate files give the same locus starts 1-2 bp apart: loci are matched to the nearest kb
+    df["locus"] = np.rint(df["start"] / 1000.0).astype(np.int64)
+    keys = np.sort(df["locus"].unique())
+    loci = df.groupby("locus")["start"].min().reindex(keys).to_numpy()
+    ends = df.groupby("locus")["end"].max().reindex(keys).to_numpy()
     traces = df["trace"].unique()
-    li = np.searchsorted(loci, df["start"].to_numpy())
+    li = np.searchsorted(keys, df["locus"].to_numpy())
     ti = pd.Index(traces).get_indexer(df["trace"])
     xyz = np.full((len(traces), len(loci), 3), np.nan)
     xyz[ti, li] = df[["x", "y", "z"]].to_numpy(float)
