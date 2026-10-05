@@ -50,6 +50,7 @@ class _RangeFile:
         return self.pos
 
     def _fetch(self, start: int, end: int) -> bytes:
+        import http.client
         import time
         req = urllib.request.Request(self.src, headers={**UA, "Range": f"bytes={start}-{end - 1}"})
         last = None
@@ -59,8 +60,8 @@ class _RangeFile:
                     data = r.read()
                 self.bytes_fetched += len(data)
                 return data
-            except OSError as exc:              # transient network / server errors: retry with backoff
-                last = exc
+            except (OSError, http.client.HTTPException) as exc:     # transient network / server errors (incl. a
+                last = exc                                         # connection dropped mid-read): retry with backoff
                 time.sleep(min(30.0, 2.0 * 2 ** attempt))
         raise OSError(f"range request failed for {self.src} [{start}, {end}): {last}")
 

@@ -162,7 +162,13 @@ def test() -> None:
     rows = []
     for pair in R["pairs"]:
         for chrom, start in R["regions"]:
-            r = run_region(pair, chrom, start)
+            part = D.DATA / "cache" / f"gate4c_{pair.replace(' ', '')}_{chrom}_{start}.json"
+            if part.exists():                       # an interrupted run resumes region by region
+                r = json.loads(part.read_text())
+            else:
+                r = run_region(pair, chrom, start)
+                part.parent.mkdir(parents=True, exist_ok=True)
+                part.write_text(json.dumps(r, default=float))
             r["beats_trend"] = bool(r["difference"] > 0 and r["difference_ci95"][0] > 0)
             r["tier"] = "main" if pair == R["main_pair"] else "secondary"
             rows.append(r)
