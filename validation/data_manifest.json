@@ -209,6 +209,11 @@
   "bytes": 949763,
   "url": "https://www.encodeproject.org/files/ENCFF527JOL/@@download/ENCFF527JOL.bedpe.gz"
  },
+ "data/encode/ENCFF531LSJ.bedpe.gz": {
+  "sha256": "f6a6a6c17ec4e0b041987b0f096622b3d50e75ed61f35a276a171ecd1f98e8f3",
+  "bytes": 185070,
+  "url": "https://www.encodeproject.org/files/ENCFF531LSJ/@@download/ENCFF531LSJ.bedpe.gz"
+ },
  "data/encode/ENCFF533APC.bed.gz": {
   "sha256": "ff9866e7a78981eb1290a6481657421e97a0d63b7407ceb813d153ef22f84e96",
   "bytes": 553128,

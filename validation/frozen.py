@@ -289,3 +289,40 @@ SV_GATE4D = {"min_events": 3, "baselines": ["distance_shift", "no_change"], "sta
              "candidates": {"ENCSR624AJS": "RPE-1 DXZ4 deletion, active X", "ENCSR566XIP": "RPE-1 DXZ4 deletion, inactive X"},
              "reason": "two events with stated breakpoints and checksum-published before / after Hi-C; three are needed"}
 
+
+# Gate Q (quantum lab, chronocell/quantum; validation/quantum_gateq.py). Everything "quantum" runs on the statevector
+# SIMULATOR of this computer (checked against Qiskit 2.2.1 on every circuit type: results_quantum_crosscheck.json).
+# Pre-registered after the practice runs (results_gateq_practice_{tad,qaoa,qsvm,chem}.json) and before any test
+# window, test reference file or test gene was read.
+# Q1/Q2 data: the ENCODE GRCh38 maps of Gate 6 read by region (10 Mb at 10 kb, coarsened); practice GM12878
+# chr1/2/3:100-110 Mb; test K562 and IMR-90 chr4:100-110, chr7:100-110, chr11:60-70 Mb, tiled into 20-bin windows
+# (19 qubits each) with flanks. Reference: ENCODE Arrowhead "contact domains" on the same maps (preferred default;
+# GM12878 ENCFF531LSJ, K562 ENCFF271SAF, IMR-90 ENCFF166QGX; portal MD5); boundaries = domain starts and ends;
+# a call matches within one bin (one-to-one); only boundaries strictly inside each window are scored, for every method.
+# Domain QUBO chosen on practice (exact optimum, 360 settings): 40 kb bins, minimum domain 3 bins, gamma 1.5, boundary
+# cost 1.5, difference weights (practice F1 0.400). Classical callers given the same chance (best of their grids on the
+# same practice windows): insulation w 4, depth 0.25 (F1 0.395); TopDom-like window 3 (F1 0.303).
+# QAOA chosen on practice (4 settings, 33 windows, 4,096 shots, COBYLA 80 iterations per depth, INTERP growth): every
+# setting found the optimum in 33/33 windows; the cheapest with the highest mean P(optimum) at the lowest depth:
+# p = 3, expectation objective (mean P(optimum) 0.119 vs 2e-6 for a uniform guess).
+# Q1 pass: on the test windows (pooled, both cell lines) the best of the 4,096 noiseless shots has the minimum energy
+# (exact enumeration of all 2^19 states) in >= 90 % of windows.
+# Q2 pass: on BOTH test cell lines, F1 of QAOA's best-shot boundaries >= max(F1 insulation, F1 TopDom-like) - 0.05.
+# Q3 pass: UCCSD-VQE energy within 1.6 mHa of FCI (exact diagonalisation, same Hamiltonian) at every listed geometry of
+# H2 and HeH+ (STO-3G from scratch; practice reproduced Szabo & Ostlund's E_HF -1.1167 / E_FCI -1.1373 for H2 at
+# 1.4 bohr and E_HF -2.86066 for HeH+).
+# Q4 data: protein-coding genes with TSS > 500 kb inside the windows; features from the map (compartment eigenvector,
+# insulation, coverage, distance to an insulation boundary, gene density); label GTEx v10 median TPM >= 1 in the
+# matching cell type. Train on all 106 practice GM12878 genes (EBV lymphocytes), test on IMR-90 genes (cultured
+# fibroblasts); K562 has no GTEx match. Settings chosen by 5-fold CV on practice (QSVM 0.806, RBF 0.796, logistic 0.762).
+# Q4 pass: test AUC of the quantum-kernel SVM >= RBF-SVM AUC - 0.03, and its 95 % interval (1,000 gene resamples)
+# above 0.5. Reported, not gated: the noise model's effect, simulated / quantum-inspired annealing, the QSVM with a
+# kernel estimated from 1,000 shots per entry, timings (no other heavy job runs during the test).
+QUANTUM_GATEQ = {"tad": {"res": 40_000, "min_size": 3, "gamma": 1.5, "boundary_cost": 1.5, "weight": "difference"},
+                 "qaoa": {"p": 3, "objective": "expectation"}, "qaoa_fixed": {"shots": 4096, "maxiter": 80},
+                 "noise": {"p1": 1e-3, "p2": 1e-2, "readout": 2e-2},
+                 "classical": {"insulation": [4, 0.25], "topdom": [3]},
+                 "q1_min_hit_rate": 0.9, "q2_margin": 0.05,
+                 "geometries": {"H2": [0.5, 0.7414, 1.0, 1.5, 2.0, 2.5], "HeH+": [0.5, 0.7743, 1.0, 1.5, 2.0]},
+                 "qsvm": {"bandwidth": 0.05, "reps": 1, "C": 100.0}, "rbf": {"gamma": 0.02, "C": 100.0},
+                 "q4_margin": 0.03, "qsvm_shots": 1000}

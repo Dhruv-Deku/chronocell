@@ -763,3 +763,35 @@ hic-straw, which Mustache needs only for .hic input and which does not build on 
 machine, with reasons in `validation/results_tools_b9.json`: HiCCUPS / Arrowhead (Java), TopDom, dcHiC, diffHic,
 multiHiCcompare (R), CHESS (pysam does not build), cooltools, hic_breakfinder, HiNT, Akita, Orca, and a FASTQ →
 contacts pipeline (bwa / chromap / pairtools need Linux or WSL, and no WSL distribution is installed).
+
+## 13. Quantum lab (experimental, October 2026)
+
+Additive like section 12: no existing page, default, model or result changes; the lab and its sections appear only
+in Research mode and compute nothing until a Run button is pressed. `chronocell/quantum/` has no Streamlit imports
+and needs nothing beyond `requirements.txt` (NumPy, SciPy, scikit-learn; PyTorch for the GPU path when present).
+
+### 13.1 Modules
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/sim.py` | Statevector simulator, Qiskit's little-endian convention (qubit 0 = lowest bit) and gate definitions; `Circuit` (gate list, run, counts, depth, OpenQASM 2.0); QAOA on a diagonal cost (fast path: element-wise phase + RX mixer, torch on the GPU from 10 qubits; INTERP depth growth, COBYLA, expectation or CVaR objective); sampling; approximate noise (global depolarising from compiled gate counts + read-out flips); Walsh–Hadamard decomposition of a diagonal cost into Pauli-Z terms; Pauli exponentials | fast path = gate-level circuit; Pauli exponentials = `expm`; Qiskit cross-check |
+| `quantum/qubo.py` | QUBO ↔ Ising; exact enumeration (≤ 26 variables); exact dynamic programming for banded QUBOs (O(n·2^w)); simulated annealing; simulated quantum annealing (path-integral Monte Carlo with Trotter replicas) | enumeration = DP on random banded QUBOs; annealers reach the optimum |
+| `quantum/problems.py` | Domain-wall QUBO (contiguous modularity with a minimum domain size; the second-order cut expansion is exact on every feasible solution because the counted span is ≤ 2 × the minimum size); k-of-n selection (variant set, gene group); drug-combination QUBO (two bits per drug; quadratic restoration model fitted to the Drug lab simulator); boundary matching; qubit scaling table | QUBO energy = modularity computed directly; drug QUBO = its model on all 256 states |
+| `quantum/lattice.py` | Lattice folding (2 bits per bond in 2D, 3 in 3D; contact rewards from O/E contacts; overlap and unused-code penalties): a higher-order diagonal Hamiltonian | known folds |
+| `quantum/chem.py` | STO-3G integrals over s Gaussians, RHF, MO transform, second quantisation, Jordan–Wigner (16 × 16), FCI in the two-electron sector, UCCSD (singles + double as commuting Pauli exponentials) and hardware-efficient VQE (BFGS), shot-noise estimate | Szabo & Ostlund's integrals and energies; UCCSD circuit = `expm` |
+| `quantum/kernels.py` | ZZ feature map (statevector and gates), quantum kernel (exact or from shots), `QSVM` (scikit-learn, precomputed kernel), amplitude encoding with Möttönen state preparation (Gray-code RY/CX), swap test | map = circuit; prepared amplitudes = target; swap-test P(0) = ½ + ½ overlap² |
+| `quantum/walk.py` | Continuous-time quantum walk (normalised Laplacian) and classical random walk on a contact graph | `expm` |
+| `ui/quantum_lab.py` | 07 Quantum lab and the hooks used by 01–05 and 03's tab; circuit diagrams, QUBO heat maps, measurement histograms, scaling chart; Gate Q standing from `results_gateq.json` | AppTest |
+
+### 13.2 Validation
+
+`validation/quantum_gateq.py` (Gate Q, rules in `frozen.QUANTUM_GATEQ`; practice GM12878, test K562 / IMR-90 maps of
+Gate 6 and ENCODE Arrowhead domains; GTEx v10 labels; resumable per window under `validation/data/cache/gateq/`).
+`validation/quantum_crosscheck.py` exports every circuit type as OpenQASM 2.0 and compares the final states with
+Qiskit 2.2.1 run from an isolated environment (`.chronocell_cache/quantum-venv`, `requirements-quantum.txt`), so the
+app's environment never depends on Qiskit.
+
+### 13.3 Limits
+
+The simulator holds at most 24 qubits (2^24 complex amplitudes). Noise is a global model, not a device emulation.
+Running on hardware is left to the user (OpenQASM export); the app holds no quantum-cloud credentials.

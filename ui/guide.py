@@ -186,6 +186,7 @@ def render(version: str) -> None:
          'from structure. ChronoAgent\'s therapy section lists research ideas, never medical advice.</div>')
 
     _phase_b()
+    _quantum()
 
 
 def _phase_b() -> None:
@@ -215,3 +216,39 @@ def _phase_b() -> None:
              'the rule-based state labels when off. <b>Projects</b> save a session; <b>Jobs</b> run heavy work in the '
              'background, one GPU job at a time. <b>Mouse</b> prediction without contacts: ' + mtxt + '.</div>')
 
+
+
+def _quantum() -> None:
+    """07 Quantum lab in plain words, with Gate Q's standing (Research mode only)."""
+    if not st.session_state.get("research_mode", True):
+        return
+    from ui import quantum_lab as QL
+    html('<h2 class="cc-h2">Quantum lab, in plain words</h2>')
+    html('<div class="cc-callout">A quantum computer stores information in <b>qubits</b>, which can be 0 and 1 at the '
+         'same time, and is good at searching many possible answers at once. ChronoCell turns some of its questions '
+         'into the forms a quantum computer takes and solves them on a <b>simulator</b> running on this computer (not '
+         'real quantum hardware), always next to the normal (classical) answer. No speed-up is claimed: at the sizes a '
+         'simulator can handle, the classical methods are faster.</div>')
+    left, right = st.columns(2, gap="large")
+    with left:
+        html('<div class="cc-callout"><h4>Words you will see</h4><b>QUBO</b>: a puzzle of yes/no choices with a cost for '
+             'each choice and for each pair of choices; every choice becomes one qubit. <b>QAOA</b>: a quantum algorithm '
+             'that tunes a circuit until measuring it gives low-cost answers. <b>VQE</b>: the same idea for the energy '
+             'of a molecule. <b>Shots</b>: how many times the circuit is run and measured. <b>Noise</b>: today’s '
+             'machines make errors on every gate; the noise switch shows what that does.</div>')
+        html('<div class="cc-callout"><h4>Where to find it</h4><b>07 Quantum lab</b> has everything in one place, plus '
+             'a sizes chart and how to run a circuit on a real quantum computer (download it as OpenQASM). Each '
+             'workspace also has a Quantum section: 01 → 07 domain walls and lattice fold; 02 → 06 quantum walk and '
+             'variant set; 03 → Quantum similarity; 04 → drug combination and molecule energy; 05 → gene classifier '
+             'and gene group.</div>')
+    with right:
+        r = QL.gate_q()
+        if r and "overall" in r:
+            items = "".join(f"<li>{QL.PART_LABEL[k]}: <b>{'pass' if v else 'fail'}</b></li>" for k, v in r["overall"].items())
+            html(f'<div class="cc-callout"><h4>Measured standing (Gate Q, held-out data)</h4><ul>{items}</ul>The numbers '
+                 'are in validation/RESULTS.md.</div>')
+        else:
+            html('<div class="cc-callout"><h4>Measured standing</h4>Gate Q has not been run.</div>')
+        html('<div class="cc-callout"><h4>What it is good for</h4>Learning and showing how quantum algorithms would '
+             'tackle chromatin questions, with honest comparisons. It is not a faster or more accurate way to analyse '
+             'your data today: use the classical tools in the other workspaces for that.</div>')

@@ -1022,6 +1022,84 @@ are listed with the reason they could not run (`python validation/tools_b9.py`).
 | SV impact | Orca | not run: needs selene-sdk (no Windows build) and large weights; no SV truth set (Gate 4d) | — |
 <!-- END generated:b9tools -->
 
+## Gate Q — quantum lab: simulated quantum algorithms on real data (pre-registered)
+
+The quantum lab (`chronocell/quantum`, the app's 07 Quantum lab and a Quantum section in each workspace) writes
+ChronoCell problems in the forms a quantum computer takes and solves them on a statevector **simulator on this
+computer** (not quantum hardware), next to the classical answer. Gate Q asks, on held-out real data, whether each
+quantum route does what it claims; the rules are in `validation/frozen.py` (`QUANTUM_GATEQ`), committed before the
+test, and the runner is `validation/quantum_gateq.py`.
+
+- **Q1 (solver).** The domain-boundary QUBO of a 20-bin window (19 qubits) on held-out K562 and IMR-90 Hi-C: does
+  QAOA's best shot reach the minimum energy (checked against all 2^19 states)?
+- **Q2 (biology).** Do QAOA's domain boundaries agree with ENCODE's Arrowhead calls on the same maps at least as well
+  as the app's classical callers (insulation, TopDom-like), within the pre-registered margin? Agreement with
+  Arrowhead, the field's standard caller, is not biological truth.
+- **Q3 (chemistry).** Does VQE reach the exact energy of H2 and HeH+ within chemical accuracy at every listed bond
+  length?
+- **Q4 (machine learning).** Does a quantum-kernel SVM predict which genes are expressed, from Hi-C features, as well
+  as a classical RBF-kernel SVM, when trained on GM12878 and tested on IMR-90?
+
+No speed-up is claimed: the sizes a simulator can hold are solved faster classically (for the banded domain QUBO a
+dynamic programme finds the exact optimum in linear time), and the noise columns show what today's hardware errors
+would do. Practice (settings; `validation/TUNING.md` §19):
+
+<!-- BEGIN generated:gateq_practice -->
+Domain QUBO, practice GM12878 (33 windows of 20 bins; 360 settings, exact optimum of each): chosen 40 kb bins, minimum domain 3 bins, gamma 1.5, boundary cost 1.5, difference weights: F1 0.400 (precision 0.542, recall 0.317). Classical callers on the same windows, best of their grids:
+
+| Caller | Setting | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Domain QUBO (exact optimum) | chosen | 0.542 | 0.317 | 0.400 |
+| insulation | [4, 0.25] | 0.378 | 0.415 | 0.395 |
+| topdom | [3] | 0.259 | 0.366 | 0.303 |
+
+QAOA settings, practice (same windows; 4,096 shots; noise column: approximate hardware-noise model):
+
+| Depth p | Objective | Optimum found | Mean P(optimum) | Uniform P(optimum) | With noise | Simulated annealing | SQA | Mean QAOA s | Mean CX |
+|---|---|---|---|---|---|---|---|---|---|
+| 3 | cvar | 100 % | 0.0764 | 1.9e-06 | 42 % | 100 % | 88 % | 1.9 | 473 |
+| 3 | expectation | 100 % | 0.1185 | 1.9e-06 | 48 % | 100 % | 88 % | 2.5 | 473 |
+| 6 | cvar | 100 % | 0.1094 | 1.9e-06 | 9 % | 100 % | 88 % | 7.0 | 947 |
+| 6 | expectation | 100 % | 0.2322 | 1.9e-06 | 9 % | 100 % | 88 % | 8.2 | 947 |
+
+Chosen: p = 3, expectation.
+
+Gene classifier, practice: 106 GM12878 genes (57 % expressed), 5-fold cross-validated AUC: quantum kernel 0.806 ({'bandwidth': 0.05, 'reps': 1, 'C': 100.0}), RBF-SVM 0.796 ({'gamma': 0.02, 'C': 100.0}), logistic regression 0.762.
+
+Chemistry anchors (Szabo & Ostlund): H2 R=1.4 bohr E_HF (Szabo & Ostlund: -1.1167): -1.11671; H2 R=1.4 bohr E_FCI (Szabo & Ostlund: -1.1373): -1.13728; HeH+ R=1.4632 bohr E_HF (Szabo & Ostlund: -2.86066): -2.86066.
+<!-- END generated:gateq_practice -->
+
+Test (run once):
+
+<!-- BEGIN generated:gateq -->
+_results_gateq.json: not run (python validation/quantum_gateq.py --test all)._
+<!-- END generated:gateq -->
+
+Summary:
+
+<!-- BEGIN generated:summary_q -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gate Q: quantum lab (simulated quantum) | not run (python validation/quantum_gateq.py --test all) | — |
+<!-- END generated:summary_q -->
+
+The simulator against Qiskit (a software check, not a gate; `validation/quantum_crosscheck.py`):
+
+<!-- BEGIN generated:quantum_crosscheck -->
+Qiskit 2.2.1 statevectors of the exported OpenQASM circuits vs ChronoCell's simulator:
+
+| Circuit | Qubits | Gates | State fidelity |
+|---|---|---|---|
+| QAOA domain walls (11 qubits, p=2) | 11 | 135 | 1.000000000000 |
+| UCCSD-VQE H2 | 4 | 198 | 1.000000000000 |
+| Hardware-efficient VQE HeH+ | 4 | 20 | 1.000000000000 |
+| ZZ feature map (5 qubits, 2 reps) | 5 | 80 | 1.000000000000 |
+| Swap test with state preparation (5 qubits) | 5 | 14 | 1.000000000000 |
+| random circuit, every gate | 5 | 60 | 1.000000000000 |
+
+Verdict: agree.
+<!-- END generated:quantum_crosscheck -->
+
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
 `python validation/scale_benchmark.py`: each run in its own process. Input: windows of the

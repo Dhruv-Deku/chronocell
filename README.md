@@ -52,6 +52,7 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 | **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. |
 | **05 · Genes** | All 19,386 human genes (hg38) or 20,995 mouse genes (mm39) placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. Click a row to pick a gene; it is then marked in the 3D view. |
 | **06 · Guide** | A plain-language guide to every page and number. |
+| **07 · Quantum lab** | *Experimental, Research mode.* ChronoCell problems run as quantum algorithms on a **simulator on this computer** (GPU when present), always next to the classical answer: QAOA for domain walls, lattice folding, drug combinations, gene groups and variant sets; VQE for small-molecule energies; a quantum-kernel gene classifier; a quantum walk on the contact network; the swap test. Circuit diagrams, an optional hardware-noise model, OpenQASM export for real quantum computers, and a qubit-scaling chart. Each workspace also has a Quantum section. No speed-up is claimed; measured standing: Gate Q. |
 | **Sidebar** | **Research mode** (on by default; off hides the mechanism simulators and the rule-based state labels), **Projects** (save and reopen a session), **Jobs** (a local queue: one GPU job at a time). |
 | **🤖 ChronoAgent** | Reads the measurements on screen and writes an interpretation. Exports a Markdown report, a PDB structure and a PDF dossier. |
 
@@ -161,6 +162,14 @@ The table below is generated from the result files by `python validation/report.
 - No score computed from the input says reliably *which* distances are wrong: a per-pair score showed a weak signal for imaging-derived input and none for Hi-C, below the pre-registered bar, so the app shows none.
 - From sequence and CTCF alone, with no contacts, a modest part of the pattern beyond the separation trend is recovered. The cohesin-depleted control scores as high, so it reflects compartments and insulation, not loops: a prior, not a measurement.
 - The cohesin-loss prediction worked on its held-out region. The structural-variant simulator did **not** beat a simple genomic-distance shift on the one real rearrangement tested, so it is labelled a mechanism simulator.
+
+**Quantum lab (Gate Q, simulated quantum algorithms on held-out real data):**
+
+<!-- BEGIN generated:summary_q -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gate Q: quantum lab (simulated quantum) | not run (python validation/quantum_gateq.py --test all) | — |
+<!-- END generated:summary_q -->
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
 
@@ -286,8 +295,10 @@ ChronoCell-5D/
 │   ├── agent.py            ChronoAgent (offline rules + Gemini / OpenRouter)
 │   ├── pdf_report.py, snapshot.py, viz.py, theme.py
 │   ├── genome_fetch.py     add an assembly from UCSC
+│   ├── quantum/            quantum lab (experimental): statevector simulator, QAOA, VQE, quantum kernels, walks
 │   └── data/               annotations (hg38, mm39), frozen calibration and perturbation parameters
 ├── ui/                     the six pages, sidebar and shared helpers (predict_view.py: prediction input)
+│                           quantum_lab.py: 07 Quantum lab and the Quantum sections (Research mode)
 ├── tests/                  unit and end-to-end tests of every page
 ├── validation/             held-out tests, benchmark harness, tuning record, results
 ├── colab/                  GPU reconstruction notebook

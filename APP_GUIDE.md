@@ -923,3 +923,71 @@ worker starts again. The panel shows the last lines of the newest job's log.
 `chronocell batch SHEET.csv` (resumable), `chronocell report FOLDER [--pdf]`, `chronocell predict` (the existing
 `python -m chronocell.predict`). REST: `POST /api/v1/analyze`, `/diff`, `/impact`, with the same run log as the
 existing endpoints.
+
+## 23. Quantum lab (experimental, Research mode)
+
+The quantum lab writes ChronoCell questions in the forms a quantum computer takes, runs the quantum algorithm on a
+**statevector simulator on this computer** (on the GPU when there is one), and shows the classical answer to the
+same question next to it. It is not quantum hardware and claims no speed-up; its measured standing is Gate Q in
+`validation/RESULTS.md`, shown on every panel. Nothing runs until you press a panel's Run button. With Research mode
+off, the lab and every Quantum section are hidden.
+
+**Where.** *07 Quantum lab* collects everything (pick a problem at the top), plus *How big can these problems get?*
+(qubits against problem size, and the simulator's memory wall) and *Run a circuit on a real quantum computer*.
+Each workspace also has a Quantum section that uses that workspace's data:
+01 → *07 Quantum (simulated)* (domain walls, lattice fold), 02 → *06 Quantum (simulated)* (quantum walk, variant
+set), 03 → *Quantum similarity (swap test)* tab, 04 → *Quantum (simulated)* (drug combination, molecule energy),
+05 → *Quantum (simulated)* (gene classifier, gene group).
+
+**Domain walls (QAOA).** One qubit per gap between neighbouring bins of a window (bins of about 40 kb by default; 21
+bins = 20 qubits at most). The cost keeps enriched contacts inside domains and forbids domains below the minimum
+size; QAOA (depth p) searches all wall patterns at once. The race table compares it with exact search over every
+pattern, simulated annealing and simulated quantum annealing (a classical imitation of a quantum annealer). Tabs:
+the contact map with the walls (blue: QAOA; dotted: exact optimum), the puzzle as a matrix, the circuit (with its
+gate count, two-qubit gates and the share of runs today's hardware would get through), and the most likely
+measurement outcomes.
+
+**Lattice fold.** A short stretch cut into 5–11 segments is folded on a square (2D) or cubic (3D) grid so that
+segments that touch in the contact map sit next to each other. The cost involves many qubits at once, so it compiles
+to far more gates than a QUBO; the panel says how many. A lattice fold is a cartoon of the contact pattern, not a
+structure.
+
+**Quantum walk.** A walker starts on one bin and moves along the contacts of the first and last frame of the 4D
+trajectory (or of the loaded structure). The quantum walk spreads as a wave; the classical random walk diffuses.
+Heat maps show where each walk is over time, before and after the change; the readout gives how far the change moves
+where each walk spends its time.
+
+**Variant set.** From the variants ranked by *05 Variant impact engine v2* (run it first on a file with at least three
+variants), pick k to follow up: high ranking score, little overlap in the genes they touch.
+
+**Quantum similarity (swap test).** Each fold becomes a profile (how far each stretch sits from the fold's centre)
+written into the amplitudes of a few qubits; the swap test estimates their overlap from shots. For such profiles the
+overlap is the squared cosine similarity, so the circuit measures a classical quantity; it is there to show how a
+quantum computer compares two states, and how shot noise limits it.
+
+**Drug combination.** Needs a healthy baseline (as the Drug lab). The Drug lab simulator is run on each drug class
+alone at four doses and on each pair at full dose; a quadratic model of restoration is fitted, and the dose mix that
+maximises restoration minus the dose cost is found by QAOA and exact search (8 qubits). *Check the chosen mix* runs
+the simulator on the combination. Simulation, not a treatment recommendation.
+
+**Molecule energy (VQE).** H2 or HeH+ at any bond length: integrals, Hartree–Fock and the qubit Hamiltonian are
+computed from scratch; VQE with the UCCSD circuit (from the chemistry) or a hardware-efficient one (generic layers)
+finds the energy; the exact energy (FCI) and chemical accuracy are shown. *Compute the curve* draws the dissociation
+curve. Drug-sized molecules are far beyond any quantum computer today.
+
+**Gene classifier.** Needs measured expression for at least 30 genes in view (05 Genes → *Add measured expression*).
+Each gene's features (accessibility score, crowding, signal) set the angles of a small circuit; the overlap of two
+genes' circuit states is the kernel of a support-vector machine. Trained on 70 % of the genes and tested on the rest,
+next to a classical RBF-kernel SVM and logistic regression (AUC: 0.5 = guessing).
+
+**Gene group.** Choose k genes that are active and close together in 3D (a candidate transcription hub), one qubit per
+candidate gene.
+
+**Noise.** *Add hardware noise* applies an approximate model of today's superconducting devices: each one-qubit gate
+fails with probability 0.1 %, each two-qubit gate with 1 %, each read-out bit flips with 2 % (all-to-all connectivity
+assumed). It is not an emulation of a particular machine.
+
+**Running a circuit on a real quantum computer.** Every circuit panel has *Circuit (OpenQASM 2.0)*. Open it in Qiskit
+(`QuantumCircuit.from_qasm_str`) or import it into IBM Quantum Platform's Composer with your own (free) account and
+submit it to a device. The app never asks for or stores account details. The simulator was checked against Qiskit on
+every circuit type the lab builds (`validation/quantum_crosscheck.py`).

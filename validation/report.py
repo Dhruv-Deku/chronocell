@@ -736,10 +736,129 @@ def summary_ab() -> str:
     return "\n".join(["| Test (held-out, real data) | Measured | Verdict |", "|---|---|---|"] + _phase_ab_rows())
 
 
+# --------------------------------------------------------------------------------------------- Gate Q (quantum lab)
+def _q_rows() -> list[str]:
+    """Summary rows of Gate Q (README and RESULTS), from results_gateq.json."""
+    r = _load("results_gateq.json")
+    if not r or "overall" not in r:
+        return ["| Gate Q: quantum lab (simulated quantum) | not run (python validation/quantum_gateq.py --test all) | — |"]
+    v = lambda k: "pass" if r["overall"][k] else "fail"
+    q1, q2, q3, q4 = r["q1"], r["q2"], r["q3"], r["q4"]
+    f1 = "; ".join(f"{c}: QAOA {rows['QAOA (simulated quantum)']['f1']:.2f} vs insulation "
+                   f"{rows['insulation (classical)']['f1']:.2f}, TopDom-like {rows['topdom (classical)']['f1']:.2f}"
+                   for c, rows in q2["rows"].items())
+    return [f"| Gate Q1: QAOA (simulator) finds the optimum of the domain QUBO, {q1['windows']} held-out windows | "
+            f"{100 * q1['pooled_hit_rate']:.0f} % of windows (needed ≥ {100 * r['rule']['q1_min_hit_rate']:.0f} %) | {v('q1')} |",
+            f"| Gate Q2: quantum domain calls vs classical callers (F1 vs ENCODE Arrowhead) | {f1} | {v('q2')} |",
+            f"| Gate Q3: VQE within chemical accuracy (H2, HeH+) | worst error {q3['max_abs_error_mha']:.2g} mHa "
+            f"(needed ≤ 1.6) | {v('q3')} |",
+            f"| Gate Q4: quantum-kernel gene classifier vs RBF-SVM, GM12878 → IMR-90 | AUC {q4['auc']['qsvm']:.3f} vs "
+            f"{q4['auc']['rbf']:.3f} | {v('q4')} |"]
+
+
+def summary_q() -> str:
+    return "\n".join(["| Test (held-out, real data; simulated quantum) | Measured | Verdict |", "|---|---|---|"] + _q_rows())
+
+
+def gateq_practice() -> str:
+    t = _load("results_gateq_practice_tad.json")
+    a = _load("results_gateq_practice_qaoa.json")
+    k = _load("results_gateq_practice_qsvm.json")
+    c = _load("results_gateq_practice_chem.json")
+    out = []
+    if t:
+        ch, best = t["choice"], t["choice_scores"]
+        out += [f"Domain QUBO, practice GM12878 ({best['windows']} windows of 20 bins; {len(t['grid'])} settings, exact "
+                f"optimum of each): chosen {ch['res'] // 1000} kb bins, minimum domain {ch['min_size']} bins, "
+                f"gamma {ch['gamma']}, boundary cost {ch['boundary_cost']}, {ch['weight']} weights: F1 {best['f1']:.3f} "
+                f"(precision {best['precision']:.3f}, recall {best['recall']:.3f}). Classical callers on the same windows, "
+                "best of their grids:", "", "| Caller | Setting | Precision | Recall | F1 |", "|---|---|---|---|---|",
+                f"| Domain QUBO (exact optimum) | chosen | {best['precision']:.3f} | {best['recall']:.3f} | {best['f1']:.3f} |"]
+        for m, v in t["classical"].items():
+            b = v["best"]
+            out.append(f"| {m} | {b['param']} | {b['precision']:.3f} | {b['recall']:.3f} | {b['f1']:.3f} |")
+        out.append("")
+    if a:
+        out += ["QAOA settings, practice (same windows; 4,096 shots; noise column: approximate hardware-noise model):", "",
+                "| Depth p | Objective | Optimum found | Mean P(optimum) | Uniform P(optimum) | With noise | Simulated "
+                "annealing | SQA | Mean QAOA s | Mean CX |", "|---|---|---|---|---|---|---|---|---|---|"]
+        for r in a["grid"]:
+            out.append(f"| {r['p']} | {r['objective']} | {100 * r['hit_rate']:.0f} % | {r['mean_p_optimal']:.4f} | "
+                       f"{r['mean_uniform_p_optimal']:.2g} | {100 * r['noisy_hit_rate']:.0f} % | {100 * r['sa_hit_rate']:.0f} % | "
+                       f"{100 * r['sqa_hit_rate']:.0f} % | {r['mean_qaoa_seconds']:.1f} | {r['mean_cx']:.0f} |")
+        out += ["", f"Chosen: p = {a['choice']['p']}, {a['choice']['objective']}.", ""]
+    if k:
+        b = k["best_cv_auc"]
+        out += [f"Gene classifier, practice: {k['genes']} GM12878 genes ({100 * k['expressed_fraction']:.0f} % expressed), "
+                f"5-fold cross-validated AUC: quantum kernel {b['qsvm']:.3f} ({k['choice']['qsvm']}), RBF-SVM "
+                f"{b['rbf']:.3f} ({k['choice']['rbf']}), logistic regression {b['logistic']:.3f}.", ""]
+    if c:
+        out += ["Chemistry anchors (Szabo & Ostlund): " + "; ".join(f"{kk}: {vv:.5f}" for kk, vv in c["anchors"].items()) + "."]
+    return "\n".join(out) if out else "_Gate Q practice: not run._"
+
+
+def gateq() -> str:
+    r = _load("results_gateq.json")
+    if not r or "overall" not in r:
+        return "_results_gateq.json: not run (python validation/quantum_gateq.py --test all)._"
+    R = r["rule"]
+    out = ["Q1 (run once, held-out K562 and IMR-90 windows; 19 qubits each):", "",
+           "| Cell line | Windows | QAOA found the optimum | Mean P(optimum) | Random guessing found it | With noise | "
+           "Simulated annealing | SQA | Mean QAOA s | Mean exact DP s |", "|---|---|---|---|---|---|---|---|---|---|"]
+    for cell in ("k562", "imr90"):
+        x = r["q1"][cell]
+        out.append(f"| {cell} | {x['windows']} | {100 * x['hit_rate']:.0f} % | {x['mean_p_optimal']:.4f} | "
+                   f"{100 * x['random_hit_rate']:.0f} % | {100 * x['noisy_hit_rate']:.0f} % | {100 * x['sa_hit_rate']:.0f} % | "
+                   f"{100 * x['sqa_hit_rate']:.0f} % | {x['mean_qaoa_seconds']:.1f} | {x['mean_dp_seconds']:.4f} |")
+    out += ["", f"Pooled: {100 * r['q1']['pooled_hit_rate']:.1f} % of {r['q1']['windows']} windows (needed ≥ "
+                f"{100 * R['q1_min_hit_rate']:.0f} %). Q1: **{'pass' if r['q1']['pass'] else 'fail'}**.", "",
+            f"Q2 (reference: ENCODE Arrowhead domains on the same maps; a call matches within one bin; pass if QAOA's F1 ≥ "
+            f"the better classical caller's − {R['q2_margin']} on both cell lines):", "",
+            "| Cell line | Method | Precision | Recall | F1 |", "|---|---|---|---|---|"]
+    for cell, rows in r["q2"]["rows"].items():
+        for m, v in rows.items():
+            out.append(f"| {cell} | {m} | {_f(v['precision'])} | {_f(v['recall'])} | {_f(v['f1'])} |")
+    out += ["", f"Q2: **{'pass' if r['q2']['pass'] else 'fail'}** ("
+            + ", ".join(f"{c} {'pass' if ok else 'fail'}" for c, ok in r["q2"]["pass_by_cell"].items()) + ").", "",
+            "Q3 (UCCSD-VQE vs exact diagonalisation; noise column: hardware-efficient ansatz under the noise model):", "",
+            "| Molecule | Bond length (Å) | Ansatz | Hartree–Fock | FCI | VQE | Error (mHa) | With noise |",
+            "|---|---|---|---|---|---|---|---|"]
+    for x in r["q3"]["rows"]:
+        out.append(f"| {x['molecule']} | {x['R_angstrom']:.3f} | {x['ansatz']} | {x['e_hf']:.5f} | {x['e_fci']:.5f} | "
+                   f"{x['e_vqe']:.5f} | {x['error_mha']:+.2g} | {_f(x['e_vqe_noisy'], 4)} |")
+    q4 = r["q4"]
+    ci = q4["ci95"]
+    out += ["", f"Q3: **{'pass' if r['q3']['pass'] else 'fail'}** (worst UCCSD error {r['q3']['max_abs_error_mha']:.2g} mHa).", "",
+            f"Q4 (trained on {q4['train_genes']} GM12878 genes, tested on {q4['test_genes']} IMR-90 genes, "
+            f"{100 * q4['test_expressed_fraction']:.0f} % expressed; 95 % intervals from 1,000 resamples of genes):", "",
+            "| Classifier | Test AUC |", "|---|---|",
+            f"| Quantum-kernel SVM (simulated, exact kernel) | {q4['auc']['qsvm']:.3f}{_ci(ci['qsvm'], 3)} |",
+            f"| Quantum-kernel SVM, kernel from {R['qsvm_shots']} shots per entry | {q4['qsvm_auc_with_shots']:.3f} |",
+            f"| RBF-kernel SVM (classical) | {q4['auc']['rbf']:.3f}{_ci(ci['rbf'], 3)} |",
+            f"| Logistic regression (classical) | {q4['auc']['logistic']:.3f}{_ci(ci['logistic'], 3)} |",
+            "", f"Quantum minus RBF: {q4['auc']['qsvm'] - q4['auc']['rbf']:+.3f}{_ci(ci['qsvm_minus_rbf'], 3)}. Q4: "
+                f"**{'pass' if q4['pass'] else 'fail'}** (needed: within {R['q4_margin']} of the RBF-SVM and the lower "
+                "95 % bound above 0.5)."]
+    return "\n".join(out)
+
+
+def quantum_crosscheck() -> str:
+    r = _load("results_quantum_crosscheck.json")
+    if not r:
+        return "_results_quantum_crosscheck.json: not written (python validation/quantum_crosscheck.py)._"
+    out = [f"Qiskit {r['qiskit']} statevectors of the exported OpenQASM circuits vs ChronoCell's simulator:", "",
+           "| Circuit | Qubits | Gates | State fidelity |", "|---|---|---|---|"]
+    for x in r["circuits"]:
+        out.append(f"| {x['circuit']} | {x['qubits']} | {x['gates']} | {x['fidelity']:.12f} |")
+    out += ["", f"Verdict: {r['verdict']}."]
+    return "\n".join(out)
+
+
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
           "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
           "gate4c": gate4c, "gate5m": gate5m, "gate6": gate6, "gate7": gate7, "b9tools": b9tools, "summary_ab": summary_ab, "scale": scale,
-          "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy}
+          "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy, "gateq_practice": gateq_practice,
+          "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 
