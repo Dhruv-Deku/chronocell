@@ -129,6 +129,66 @@
   "bytes": 6125503,
   "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/644f7b9a-f4e0-4bbe-b8c3-bff0c819ad9d/4DNFIZWUQTXF.csv"
  },
+ "data/4dn_mina/4DNFI7PBQK6G.csv": {
+  "sha256": "b9aa5c64937b9392a6839a4a55200b2d5d2916107b4a9a466b1ae521e9a37eaf",
+  "bytes": 2257174,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/64986b2b-2765-4302-8ba1-a7085ae93c08/4DNFI7PBQK6G.csv"
+ },
+ "data/4dn_mina/4DNFIEWN8S38.csv": {
+  "sha256": "ef89865929fb45483f4e59e3d31e20941b4fc5aef7f8f84d02e5822c1849643f",
+  "bytes": 885939,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/9e496dd3-04eb-4a82-9119-0daefc5664be/4DNFIEWN8S38.csv"
+ },
+ "data/4dn_mina/4DNFIJ62XTT2.csv": {
+  "sha256": "0701c0f599b2d01a309df55e5be567fd9a81f1bac20aa5ab6d7036539ccac278",
+  "bytes": 8680,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/a7eb90c4-a60f-46f9-920e-1ceb71190f27/4DNFIJ62XTT2.csv"
+ },
+ "data/4dn_mina/4DNFIKXYNRQ1.csv": {
+  "sha256": "7c8b7d6ddf19690424b4df1ee904383b1bb1a55f9ad73cee3b066c3fb07252d9",
+  "bytes": 3599,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/c691a581-2307-4d1a-bfbf-74e7c5654895/4DNFIKXYNRQ1.csv"
+ },
+ "data/4dn_mina/4DNFIN8AVPBA.csv": {
+  "sha256": "13b98bdc924774151594c68f3fd475836d5bf75dae1d1b55a79f4f682e07483e",
+  "bytes": 838287,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/03125b53-6dae-4470-9830-322c3df7207d/4DNFIN8AVPBA.csv"
+ },
+ "data/4dn_mina/4DNFINVSXJOR.csv": {
+  "sha256": "ac92378214c6119f054b2fa09871006d84fd0b3357574d112c09fd4a7b45e582",
+  "bytes": 6705,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/ce63d67f-7139-462c-9d6b-9d78d5121b0f/4DNFINVSXJOR.csv"
+ },
+ "data/4dn_mina/4DNFIR3U55FW.csv": {
+  "sha256": "c02b268cfbc689e8d2128b338fd9e180582a143a9287e3e9bc30b24ebd4cf69a",
+  "bytes": 3435,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/bb1e6e92-4382-431b-8cd5-d530e34edadc/4DNFIR3U55FW.csv"
+ },
+ "data/4dn_mina/4DNFISVSJ9I2.csv": {
+  "sha256": "4a57db204519e633ecb74471a5f805a13add891d97b2e0ff7aa967631bbb5486",
+  "bytes": 513780,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/e1b5bb99-1e6b-4b25-a3e6-2cddc85f4d54/4DNFISVSJ9I2.csv"
+ },
+ "data/4dn_mina/4DNFIVU9TG94.csv": {
+  "sha256": "83ad0ebae660553f06eebf52e0974fd57cb4296618ce0c0d928decd4f3e0a689",
+  "bytes": 2250,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/5649415d-027e-48b9-8a81-3adb3f6c79ca/4DNFIVU9TG94.csv"
+ },
+ "data/4dn_mina/4DNFIYSCNG5N.csv": {
+  "sha256": "24596d3e5994dfcfe8d5e421901bf315415e7cce5843ddf3a8a7a7a134c578f6",
+  "bytes": 1593455,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/43d3e656-7a74-4b96-8672-e9a3c588bb99/4DNFIYSCNG5N.csv"
+ },
+ "data/4dn_mina/4DNFIZ9MVTME.csv": {
+  "sha256": "8e4bc9747fec8105b5b8e366bd485d3325dfcb8bcd70d2a8497d716deb12b422",
+  "bytes": 841790,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/c31ea110-e76a-47bc-a272-564cb64da228/4DNFIZ9MVTME.csv"
+ },
+ "data/4dn_mina/4DNFIZQ3ZIJQ.csv": {
+  "sha256": "806708d26c4e1c0e04e0789131bcdf3452b08864a66a1c9dd11ca9860d6e0967",
+  "bytes": 3717,
+  "url": "https://4dn-open-data-public.s3.amazonaws.com/fourfront-webprod/wfoutput/071a9cfb-cdf6-4a9a-9f2e-6011754f9f6a/4DNFIZQ3ZIJQ.csv"
+ },
  "data/A549_chr21-28-30Mb.csv": {
   "sha256": "2880c861c0b2655f4cf45886995c606f6b9b3ee5c4721f6bc0d933356d94729a",
   "bytes": 6278287,
@@ -253,6 +313,11 @@
   "sha256": "db7fd5f97064899130838b943379ac5d527bf94bb19b6a7073fcea57136e2f2a",
   "bytes": 900362,
   "url": "https://www.encodeproject.org/files/ENCFF693XIL/@@download/ENCFF693XIL.bedpe.gz"
+ },
+ "data/encode/ENCFF730BVO.bed.gz": {
+  "sha256": "7cd5d5f07c450568d25b5ca580a5ae3f7e06cdde87182aff4af269e4e97b71e8",
+  "bytes": 3047341,
+  "url": "https://www.encodeproject.org/files/ENCFF730BVO/@@download/ENCFF730BVO.bed.gz"
  },
  "data/encode/ENCFF853VVI.bed.gz": {
   "sha256": "dc159291cabb64af8a8594c009bf1952423b621d40585f2ca8351c2e1b669d96",
@@ -674,6 +739,16 @@
   "bytes": 47988543,
   "url": "https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/chr6.fa.gz"
  },
+ "data/posebusters/posebusters_ligands_256.zip": {
+  "sha256": "d973fe178917f4ff9cc17cbba7401f464ad03a00389a404402020340d02a32ab",
+  "bytes": 279491,
+  "url": "https://zenodo.org/api/records/13851241/files/posebusters_ligands_256.zip/content"
+ },
+ "data/posebusters/posebusters_spruce_structures_256.zip": {
+  "sha256": "7fd7c945050bb2aa781d40d7b1f70f03d3345d74361e2dd2ec1af926feef8446",
+  "bytes": 36792515,
+  "url": "https://zenodo.org/api/records/13851241/files/posebusters_spruce_structures_256.zip/content"
+ },
  "data/su2020/Hi-C_contacts_chromosome2.tsv": {
   "sha256": "bc8aa014200d2615ec00af48d181498f0b0b53dffcc8e4c9b84d2b0c4d34f611",
   "bytes": 1844954,
@@ -723,5 +798,20 @@
   "sha256": "88b0d1cc181815634d50dbbaa3a8a8bb80007669a0087126bd29bd0785f7bcfb",
   "bytes": 200285524,
   "url": "https://zenodo.org/records/3928890/files/genomic-scale.tsv?download=1"
+ },
+ "data/tdc/herg.tab": {
+  "sha256": "f2b00c05f12763c9da91d46246800e30925a626d5038e15eec366d633bdffe54",
+  "bytes": 47590,
+  "url": "https://dataverse.harvard.edu/api/access/datafile/4259588?format=original"
+ },
+ "data/tdc/herg_karim.tab": {
+  "sha256": "b47cbff0d65bbb5c6ade5ecd4c5bab20158c6cbf631a68f355efbe7e5fafc099",
+  "bytes": 885072,
+  "url": "https://dataverse.harvard.edu/api/access/datafile/6822246"
+ },
+ "data/tdc/lipophilicity_astrazeneca.tab": {
+  "sha256": "a36f6ec8884e083f8dce06ec17e1885ce900ba75fef975f9c451b2a49bd5e170",
+  "bytes": 281082,
+  "url": "https://dataverse.harvard.edu/api/access/datafile/4259595?format=original"
  }
 }

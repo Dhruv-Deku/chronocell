@@ -1,0 +1,191 @@
+{
+ "made": "2026-10-06T19:37:53+00:00",
+ "split_halves": {
+  "Xa": {
+   "ezh2": {
+    "drug_class": "ezh2",
+    "rho": -0.13661760554672936,
+    "ci95": [
+     -0.2650105997481123,
+     0.08682912837220921
+    ],
+    "perm_mean": -0.12472053891578957,
+    "perm_p": 0.9353233830845771,
+    "n_untreated": 254,
+    "n_treated": 254,
+    "loci": 28,
+    "measured_global_log_change": -0.0036134491217801146,
+    "predicted_direction": 1
+   },
+   "hdac": {
+    "drug_class": "hdac",
+    "rho": -0.11902367893633474,
+    "ci95": [
+     -0.24615737884776187,
+     0.12615983173712225
+    ],
+    "perm_mean": -0.11245357145912145,
+    "perm_p": 0.6666666666666666,
+    "n_untreated": 254,
+    "n_treated": 254,
+    "loci": 28,
+    "measured_global_log_change": -0.0036134491217801146,
+    "predicted_direction": 1
+   },
+   "dnmt": {
+    "drug_class": "dnmt",
+    "rho": -0.11974732573404215,
+    "ci95": [
+     -0.2564578422416654,
+     0.0973583059244055
+    ],
+    "perm_mean": -0.11974732573404216,
+    "perm_p": 1.0,
+    "n_untreated": 254,
+    "n_treated": 254,
+    "loci": 28,
+    "measured_global_log_change": -0.0036134491217801146,
+    "predicted_direction": 1
+   },
+   "kdm": {
+    "drug_class": "kdm",
+    "rho": 0.02130381067693414,
+    "ci95": [
+     -0.1451844049560363,
+     0.1788928315086081
+    ],
+    "perm_mean": 0.013264719085845462,
+    "perm_p": 0.1890547263681592,
+    "n_untreated": 254,
+    "n_treated": 254,
+    "loci": 28,
+    "measured_global_log_change": -0.0036134491217801146,
+    "predicted_direction": -1
+   },
+   "txn": {
+    "drug_class": "txn",
+    "rho": -0.047953431540002374,
+    "ci95": [
+     -0.16052185110050637,
+     0.1313411550287176
+    ],
+    "perm_mean": -0.08112135703437678,
+    "perm_p": 0.1791044776119403,
+    "n_untreated": 254,
+    "n_treated": 254,
+    "loci": 28,
+    "measured_global_log_change": -0.0036134491217801146,
+    "predicted_direction": -1
+   }
+  },
+  "Xi": {
+   "ezh2": {
+    "drug_class": "ezh2",
+    "rho": 0.12023257123793926,
+    "ci95": [
+     -0.1443159343714343,
+     0.3078185126269925
+    ],
+    "perm_mean": 0.13910780148793067,
+    "perm_p": 0.9651741293532339,
+    "n_untreated": 256,
+    "n_treated": 256,
+    "loci": 28,
+    "measured_global_log_change": 0.004688551652057831,
+    "predicted_direction": 1
+   },
+   "hdac": {
+    "drug_class": "hdac",
+    "rho": 0.13523718873550555,
+    "ci95": [
+     -0.15345511906789316,
+     0.3317467371739049
+    ],
+    "perm_mean": 0.1610466283380486,
+    "perm_p": 0.8059701492537313,
+    "n_untreated": 256,
+    "n_treated": 256,
+    "loci": 28,
+    "measured_global_log_change": 0.004688551652057831,
+    "predicted_direction": 1
+   },
+   "dnmt": {
+    "drug_class": "dnmt",
+    "rho": 0.1030245747741881,
+    "ci95": [
+     -0.1224781536764068,
+     0.2927990811440908
+    ],
+    "perm_mean": 0.10302457477418808,
+    "perm_p": 1.0,
+    "n_untreated": 256,
+    "n_treated": 256,
+    "loci": 28,
+    "measured_global_log_change": 0.004688551652057831,
+    "predicted_direction": 1
+   },
+   "kdm": {
+    "drug_class": "kdm",
+    "rho": 0.01225411533845707,
+    "ci95": [
+     -0.18101684150724273,
+     0.2072788491949624
+    ],
+    "perm_mean": 0.002099571088744048,
+    "perm_p": 0.24875621890547264,
+    "n_untreated": 256,
+    "n_treated": 256,
+    "loci": 28,
+    "measured_global_log_change": 0.004688551652057831,
+    "predicted_direction": -1
+   },
+   "txn": {
+    "drug_class": "txn",
+    "rho": 0.06851193267351943,
+    "ci95": [
+     -0.12378486716126604,
+     0.17787043322936347
+    ],
+    "perm_mean": 0.10486450841286615,
+    "perm_p": 0.8258706467661692,
+    "n_untreated": 256,
+    "n_treated": 256,
+    "loci": 28,
+    "measured_global_log_change": 0.004688551652057831,
+    "predicted_direction": -1
+   }
+  }
+ },
+ "practice_drug": {
+  "Xa": {
+   "drug_class": "txn",
+   "rho": 0.29330924436010414,
+   "ci95": [
+    0.1649941027340718,
+    0.3425360676384241
+   ],
+   "perm_mean": 0.30784721076596244,
+   "perm_p": 0.8557213930348259,
+   "n_untreated": 508,
+   "n_treated": 204,
+   "loci": 28,
+   "measured_global_log_change": 0.06874427072743934,
+   "predicted_direction": -1
+  },
+  "Xi": {
+   "drug_class": "txn",
+   "rho": 0.17106292649919255,
+   "ci95": [
+    0.06531729979096006,
+    0.2462460183595659
+   ],
+   "perm_mean": 0.21886358458007987,
+   "perm_p": 0.9552238805970149,
+   "n_untreated": 512,
+   "n_treated": 196,
+   "loci": 28,
+   "measured_global_log_change": 0.10809539705924018,
+   "predicted_direction": -1
+  }
+ }
+}

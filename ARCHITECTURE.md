@@ -795,3 +795,20 @@ app's environment never depends on Qiskit.
 
 The simulator holds at most 24 qubits (2^24 complex amplitudes). Noise is a global model, not a device emulation.
 Running on hardware is left to the user (OpenQASM export); the app holds no quantum-cloud credentials.
+
+## 14. Drug lab additions and the quantum drug tabs (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `therapy.py` (extended) | `EXTRA_DRUGS` (8 classes, literature mechanisms, a `strength` factor), `ALL_DRUGS`; new target kinds `compact`, `mid_signal`, `high_signal`; `compare_drugs(..., drugs=)`. `DRUGS`, the default ranking and every core result are unchanged (`strength` 1.0) | direction of every class; core defaults |
+| `drug_info.py` | Facts per class (target protein, its job, status as of 2025, examples, safety themes, PubChem names); PubChem PUG REST on demand (properties, 2D PNG, 3D SDF) cached with SHA-256; rule-of-five / Veber | card per class |
+| `quantum/molecules.py` | STO-3G (H-Ne, Cartesian s/p), McMurchie-Davidson integrals, RHF (damped + DIIS, two routes), frozen-core active space, sparse Jordan-Wigner, FCI in the electron/spin sector, disentangled UCCSD with closed-form rotations and an adjoint gradient | Szabo & Ostlund; OpenFermion; Basis Set Exchange; `expm` |
+| `quantum/molfeat.py` | Pure-Python SMILES reader and 17 descriptors | RDKit (isolated environment) |
+| `quantum/safety.py` | hERG screen: TDC hERG on demand (MD5), quantum-kernel SVM, RBF-SVM, logistic regression, nearest training compounds | Gate Q5 |
+| `quantum/docking.py` | SDF / PDB reading, ligand features, grid and directional pocket hot-spots, interaction graph, 20-vertex core, max-weight-clique QUBO, Kabsch pose, score, random-search baseline, PoseBusters on demand (MD5) | exact cliques; exact pose recovery; Gate Q7 |
+| `ui/drug_guide.py` | The Drug guide (classes, where they act, all classes, pairs, molecules) | AppTest |
+| `ui/quantum_lab.py` (extended) | `molecules_panel`, `safety_panel`, `docking_panel`; Drug lab Quantum section with five tabs; 07 picker entries | AppTest |
+
+Validation: `validation/drug_gate8.py` (Gate 8, MINA tracing after drug treatment, 4DN), `validation/quantum_drug_gates.py`
+(Q5-Q7; RDKit, OpenFermion and the Basis Set Exchange run only in `.chronocell_cache/quantum-venv`). New data sources are
+listed in `chronocell/data/validation_sources.json`.

@@ -992,3 +992,40 @@ assumed). It is not an emulation of a particular machine.
 (`QuantumCircuit.from_qasm_str`) or import it into IBM Quantum Platform's Composer with your own (free) account and
 submit it to a device. The app never asks for or stores account details. The simulator was checked against Qiskit on
 every circuit type the lab builds (`validation/quantum_crosscheck.py`).
+
+## 24. Drug lab additions and the quantum drug tabs (October 2026)
+
+**Drug set.** *Core (4)*, the default, is the original Drug lab, unchanged. *Extended (12)* adds eight classes, each
+reduced to where it acts and which way it pushes, from its mechanism in the literature: DNMT inhibitor (opens packed
+chromatin), JmjC demethylase blocker (compacts quiet chromatin), LSD1 inhibitor (opens poised enhancers), DOT1L
+inhibitor, p300/CBP inhibitor and transcription inhibitor (settle the most active stretches), menin inhibitor and BET
+degrader (shut hyper-active hubs). A strength factor says how far a full dose moves the targets relative to the core
+classes. The ranking ("best match for this fold") covers the set chosen.
+
+**Drug guide** (expander under the dose table): *Drug classes*, a landscape chart (where each acts, which way, how far
+along in development) and a card per class (the protein it acts on, its normal job, regulatory status as of 2025,
+example compounds, safety themes; general information, not medical advice). *Where they act*, a heat map of how
+strongly each class reaches each stretch of the region treated, over the activity signal. *All classes at full dose*,
+restoration for all twelve (needs a healthy baseline). *Pairs*, every pair of core classes given one after the other:
+green cells restore more than either drug alone. *Molecule (PubChem)*, look up a compound: formula, weight, XLogP,
+polar surface, donors and acceptors, rule-of-five and Veber checks, PubChem's 2D drawing and 3D conformer. Only the
+name is sent to PubChem; answers are cached on this computer with their SHA-256. Measured standing: Gate 8 (the
+simulator against chromatin tracing of cells treated with real drugs), shown at the top of the guide.
+
+**Quantum (simulated) section of the Drug lab**, three new tabs next to *Drug combination* and *Molecule energy*:
+- *Drug molecules (active-space VQE)*: water, ammonia, methane, hydrogen fluoride, nitrogen, carbon monoxide, hydrogen
+  cyanide, formaldehyde or lithium hydride (the chemical groups of drugs: O-H, amines, carbonyls, nitriles). Choose a
+  bond stretch and an active space (2, 4 or 6 electrons in as many orbitals = 4, 8 or 12 qubits); *Run VQE* gives the
+  Hartree-Fock, exact (active space) and VQE energies, chemical accuracy, the HOMO-LUMO gap, a 3D model and an
+  orbital-energy diagram; *Stretch the bond* draws an 8-point curve. Standing: Gate Q6.
+- *Heart safety (quantum kernel)*: pick a drug (its SMILES is fetched from PubChem) or type a SMILES; *Screen for hERG
+  blocking* runs a quantum-kernel SVM next to an RBF-SVM and logistic regression, trained on 655 measured compounds (TDC
+  hERG, downloaded on demand, MD5-checked), and lists the most similar training compounds. A screen, not a safety
+  assessment. Standing: Gate Q5.
+- *Docking (QAOA max clique)*: *Load the PoseBusters examples* (37 MB, MD5-checked, once), pick a complex, *Dock*: the
+  drug's donors, acceptors and greasy carbons are matched to pocket hot-spots, the best consistent set of matches (a
+  clique, 20 qubits) is found by QAOA, poses are built and scored, and the error against the crystal pose is shown for
+  the quantum route, the classical clique route and a random search; the 3D view shows the pocket, the hot-spots and the
+  docked drug. Standing: Gate Q7.
+
+The same three tools are in *07 Quantum lab* (problem picker: *Drug molecules (VQE)*, *Heart safety*, *Docking*).

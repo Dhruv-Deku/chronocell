@@ -239,8 +239,14 @@ def _quantum() -> None:
         html('<div class="cc-callout"><h4>Where to find it</h4><b>07 Quantum lab</b> has everything in one place, plus '
              'a sizes chart and how to run a circuit on a real quantum computer (download it as OpenQASM). Each '
              'workspace also has a Quantum section: 01 → 07 domain walls and lattice fold; 02 → 06 quantum walk and '
-             'variant set; 03 → Quantum similarity; 04 → drug combination and molecule energy; 05 → gene classifier '
+             'variant set; 03 → Quantum similarity; 04 → drug combination, molecule energy, drug molecules (active-space '
+             'VQE), heart safety (a quantum-kernel hERG screen) and docking (QAOA max clique); 05 → gene classifier '
              'and gene group.</div>')
+        html('<div class="cc-callout"><h4>Drug lab additions</h4><b>Drug set</b>: the four core classes (default) or '
+             'twelve (Extended: DNMT, LSD1, DOT1L, menin, p300/CBP, BET degrader, demethylase blocker, transcription '
+             'inhibitor). The <b>Drug guide</b> explains each class, maps where each acts on the fold, tests all twelve, '
+             'simulates pairs and fetches molecules from PubChem. Gate 8 tests the simulator against chromatin tracing '
+             'of cells treated with real drugs.</div>')
     with right:
         r = QL.gate_q()
         if r and "overall" in r:
@@ -249,6 +255,30 @@ def _quantum() -> None:
                  'are in validation/RESULTS.md.</div>')
         else:
             html('<div class="cc-callout"><h4>Measured standing</h4>Gate Q has not been run.</div>')
+        _drug_standing_callout()
         html('<div class="cc-callout"><h4>What it is good for</h4>Learning and showing how quantum algorithms would '
              'tackle chromatin questions, with honest comparisons. It is not a faster or more accurate way to analyse '
              'your data today: use the classical tools in the other workspaces for that.</div>')
+
+
+def _drug_standing_callout() -> None:
+    """Standing of the drug tabs (Q5-Q7) and of the Drug lab simulator (Gate 8), from their result files."""
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / "validation"
+    items = []
+    for name, label_of in (("results_qdrug.json", {"q5": "Q5 quantum heart-safety screen vs classical",
+                                                   "q6": "Q6 molecule energies vs independent reference",
+                                                   "q7": "Q7 quantum docking vs random search"}),):
+        try:
+            r = json.loads((root / name).read_text(encoding="utf-8"))
+            items += [f"<li>{label_of[k]}: <b>{'pass' if v else 'fail'}</b></li>" for k, v in r.get("overall", {}).items()]
+        except (OSError, ValueError):
+            pass
+    try:
+        r8 = json.loads((root / "results_gate8.json").read_text(encoding="utf-8"))
+        items.append(f"<li>Gate 8 Drug lab vs tracing after real drugs: <b>{r8['verdict']}</b></li>")
+    except (OSError, ValueError, KeyError):
+        pass
+    if items:
+        html(f'<div class="cc-callout"><h4>Drug tabs and the Drug lab, measured</h4><ul>{"".join(items)}</ul></div>')

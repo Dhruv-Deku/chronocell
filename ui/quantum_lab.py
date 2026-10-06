@@ -33,6 +33,9 @@ PROBLEMS = {
     "qsvm": ("Gene classifier", "A quantum-kernel machine predicts whether a gene is switched on."),
     "walk": ("Quantum walk", "Watch a signal spread through the contact network, quantum vs classical."),
     "swap": ("Similarity (swap test)", "A quantum circuit measures how alike two folds are."),
+    "mol": ("Drug molecules (VQE)", "Energies of drug-like chemical groups from an active-space VQE."),
+    "safety": ("Heart safety", "A quantum-kernel classifier screens molecules for hERG blocking."),
+    "dock": ("Docking", "QAOA matches a drug's groups to its protein pocket (max clique)."),
 }
 KIND_COLOUR = {"exact": T.INK, "classical": T.TERRACOTTA, "quantum-inspired": T.OCHRE, "simulated quantum": T.ACCENT}
 
@@ -60,7 +63,9 @@ def gate_q() -> dict | None:
 
 
 PART_LABEL = {"q1": "Q1 QAOA solves the domain QUBO", "q2": "Q2 quantum domain calls vs classical callers",
-              "q3": "Q3 VQE within chemical accuracy", "q4": "Q4 quantum-kernel gene classifier vs classical"}
+              "q3": "Q3 VQE within chemical accuracy", "q4": "Q4 quantum-kernel gene classifier vs classical",
+              "q5": "Q5 quantum heart-safety screen vs classical", "q6": "Q6 molecule energies vs independent reference",
+              "q7": "Q7 quantum docking vs random search"}
 
 
 def standing(parts: tuple[str, ...] | None = None) -> None:
@@ -843,8 +848,14 @@ def render(ds: Dataset, options: list[tuple[str, Dataset]], baseline: Dataset | 
         after = ds.frames[-1] if ds.n_frames > 1 else None
         walk_panel(ds, ds.frames[0], after, b0, (ds.frame_labels[0] if ds.frame_labels else "frame 1",
                                                  ds.frame_labels[-1] if ds.n_frames > 1 else ""), "qlab_walk")
-    else:
+    elif prob == "swap":
         swap_panel(options, "qlab_swap")
+    elif prob == "mol":
+        molecules_panel("qlab_mol")
+    elif prob == "safety":
+        safety_panel("qlab_safe")
+    else:
+        docking_panel("qlab_dock")
     with st.expander("How big can these problems get?", expanded=False):
         scaling_panel()
     with st.expander("Run a circuit on a real quantum computer", expanded=False):
@@ -888,9 +899,267 @@ def genes_hooks(ds: Dataset, tab: pd.DataFrame, frame: int, b0: float, offset: i
 
 
 def drug_hooks(ds: Dataset, baseline: Dataset | None, b0: float, frame: int) -> None:
-    """04 Drug lab → Quantum."""
-    t1, t2 = st.tabs(["Drug combination (QAOA)", "Molecule energy (VQE)"])
+    """04 Drug lab → Quantum: two original tabs, then three drug-focused ones (molecules, heart safety, docking)."""
+    t1, t2, t3, t4, t5 = st.tabs(["Drug combination (QAOA)", "Molecule energy (VQE)", "Drug molecules (active-space VQE)",
+                                  "Heart safety (quantum kernel)", "Docking (QAOA max clique)"])
     with t1:
         drug_panel(ds, baseline, b0, frame, "qd_drug")
     with t2:
         vqe_panel("qd_vqe")
+    with t3:
+        molecules_panel("qd_mol")
+    with t4:
+        safety_panel("qd_safe")
+    with t5:
+        docking_panel("qd_dock")
+
+
+# ======================================================================================
+# Drug-focused quantum tabs (October 2026): molecules, heart safety, docking
+# ======================================================================================
+CPK = {"H": "#E8E8E8", "C": "#404040", "N": "#3050F8", "O": "#FF0D0D", "F": "#90E050", "Cl": "#1FF01F", "Br": "#A62929",
+       "I": "#940094", "S": "#E0C030", "P": "#FF8000", "Li": "#CC80FF", "B": "#FFB5B5", "Be": "#C2FF00", "Na": "#AB5CF2"}
+
+
+def molecule_figure(el: list, xyz: np.ndarray, bonds: list | None = None, height: int = 320, title: str = "",
+                    extra: list | None = None) -> go.Figure:
+    """Ball-and-stick 3D view; bonds from the list or from distances (< 1.25 x covalent sum)."""
+    xyz = np.asarray(xyz, float)
+    if bonds is None:
+        rad = {"H": 0.31, "C": 0.76, "N": 0.71, "O": 0.66, "F": 0.57, "S": 1.05, "Cl": 1.02, "Br": 1.20, "I": 1.39, "P": 1.07,
+               "Li": 1.28, "B": 0.84, "Be": 0.96}
+        bonds = [(i, j, 1) for i in range(len(el)) for j in range(i + 1, len(el))
+                 if np.linalg.norm(xyz[i] - xyz[j]) < 1.25 * (rad.get(el[i], 0.8) + rad.get(el[j], 0.8))]
+    fig = go.Figure()
+    bx, by, bz = [], [], []
+    for i, j, _ in bonds:
+        bx += [xyz[i, 0], xyz[j, 0], None]
+        by += [xyz[i, 1], xyz[j, 1], None]
+        bz += [xyz[i, 2], xyz[j, 2], None]
+    fig.add_trace(go.Scatter3d(x=bx, y=by, z=bz, mode="lines", line=dict(color="#8A8A8A", width=5), hoverinfo="skip"))
+    fig.add_trace(go.Scatter3d(x=xyz[:, 0], y=xyz[:, 1], z=xyz[:, 2], mode="markers", text=el, hoverinfo="text",
+                               marker=dict(size=[5 if e == "H" else 9 for e in el], color=[CPK.get(e, "#FF1493") for e in el],
+                                           line=dict(color="#202020", width=0.5))))
+    for tr in extra or []:
+        fig.add_trace(tr)
+    fig.update_layout(height=height, margin=dict(l=0, r=0, t=24 if title else 0, b=0), showlegend=False,
+                      paper_bgcolor="rgba(0,0,0,0)", title=dict(text=title, font=dict(size=12)),
+                      scene=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False), aspectmode="data"))
+    return fig
+
+
+def _drug_standing(part: str, label: str) -> None:
+    p = VALIDATION / "results_qdrug.json"
+    try:
+        r = json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    except (OSError, ValueError):
+        r = None
+    if not r or part not in r.get("overall", {}):
+        banner(f"<b>{esc(LABEL.capitalize())}.</b> {esc(label)}: its pre-registered test has not been run yet.", "info")
+        return
+    banner(f"<b>{esc(LABEL.capitalize())}.</b> {esc(label)} on held-out data: <b>{'pass' if r['overall'][part] else 'fail'}</b> "
+           "(details in validation/RESULTS.md).", "info" if r["overall"][part] else "warn")
+
+
+@st.cache_data(show_spinner=False, max_entries=64)
+def _run_molecule(name: str, scale: float, ne: int, no: int) -> dict:
+    from chronocell.quantum import molecules as MO
+    r = MO.run(name, active=(ne, no), scale=scale)
+    n_el = sum(MO.Z[a] for a, _ in r.atoms) - MO.LIBRARY[name][2]
+    return {"e_hf": r.e_hf, "e_cas": r.e_cas_fci, "e_vqe": r.vqe.energy, "err": r.vqe.error, "qubits": r.n_qubits,
+            "params": r.vqe.parameters, "electrons": r.vqe.electrons, "gap": r.homo_lumo_gap, "eps": r.orbital_energies.tolist(),
+            "n_occ": n_el // 2, "atoms": r.atoms, "nbf": r.n_basis, "seconds": r.seconds, "history": r.vqe.history,
+            "hf_converged": r.hf_converged}
+
+
+def molecules_panel(kp: str = "qmol") -> None:
+    from chronocell.quantum import molecules as MO
+    html("<p class=\"cc-note\">The chemistry behind drug binding happens in small groups of atoms: an amine's nitrogen, a "
+         "carbonyl, a nitrile, an O-H. This tool computes such fragments from first principles (STO-3G basis, "
+         "Hartree–Fock), picks the most important electrons and orbitals (the <b>active space</b>), writes them onto "
+         "qubits and runs <b>VQE</b> on them. The exact answer in the same space (FCI) is the reference. The integrals were "
+         "checked against textbook values and against OpenFermion's independent reference data.</p>")
+    _drug_standing("q6", "Molecule energies (Q6)")
+    names = [n for n in MO.LIBRARY if n != "H2"]
+    c1, c2, c3 = st.columns(3)
+    name = c1.selectbox("Molecule", names, index=names.index("CH2O"), key=f"{kp}_name",
+                        format_func=lambda n: f"{n} · {MO.LIBRARY[n][0]}")
+    scale = c2.slider("Bond length (× equilibrium)", 0.7, 2.5, 1.0, 0.05, key=f"{kp}_scale",
+                      help="Stretching bonds makes electrons more correlated: harder for the circuit, closer to bond breaking.")
+    space = c3.selectbox("Active space (electrons, orbitals)", ["2, 2", "4, 4", "6, 6"], index=1, key=f"{kp}_space",
+                         help="Qubits = 2 × orbitals. 6, 6 = 12 qubits.")
+    ne, no = (int(v) for v in space.split(","))
+    key = (name, float(scale), ne, no)
+    if st.button("Run VQE on the quantum simulator", key=f"{kp}_go", type="primary", icon=":material/memory:"):
+        try:
+            with st.spinner("Integrals, Hartree–Fock, qubit Hamiltonian, VQE…"):
+                ss[f"{kp}_last"] = {"key": key, "res": _run_molecule(name, float(scale), ne, no)}
+        except ValueError as exc:
+            warning_card("This active space does not fit the molecule", str(exc))
+            return
+    last = ss.get(f"{kp}_last")
+    if not last or last["key"] != key:
+        return
+    r = last["res"]
+    readout([("Hartree–Fock", f"{r['e_hf']:.5f}", "Ha"), ("Exact in the active space", f"{r['e_cas']:.5f}", "Ha"),
+             ("VQE", f"{r['e_vqe']:.5f}", f"Ha · error {1e3 * r['err']:+.3f} mHa"),
+             ("Chemical accuracy", "yes" if abs(r["err"]) <= MO.CHEMICAL_ACCURACY else "no", "≤ 1.6 mHa"),
+             ("Qubits · parameters", f"{r['qubits']} · {r['params']}", f"{r['nbf']} basis functions"),
+             ("HOMO–LUMO gap", f"{27.2114 * r['gap']:.1f}", "eV")])
+    html(f'<p class="cc-note">Correlation energy captured by the active space: {1e3 * (r["e_cas"] - r["e_hf"]):+.1f} mHa. '
+         f'Electrons in the VQE state: {r["electrons"]:.3f}. {r["seconds"]:.1f} s.</p>')
+    c1, c2 = st.columns(2)
+    with c1:
+        el = [a for a, _ in r["atoms"]]
+        xyz = np.array([p for _, p in r["atoms"]], float)
+        st.plotly_chart(molecule_figure(el, xyz, title=f"{name} at {scale:g} × equilibrium"), theme=None, width="stretch",
+                        config=T.PLOT_CONFIG, key=f"{kp}_mol3d")
+    with c2:
+        eps = np.array(r["eps"]) * 27.2114
+        fig = go.Figure()
+        for k, e in enumerate(eps):
+            fig.add_trace(go.Scatter(x=[0, 1], y=[e, e], mode="lines",
+                                     line=dict(color=T.ACCENT if k < r["n_occ"] else T.TERRACOTTA, width=3),
+                                     hovertext=f"orbital {k + 1}: {e:.1f} eV", hoverinfo="text"))
+        fig.update_layout(**_layout(320, xaxis=dict(visible=False), yaxis=dict(title="orbital energy (eV)")))
+        st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_levels")
+        html('<p class="cc-note">Orbital energies: blue occupied, red empty. The gap between the highest occupied and the '
+             'lowest empty orbital is a rough guide to how reactive a group is.</p>')
+    if st.button("Stretch the bond: 8-point curve", key=f"{kp}_curve"):
+        rows = []
+        bar = st.progress(0.0)
+        for k, s_ in enumerate(np.round(np.linspace(0.8, 2.2, 8), 2)):
+            try:
+                x = _run_molecule(name, float(s_), ne, no)
+                rows.append({"scale": float(s_), "Hartree–Fock": x["e_hf"], "Exact (active space)": x["e_cas"], "VQE": x["e_vqe"]})
+            except ValueError:
+                pass
+            bar.progress((k + 1) / 8)
+        bar.empty()
+        ss[f"{kp}_curve_rows"] = {"key": (name, ne, no), "rows": rows}
+    cur = ss.get(f"{kp}_curve_rows")
+    if cur and cur["key"] == (name, ne, no) and cur["rows"]:
+        df = pd.DataFrame(cur["rows"])
+        fig = go.Figure()
+        for col, colr, dash in (("Hartree–Fock", T.MUTED, "dot"), ("Exact (active space)", T.INK, "solid"), ("VQE", T.ACCENT, "dash")):
+            fig.add_trace(go.Scatter(x=df["scale"], y=df[col], name=col, mode="lines+markers", line=dict(color=colr, dash=dash)))
+        fig.update_layout(**_layout(300, showlegend=True, legend=dict(orientation="h", y=1.15),
+                                    xaxis=dict(title="bond length (× equilibrium)"), yaxis=dict(title="energy (Ha)")))
+        st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_curvefig")
+
+
+@st.cache_resource(show_spinner="Downloading TDC hERG (MD5-checked) and training the models…")
+def _safety_model():
+    from chronocell.quantum import safety as SF
+    return SF.train()
+
+
+def safety_panel(kp: str = "qsafe") -> None:
+    from chronocell import drug_info as DI
+    html("<p class=\"cc-note\">Many drugs fail because they block <b>hERG</b>, a heart potassium channel, which can disturb "
+         "heart rhythm (several HDAC inhibitors carry ECG warnings). Each molecule is described by 17 numbers read from its "
+         "structure (size, polarity, H-bond donors and acceptors, rings, charge, basic amines...). A <b>quantum-kernel "
+         "support-vector machine</b> (the molecule's numbers set the angles of an 8-qubit feature map) learns blockers from "
+         "648 measured compounds (TDC hERG), next to two classical models.</p>")
+    banner("<b>A screen, not a safety assessment.</b> The models learned from a few hundred compounds; the Drug lab's "
+           "epigenetic drugs are not among them. Real safety comes from patch-clamp assays and clinical ECG monitoring.", "warn")
+    _drug_standing("q5", "Heart-safety classifier (Q5)")
+    c1, c2 = st.columns([1, 1.4])
+    pick = c1.selectbox("Drug", ["(type a SMILES)"] + sorted({n for c in DI.CLASSES.values() for n in c.lookup}),
+                        key=f"{kp}_pick")
+    smi = c2.text_input("SMILES", key=f"{kp}_smiles", placeholder="e.g. ONC(=O)CCCCCCC(=O)Nc1ccccc1 (vorinostat)",
+                        help="Picked drugs are looked up on PubChem (only the name is sent).")
+    if st.button("Screen for hERG blocking", key=f"{kp}_go", type="primary", icon=":material/memory:"):
+        try:
+            if pick != "(type a SMILES)" and not smi:
+                p = DI.properties(pick)
+                smi = p.get("IsomericSMILES") or p.get("SMILES") or p.get("ConnectivitySMILES")
+            if not smi:
+                warning_card("No molecule", "Pick a drug or type a SMILES.")
+                return
+            model = _safety_model()
+            ss[f"{kp}_last"] = {"name": pick if pick != "(type a SMILES)" else "your molecule", "smiles": smi,
+                                "res": model.predict(smi)}
+        except Exception as exc:
+            warning_card("Could not screen this molecule", str(exc))
+            return
+    last = ss.get(f"{kp}_last")
+    if not last:
+        return
+    r = last["res"]
+    d = r["descriptors"]
+    readout([("Quantum-kernel SVM", esc(r["qsvm_says"]), f"score {r['qsvm_score']:+.2f}"),
+             ("RBF-kernel SVM (classical)", esc(r["rbf_says"]), f"score {r['rbf_score']:+.2f}"),
+             ("Logistic regression (classical)", f"{100 * r['logistic_probability']:.0f}", "% blocker"),
+             ("Size · polarity", f"{d['mw']:.0f} Da · {d['tpsa']:.0f} Å²", f"{d['basic_n']} basic N, {d['aromatic_rings']} aromatic rings")])
+    html(f'<p class="cc-note"><b>{esc(last["name"])}</b>: <code>{esc(last["smiles"][:120])}</code></p>')
+    st.dataframe(pd.DataFrame(r["nearest"]).rename(columns={"smiles": "most similar training compounds", "blocker": "measured blocker"}),
+                 hide_index=True, width="stretch", key=f"{kp}_near")
+
+
+def docking_panel(kp: str = "qdock") -> None:
+    from chronocell.quantum import docking as DKM
+    html("<p class=\"cc-note\">Docking asks where and how a drug sits in its protein pocket. Here it is a <b>matching "
+         "puzzle</b>: the drug's H-bond donors, acceptors and greasy carbons are paired with pocket hot-spots where such "
+         "groups are welcome; a set of pairs that one rigid placement can satisfy at once is a <b>clique</b>, and the best "
+         "clique is found by QAOA (one qubit per possible pair, 20 qubits). Poses are built from the best cliques and scored. "
+         "Examples: 256 drug–protein complexes from the PoseBusters benchmark (downloaded on demand, 37 MB, MD5-checked); "
+         "the drug is re-docked into its own pocket.</p>")
+    _drug_standing("q7", "Docking (Q7)")
+    if f"{kp}_ids" not in ss and not st.button("Load the PoseBusters examples", key=f"{kp}_load"):
+        return
+    try:
+        bar = st.progress(0.0, "Downloading…")
+        zl = DKM.posebusters("ligands", lambda a, b: bar.progress(min(1.0, a / b) if b else 0.0))
+        zp = DKM.posebusters("proteins", lambda a, b: bar.progress(min(1.0, a / b) if b else 0.0))
+        bar.empty()
+    except Exception as exc:
+        warning_card("Could not download the examples", str(exc))
+        return
+    ss[f"{kp}_ids"] = DKM.list_complexes(zl)
+    cid = st.selectbox("Complex (PDB id _ ligand)", ss[f"{kp}_ids"], key=f"{kp}_cid")
+    p = st.slider("QAOA depth p", 1, 6, 5, key=f"{kp}_p", help="5 with the CVaR objective is the setting Gate Q7 tested.")
+    if st.button("Dock on the quantum simulator", key=f"{kp}_go", type="primary", icon=":material/memory:"):
+        with st.spinner("Pocket hot-spots, interaction graph, QAOA, poses…"):
+            ss[f"{kp}_run"] = DKM.dock(zl, zp, cid, p=p, objective="cvar")
+    run = ss.get(f"{kp}_run")
+    if not run or run.cid != cid:
+        return
+    if not run.usable:
+        banner("The supplied protein file does not contain the chain this ligand binds (it sits more than 4 Å from every "
+               "protein atom); the benchmark rule skips such complexes.", "warn")
+
+    def ok(v):
+        return "—" if not np.isfinite(v) else f"{v:.1f} Å" + (" ✓" if v <= 2 else "")
+    readout([("Pairs (qubits)", f"{run.qubo.n}", f"{int(run.graph.adj.sum() // 2)} compatible"),
+             ("QAOA found the best clique", "yes" if run.qaoa.hit else "no", f"chance {100 * run.qaoa.p_optimal:.2f} %"),
+             ("Pose error · quantum route", ok(run.rmsd_qaoa), "RMSD to the crystal; ≤ 2 Å counts as correct"),
+             ("Pose error · classical clique route", ok(run.rmsd_classical), "same graph"),
+             ("Pose error · random search", ok(run.rmsd_random), "1,000 placements, same score")])
+    heavy = run.lig.heavy
+    centre = run.lig.xyz[heavy].mean(0)
+    near = np.linalg.norm(run.prot.xyz - centre, axis=1) < 9
+    pk = run.prot.xyz[near & (run.prot.el != "H")]
+    extra = [go.Scatter3d(x=pk[:, 0], y=pk[:, 1], z=pk[:, 2], mode="markers", marker=dict(size=2, color="#B0B0B0"), hoverinfo="skip")]
+    if len(run.sites.kind):
+        extra.append(go.Scatter3d(x=run.sites.xyz[:, 0], y=run.sites.xyz[:, 1], z=run.sites.xyz[:, 2], mode="markers",
+                                  marker=dict(size=6, symbol="diamond",
+                                              color=[{"A": "#C24A1E", "D": "#3340D1", "H": "#A37822"}[k] for k in run.sites.kind]),
+                                  text=[f"hot-spot {k}" for k in run.sites.kind], hoverinfo="text"))
+    if run.pose_qaoa is not None:
+        pq = run.pose_qaoa[heavy]
+        extra.append(go.Scatter3d(x=pq[:, 0], y=pq[:, 1], z=pq[:, 2], mode="markers", marker=dict(size=5, color=T.ACCENT),
+                                  text=["docked (quantum route)"] * len(pq), hoverinfo="text"))
+    el = [e for e, h in zip(run.lig.el, heavy) if h]
+    idx = {k: i for i, k in enumerate(np.flatnonzero(heavy))}
+    bonds = [(idx[i], idx[j], o) for i, j, o in run.lig.bonds if i in idx and j in idx]
+    st.plotly_chart(molecule_figure(el, run.lig.xyz[heavy], bonds, height=440,
+                                    title="crystal pose (atoms) · docked (blue) · hot-spots (red acceptor, blue donor, "
+                                          "ochre hydrophobic) · pocket (grey)", extra=extra),
+                    theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_view")
+    c1, c2 = st.columns(2)
+    with c1:
+        qubo_heatmap(run.qubo, kp)
+    with c2:
+        h, J, _ = run.qubo.ising()
+        circuit_block(sim.qaoa_circuit(h, J, run.qaoa.gammas, run.qaoa.betas, f"QAOA docking {run.cid}"), f"{kp}_c")

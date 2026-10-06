@@ -27,8 +27,9 @@ def _treat(key: str, _x: np.ndarray, _sig: np.ndarray, _valid: np.ndarray, b0: f
 
 @st.cache_data(show_spinner="Testing every drug class at full dose…", max_entries=12)
 def _ranking(key: str, _x: np.ndarray, _sig: np.ndarray, _valid: np.ndarray, b0: float, _healthy: np.ndarray,
-             efficacy: float, _sig_ref: np.ndarray | None) -> pd.DataFrame:
-    return TH.compare_drugs(_x, _sig, _valid, b0, _healthy, efficacy, signal_ref=_sig_ref)
+             efficacy: float, _sig_ref: np.ndarray | None, extended: bool = False) -> pd.DataFrame:
+    return TH.compare_drugs(_x, _sig, _valid, b0, _healthy, efficacy, signal_ref=_sig_ref,
+                            drugs=TH.ALL_DRUGS if extended else None)
 
 
 def _card(k: str, v: str, sub: str) -> str:
@@ -89,17 +90,25 @@ def render(ds: Dataset, baseline: Dataset | None, patient_label: str, b0: float,
         sig = sig_all[lo:hi]
         valid = ds.valid[g0 - ds.bin0 + lo:g0 - ds.bin0 + hi]
         key = f"{ds.key}:{baseline.key if same else '-'}:{frame}:{g0 + lo}:{g0 + hi}"
+        extended = st.segmented_control(
+            "Drug set", ["Core (4)", "Extended (12)"], default="Core (4)", required=True, key="lab_set",
+            help="Core: the four original classes. Extended: eight more chromatin drug classes (DNMT, LSD1, DOT1L, menin, "
+                 "p300/CBP, BET degrader, demethylase blocker, transcription inhibitor); see the Drug guide below.") == "Extended (12)"
+        catalog = TH.ALL_DRUGS if extended else TH.DRUGS
+        rank_key = key + (":extended" if extended else "")
         eff_now = float(ss.get("lab_eff", 0.8))
-        rank = _ranking(key, x, sig, valid, float(b0), xh, eff_now, sig_ref) if same and xh is not None else None
+        rank = _ranking(key, x, sig, valid, float(b0), xh, eff_now, sig_ref, **({"extended": True} if extended else {}))             if same and xh is not None else None
         best_key = str(rank.iloc[0]["key"]) if rank is not None and rank.iloc[0]["restoration_pct"] > 5 else None
-        if best_key and ss.get("lab_best_for") != key:
+        keys = list(catalog)
+        if ss.get("lab_drug") is not None and ss.get("lab_drug") not in keys:
+            ss.lab_drug = keys[0]                         # leaving the extended set: fall back to a core class
+        if best_key and ss.get("lab_best_for") != rank_key:
             ss.lab_drug = best_key                        # pre-select the best match for this fold (set before the widget)
-            ss.lab_best_for = key
-        keys = list(TH.DRUGS)
+            ss.lab_best_for = rank_key
         drug = st.radio("2 · Drug class", keys, key="lab_drug",
-                        format_func=lambda k: TH.DRUGS[k].name + ("  ★ best match for this fold" if k == best_key else ""),
-                        captions=[TH.DRUGS[k].plain for k in keys])
-        d = TH.DRUGS[drug]
+                        format_func=lambda k: catalog[k].name + ("  ★ best match for this fold" if k == best_key else ""),
+                        captions=[catalog[k].plain for k in keys])
+        d = TH.ALL_DRUGS[drug]
         html(f'<p class="cc-note"><b>Examples:</b> {esc(d.examples)}.<br><b>Evidence:</b> {esc(d.evidence)}.</p>')
         eff = st.slider("3 · Maximum effect at full dose", 0.2, 1.0, 0.8, 0.05, key="lab_eff",
                         help="How far (at most) the targeted chromatin can be moved toward its healthy position. "
@@ -135,7 +144,7 @@ def render(ds: Dataset, baseline: Dataset | None, patient_label: str, b0: float,
         if best_key and best_key != drug and float(last.get("restoration_pct", 0) or 0) < 5:
             html(f'<div class="cc-banner info">{esc(d.name)} pushes chromatin {"open" if d.direction > 0 else "closed" if d.direction < 0 else "into loops"}, '
                  f'which is not what this fold needs here, so it barely changes it. The best match is '
-                 f'<b>{esc(TH.DRUGS[best_key].name)}</b>.</div>')
+                 f'<b>{esc(TH.ALL_DRUGS[best_key].name)}</b>.</div>')
         labels = [f"Dose {int(p)}%" for p in m["dose_pct"]]
         hover = [f"{ch.name}:{float(ch.bin_start(g0 + lo + i)) / 1e6:.2f} Mb · targeted {w:.0%}"
                  for i, w in enumerate(res.weights)]
@@ -158,7 +167,7 @@ def render(ds: Dataset, baseline: Dataset | None, patient_label: str, b0: float,
     with c2:
         if same and xh is not None:
             html('<p class="cc-eyebrow">Which mechanism fits this fold?</p>')
-            rank = _ranking(key, x, sig, valid, float(b0), xh, float(eff), sig_ref)
+            rank = _ranking(key, x, sig, valid, float(b0), xh, float(eff), sig_ref, **({"extended": True} if extended else {}))
             st.plotly_chart(viz.drug_bar_chart(rank), theme=None, width="stretch", config=T.PLOT_CONFIG, key="lab_rank")
             best = rank.iloc[0]
             if best["restoration_pct"] > 5:
@@ -175,6 +184,11 @@ def render(ds: Dataset, baseline: Dataset | None, patient_label: str, b0: float,
         st.download_button("Dose table (CSV)", tab.to_csv(index=False), f"chronocell_druglab_{drug}.csv", "text/csv",
                            icon=":material/download:", key="lab_csv")
 
-    with st.expander("Quantum (simulated) · drug combination and molecule energy", expanded=False):
+    with st.expander("Drug guide · classes, where they act, all classes, pairs, molecules", expanded=False):
+        from ui import drug_guide
+        mb = np.array([float(ch.bin_start(g0 + lo + i)) / 1e6 for i in range(hi - lo)])
+        drug_guide.render(x, sig, valid, float(b0), xh, float(eff), sig_ref, mb)
+
+    with st.expander("Quantum (simulated) · drug combination, molecules, heart safety, docking", expanded=False):
         from ui import quantum_lab
         quantum_lab.drug_hooks(ds, baseline, float(b0), frame)
