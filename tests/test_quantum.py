@@ -286,3 +286,12 @@ def test_quantum_panels_run_in_the_lab_and_appear_in_the_workspaces(app):
         assert any(label in e.label for e in at.expander), page
     at.segmented_control(key="workspace").set_value("Guide").run()
     assert not at.exception and any("Quantum lab, in plain words" in m.value for m in at.markdown)
+
+
+def test_hardware_efficient_vqe_keeps_the_electron_count():
+    m = CH.molecule("HeH+", 1.0)
+    free = CH.vqe(m, "hea", number_penalty=0.0)
+    kept = CH.vqe(m, "hea")
+    assert kept.electrons == pytest.approx(2.0, abs=1e-3)
+    assert kept.energy >= m.e_fci - 1e-9                       # variational within the two-electron sector
+    assert free.electrons > 2.5 and free.energy < m.e_fci      # the drift the penalty prevents

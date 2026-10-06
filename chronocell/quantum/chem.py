@@ -253,12 +253,21 @@ class VQEResult:
     circuit: sim.Circuit
     noisy_energy: float = float("nan")
     fidelity: float = 1.0
+    electrons: float = float("nan")       # <N> of the final state (the molecule has n_electrons)
 
 
 def vqe(mol: Molecule, ansatz: str = "uccsd", layers: int = 2, seed: int = 0, noise: dict | None = None,
-        maxiter: int = 400) -> VQEResult:
+        maxiter: int = 400, number_penalty: float | None = None) -> VQEResult:
+    """VQE. UCCSD conserves the electron count by construction. The hardware-efficient ansatz does not, and on the
+    4-qubit Hamiltonian (which also holds 0-4 electron states) it can drift to a state with the wrong number of
+    electrons and an energy below the molecule's: the standard remedy, a penalty number_penalty * <(N - n)^2>
+    (hartree), is added to its cost by default (2.0). The reported energy never includes the penalty."""
     from scipy.optimize import minimize
     H = mol.hamiltonian
+    ne = bin(mol.hf_index).count("1")
+    pen = (0.0 if ansatz == "uccsd" else 2.0) if number_penalty is None else float(number_penalty)
+    dN = mol.number - ne * np.eye(len(H))
+    D2 = dN @ dN
     hist: list[float] = []
     if ansatz == "uccsd":
         k = len(uccsd_generators(mol.n_qubits))
@@ -277,13 +286,15 @@ def vqe(mol: Molecule, ansatz: str = "uccsd", layers: int = 2, seed: int = 0, no
         psi = build(th).run()
         e = float(np.real(np.vdot(psi, H @ psi)))
         hist.append(e)
-        return e
+        return e + (pen * float(np.real(np.vdot(psi, D2 @ psi))) if pen else 0.0)
 
     r = minimize(f, x0, method="BFGS", options={"maxiter": maxiter, "gtol": 1e-8})
     th = r.x
     c = build(th)
-    e = f(th)
-    out = VQEResult(ansatz, e, th, len(hist), hist, e - mol.e_fci, c)
+    psi = c.run()
+    e = float(np.real(np.vdot(psi, H @ psi)))
+    out = VQEResult(ansatz, e, th, len(hist), hist, e - mol.e_fci, c,
+                    electrons=float(np.real(np.vdot(psi, mol.number @ psi))))
     if noise is not None:
         F = sim.fidelity_estimate(c.counts(), noise)
         out.fidelity = F
@@ -311,5 +322,6 @@ def curve(name: str, R_list, ansatz: str = "uccsd", noise: dict | None = None, l
         rows.append({"molecule": name, "R_angstrom": float(R), "e_hf": m.e_hf, "e_fci": m.e_fci, "e_vqe": v.energy,
                      "error_mha": 1e3 * v.error, "within_chemical_accuracy": bool(abs(v.error) <= CHEMICAL_ACCURACY),
                      "e_vqe_noisy": v.noisy_energy, "fidelity": v.fidelity, "evaluations": v.evaluations,
+                     "electrons": v.electrons,
                      "pauli_terms": len(m.paulis), "cx": v.circuit.counts()["cx_equivalent"]})
     return rows

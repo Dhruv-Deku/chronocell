@@ -162,13 +162,17 @@ The table below is generated from the result files by `python validation/report.
 - No score computed from the input says reliably *which* distances are wrong: a per-pair score showed a weak signal for imaging-derived input and none for Hi-C, below the pre-registered bar, so the app shows none.
 - From sequence and CTCF alone, with no contacts, a modest part of the pattern beyond the separation trend is recovered. The cohesin-depleted control scores as high, so it reflects compartments and insulation, not loops: a prior, not a measurement.
 - The cohesin-loss prediction worked on its held-out region. The structural-variant simulator did **not** beat a simple genomic-distance shift on the one real rearrangement tested, so it is labelled a mechanism simulator.
+- The quantum lab's algorithms do what they are designed to do on a simulator (QAOA found the optimum of real-data domain puzzles; VQE reached exact molecular energies), but its domain calls and its quantum-kernel gene classifier fell short of the classical methods on held-out data (Gate Q below). No quantum advantage is claimed.
 
 **Quantum lab (Gate Q, simulated quantum algorithms on held-out real data):**
 
 <!-- BEGIN generated:summary_q -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
-| Gate Q: quantum lab (simulated quantum) | not run (python validation/quantum_gateq.py --test all) | — |
+| Gate Q1: QAOA (simulator) finds the optimum of the domain QUBO, 66 held-out windows | 98 % of windows (needed ≥ 90 %) | pass |
+| Gate Q2: quantum domain calls vs classical callers (F1 vs ENCODE Arrowhead) | k562: QAOA 0.24 vs insulation 0.35, TopDom-like 0.39; imr90: QAOA 0.27 vs insulation 0.36, TopDom-like 0.40 | fail |
+| Gate Q3: VQE within chemical accuracy (H2, HeH+) | worst error 5.1e-11 mHa (needed ≤ 1.6) | pass |
+| Gate Q4: quantum-kernel gene classifier vs RBF-SVM, GM12878 → IMR-90 | AUC 0.623 vs 0.657 | fail |
 <!-- END generated:summary_q -->
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).

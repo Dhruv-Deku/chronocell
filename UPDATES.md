@@ -772,3 +772,42 @@ bigWig and beddb writing (compiled tools only; bedGraph and .mcool are written i
 **Tests:** 262 tests in 20 files (226 passed, 1 skipped before Phase A). The last complete run passed every file (15:46–16:05, GPU). The final GPU run after the browser-check fixes passed 18 of 20 files (247 passed, 1 skipped) and was then stopped by Claude Code because the computer was low on memory; the two remaining files (test_v4_trust.py, test_v4_ui.py) passed in the previous complete run. The full CPU-only run (`CUDA_VISIBLE_DEVICES=` set to empty) was not repeated for the same reason; the GPU / CPU agreement test passes.
 
 Contributors to the ideas behind these changes: _______________
+
+## 6 October 2026 — Quantum lab (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`),
+who asked for a quantum-computing lab for a competition, with a quantum section in every workspace and one separate
+tab. Local commits on `feat/v4-evidence` only; nothing pushed. The measured results are in `validation/RESULTS.md`
+(Gate Q, generated from the result files); this entry only lists what was done.
+
+**What was added (all additive, Research mode only, nothing runs until a Run button is pressed).**
+- `chronocell/quantum/`: a statevector simulator written for ChronoCell (Qiskit's conventions; GPU through PyTorch;
+  OpenQASM 2.0 export; QAOA; an approximate hardware-noise model), QUBO solvers (exact enumeration, exact dynamic
+  programming for banded problems, simulated annealing, simulated quantum annealing), problem encodings (domain
+  walls, variant set, drug combination, gene group, lattice folding), minimal-basis quantum chemistry from scratch
+  with VQE (H2, HeH+), quantum-kernel SVM and the swap test, and quantum / classical walks on contact graphs.
+- App: a new workspace **07 Quantum lab** and Quantum sections in 01 (domain walls, lattice fold), 02 (quantum walk,
+  variant set), 03 (swap-test tab), 04 (drug combination, VQE) and 05 (gene classifier, gene group); a Guide section in
+  plain words.
+- `validation/quantum_crosscheck.py`: every circuit type checked against Qiskit 2.2.1 in an isolated environment
+  (`.chronocell_cache/quantum-venv`; `requirements-quantum.txt`). The app does not need Qiskit.
+- Gate Q (`validation/quantum_gateq.py`): practice on GM12878, rules committed in `validation/frozen.py`
+  (`QUANTUM_GATEQ`) before the test, test run once on K562 / IMR-90 (Q1, Q2), the chemistry (Q3) and GM12878 → IMR-90
+  genes (Q4). Practice choices: `validation/TUNING.md` §19.
+
+**Course of the work.** The first practice grid for the domain QUBO ranked it below the classical insulation caller;
+a per-boundary cost and a wider resolution range (practice only, with the classical callers' grids widened alongside)
+brought it level on practice. A full search of every window's 2^19 states was too slow for the grid, so an exact
+dynamic programme for banded QUBOs was written (equal to enumeration on every check) and used for the grid; that it
+solves the problem in linear time is also reported as the honest classical comparison. The quantum-kernel grid was
+widened once because its first best setting sat at the grid's edge. A VQE panel that would have computed on page load
+was moved behind a button before the first commit.
+
+**Gate Q.** Pre-registered in `eba6efa` (rules, practice results, the lab itself). Test run once (this entry's
+commit): **Q1 pass** (QAOA reached the exact optimum of the held-out domain puzzles), **Q2 fail** (the domain QUBO's
+calls agreed with ENCODE's Arrowhead calls less well than the classical TopDom-like and insulation callers, on both
+cell lines), **Q3 pass** (UCCSD-VQE exact for H2 and HeH+), **Q4 fail** (the quantum-kernel gene classifier trailed
+the classical RBF-SVM by slightly more than the margin; logistic regression beat both). Numbers: `validation/RESULTS.md`.
+The test exposed one product problem, fixed afterwards and recorded there: the hardware-efficient VQE option let
+HeH+ drift to three-electron states (energies below the true one); it now carries the standard electron-number penalty
+and the panel shows the electron count.
