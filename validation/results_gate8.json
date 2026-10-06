@@ -1,0 +1,155 @@
+{
+ "made": "2026-10-06T21:19:36+00:00",
+ "rule": {
+  "allele": "Xa",
+  "min_rho": 0.2,
+  "max_perm_p": 0.05,
+  "min_drugs": 3,
+  "efficacy": 0.8,
+  "min_detected": 0.7,
+  "bootstrap": 200,
+  "permutations": 200,
+  "test_drugs": [
+   "GSK126 (EZH2 inhibitor)",
+   "TSA + NaBu (HDAC inhibitors)",
+   "5-aza-dC (DNMT inhibitor)",
+   "DMOG (demethylase blocker)"
+  ]
+ },
+ "drugs": {
+  "GSK126 (EZH2 inhibitor)": {
+   "Xa": {
+    "drug_class": "ezh2",
+    "rho": 0.03314922221300167,
+    "ci95": [
+     -0.12223475328743275,
+     0.26333386434833084
+    ],
+    "perm_mean": -0.003477990483722447,
+    "perm_p": 0.029850746268656716,
+    "n_untreated": 508,
+    "n_treated": 191,
+    "loci": 28,
+    "measured_global_log_change": -0.022071860129065465,
+    "predicted_direction": 1,
+    "passes": false
+   },
+   "Xi": {
+    "drug_class": "ezh2",
+    "rho": 0.3613844782983169,
+    "ci95": [
+     0.10355142941349839,
+     0.46673556530712396
+    ],
+    "perm_mean": 0.34919855839426395,
+    "perm_p": 0.15920398009950248,
+    "n_untreated": 512,
+    "n_treated": 191,
+    "loci": 28,
+    "measured_global_log_change": -0.07691276464608618,
+    "predicted_direction": 1
+   }
+  },
+  "TSA + NaBu (HDAC inhibitors)": {
+   "Xa": {
+    "drug_class": "hdac",
+    "rho": 0.2930972827251601,
+    "ci95": [
+     0.08934832239809039,
+     0.35938469581450205
+    ],
+    "perm_mean": 0.2736113274608407,
+    "perm_p": 0.10945273631840796,
+    "n_untreated": 508,
+    "n_treated": 219,
+    "loci": 28,
+    "measured_global_log_change": 0.22133735961786957,
+    "predicted_direction": 1,
+    "passes": false
+   },
+   "Xi": {
+    "drug_class": "hdac",
+    "rho": -0.05202669427944653,
+    "ci95": [
+     -0.20042260128694483,
+     0.1739631848857579
+    ],
+    "perm_mean": -0.08400189232415599,
+    "perm_p": 0.1890547263681592,
+    "n_untreated": 512,
+    "n_treated": 201,
+    "loci": 28,
+    "measured_global_log_change": 0.16963990038346244,
+    "predicted_direction": 1
+   }
+  },
+  "5-aza-dC (DNMT inhibitor)": {
+   "Xa": {
+    "drug_class": "dnmt",
+    "rho": 0.04535990096903572,
+    "ci95": [
+     -0.11864790250742392,
+     0.19956520092085564
+    ],
+    "perm_mean": 0.04535990096903573,
+    "perm_p": 1.0,
+    "n_untreated": 508,
+    "n_treated": 118,
+    "loci": 28,
+    "measured_global_log_change": 0.06725463768305773,
+    "predicted_direction": 1,
+    "passes": false
+   },
+   "Xi": {
+    "drug_class": "dnmt",
+    "rho": -0.0121063643036166,
+    "ci95": [
+     -0.1730735236922117,
+     0.1858739234865156
+    ],
+    "perm_mean": -0.012106364303616602,
+    "perm_p": 1.0,
+    "n_untreated": 512,
+    "n_treated": 118,
+    "loci": 28,
+    "measured_global_log_change": 0.15541246754818777,
+    "predicted_direction": 1
+   }
+  },
+  "DMOG (demethylase blocker)": {
+   "Xa": {
+    "drug_class": "kdm",
+    "rho": -0.10216895186415702,
+    "ci95": [
+     -0.1723819766400059,
+     0.007440569923510517
+    ],
+    "perm_mean": -0.09193822362596815,
+    "perm_p": 0.6567164179104478,
+    "n_untreated": 508,
+    "n_treated": 383,
+    "loci": 28,
+    "measured_global_log_change": 0.12894063388641036,
+    "predicted_direction": -1,
+    "passes": false
+   },
+   "Xi": {
+    "drug_class": "kdm",
+    "rho": -0.05653610029917919,
+    "ci95": [
+     -0.16150740604839411,
+     0.11274106608926011
+    ],
+    "perm_mean": -0.08562342438240901,
+    "perm_p": 0.05472636815920398,
+    "n_untreated": 512,
+    "n_treated": 336,
+    "loci": 28,
+    "measured_global_log_change": 0.06501204240032463,
+    "predicted_direction": -1
+   }
+  }
+ },
+ "passing_drugs": 0,
+ "verdict": "fail"
+}

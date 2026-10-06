@@ -163,6 +163,7 @@ The table below is generated from the result files by `python validation/report.
 - From sequence and CTCF alone, with no contacts, a modest part of the pattern beyond the separation trend is recovered. The cohesin-depleted control scores as high, so it reflects compartments and insulation, not loops: a prior, not a measurement.
 - The cohesin-loss prediction worked on its held-out region. The structural-variant simulator did **not** beat a simple genomic-distance shift on the one real rearrangement tested, so it is labelled a mechanism simulator.
 - The quantum lab's algorithms do what they are designed to do on a simulator (QAOA found the optimum of real-data domain puzzles; VQE reached exact molecular energies), but its domain calls and its quantum-kernel gene classifier fell short of the classical methods on held-out data (Gate Q below). No quantum advantage is claimed.
+- The Drug lab's simulator did **not** predict how real drugs changed 3D chromatin in treated cells beyond a generic pattern (Gate 8), so it stays a mechanism simulator. Of the quantum drug tabs, the heart-safety screen beat the classical models slightly on 13,000 unseen compounds (Q5), docking beat random search only modestly (Q7), and VQE missed chemical accuracy on stretched N2 and HCN (Q6).
 
 **Quantum lab (Gate Q, simulated quantum algorithms on held-out real data):**
 
@@ -180,8 +181,10 @@ The table below is generated from the result files by `python validation/report.
 <!-- BEGIN generated:summary_qd -->
 | Test (held-out, real data) | Measured | Verdict |
 |---|---|---|
-| Gate 8: Drug lab vs chromatin tracing after real drug treatment | not run | — |
-| Gates Q5-Q7: quantum drug tabs | not run | — |
+| Gate 8: Drug lab vs chromatin tracing after real drug treatment (IMR-90 chrX, 4 drugs) | 0 of 4 drugs met the rule | fail |
+| Gate Q5: quantum-kernel hERG screen vs RBF-SVM (TDC hERG → hERG_Karim) | AUC 0.710 vs 0.695 | pass |
+| Gate Q6: molecule energies vs OpenFermion; stretched-molecule VQE | worst reference difference 2.2e-04 mHa; worst VQE error 78.35 mHa | fail |
+| Gate Q7: QAOA max-clique docking (PoseBusters) | docked 6 % vs random search 2 %; clique found 100 % | pass |
 <!-- END generated:summary_qd -->
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
