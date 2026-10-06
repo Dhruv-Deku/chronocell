@@ -160,7 +160,10 @@ def molecule_tab() -> None:
         try:
             with st.spinner(f"Looking up {q}…"):
                 p = DI.properties(q)
-                img = DI.image_png(int(p["CID"]))
+                try:
+                    img = DI.image_png(int(p["CID"]))
+                except DI.PubChemError:
+                    img = None                    # the drawing is optional: a slow image service must not hide the card
                 try:
                     conf = DI.conformer_3d(int(p["CID"]))
                 except DI.PubChemError:
@@ -181,7 +184,10 @@ def molecule_tab() -> None:
              ("Rule-of-five violations", f"{dl['ro5_violations']}", "0-1 typical of oral drugs")])
     c1, c2 = st.columns([1, 1.3])
     with c1:
-        st.image(m["img"], caption=f"{m['name']} (PubChem 2D depiction)", width=300)
+        if m["img"] is not None:
+            st.image(m["img"], caption=f"{m['name']} (PubChem 2D depiction)", width=300)
+        else:
+            html('<p class="cc-note">PubChem did not return the 2D drawing in time; the properties above are complete.</p>')
         st.dataframe(pd.DataFrame([{"rule": k, "met": "yes" if v else "no"} for k, v in dl["rules"].items()]),
                      hide_index=True, width="stretch", key="dg_mol_rules")
     with c2:

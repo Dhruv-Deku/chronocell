@@ -811,3 +811,39 @@ the classical RBF-SVM by slightly more than the margin; logistic regression beat
 The test exposed one product problem, fixed afterwards and recorded there: the hardware-efficient VQE option let
 HeH+ drift to three-electron states (energies below the true one); it now carries the standard electron-number penalty
 and the panel shows the electron count.
+
+## 7 October 2026 — Drug lab additions and quantum drug tabs (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for more quantum tabs focused on drugs, new drugs with visualisations and information, accuracy tests for
+everything, a slightly enhanced UI with the same layout, and for the work to go ahead without questions. Local commits
+on `feat/v4-evidence` only; nothing pushed. Numbers: `validation/RESULTS.md` (generated); this entry lists what was done.
+
+**Added (all additive; the Drug lab's default set and every earlier page and result are unchanged).**
+- Drug lab: a *Drug set* switch (Core 4, the default, or Extended 12 with eight more chromatin drug classes) and a
+  *Drug guide* (class cards with status and safety themes, a landscape chart, where each class acts on the fold, all
+  twelve at full dose, pair synergy, PubChem molecule cards with 2D and 3D structures and drug-likeness rules).
+- Three quantum drug tabs (in the Drug lab's Quantum section and in 07 Quantum lab): *Drug molecules* (STO-3G
+  chemistry written from scratch, active-space UCCSD-VQE up to 12 qubits), *Heart safety* (a quantum-kernel hERG screen
+  from SMILES, next to classical models) and *Docking* (QAOA maximum-weight clique on 20 qubits, PoseBusters examples).
+- Accuracy tests, each pre-registered in `validation/frozen.py` before its test data were read: Gate 8 (the Drug lab
+  against MINA chromatin tracing of IMR-90 cells treated with real drugs, 4DN), Q5 (hERG, TDC Wang -> TDC Karim), Q6
+  (molecule energies against OpenFermion's independent data; stretched-molecule VQE), Q7 (re-docking, PoseBusters).
+- Independent checks run only in `.chronocell_cache/quantum-venv`: RDKit (descriptors, de-duplication), OpenFermion
+  (reference energies), the Basis Set Exchange (STO-3G exponents). New sources listed in
+  `chronocell/data/validation_sources.json`.
+
+**Course of the work.** The from-scratch chemistry matched seven textbook Hartree-Fock energies once its solver was given
+a damped warm-up (DIIS alone had locked N2 onto an excited solution); VQE was made fast enough for 12 qubits with exact
+closed-form rotations and an adjoint gradient. The first docking design (grid hot-spots) docked no practice complex;
+hot-spots along protein H-bond vectors and a 20-vertex core subgraph reached 15 % on practice against 3 % for random
+search. The hERG reader first split compound names on commas (637 of 655 rows) and was fixed before the settings were
+chosen; the kernel grids were widened on practice when a best value sat at an edge. Gate 8's practice showed that the
+simulator's agreement with alpha-amanitin came from a generic compaction pattern (shuffled targeting did as well), so its
+rule asks that the real targeting beat shuffled targeting.
+
+**Results** (pre-registered in `fa41e78`; each test run once; this entry's commit): **Gate 8 fail** (no drug met the
+rule: where predicted and measured changes agreed, shuffled targeting agreed as well), **Q5 pass** (the quantum-kernel
+hERG screen slightly ahead of the classical models on about 13,000 unseen compounds), **Q6 fail** (the chemistry matched
+OpenFermion's independent LiH reference; VQE missed chemical accuracy on stretched N2 and HCN), **Q7 pass**, modestly
+(QAOA found every best clique; the QAOA route docked more ligands than random search, but far fewer than on practice).

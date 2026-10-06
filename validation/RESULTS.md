@@ -1218,8 +1218,33 @@ Practice (no treated test data): untreated traces split in two halves (no drug, 
 | alpha-amanitin vs untreated | Xa | txn | +0.293 |  [0.165, 0.343] | +0.308 | 0.856 |
 | alpha-amanitin vs untreated | Xi | txn | +0.171 |  [0.065, 0.246] | +0.219 | 0.955 |
 
-_results_gate8.json: not run (python validation/drug_gate8.py --test)._
+Test (run once; pass per drug on Xa: rho >= 0.2, 95 % interval above 0, permutation p <= 0.05; gate: at least 3 of 4 drugs):
+
+| Drug (class) | Allele | Spearman rho | 95 % interval | Shuffled-target mean | Permutation p | Measured global log change | Traces (untreated / treated) | Pass |
+|---|---|---|---|---|---|---|---|---|
+| GSK126 (EZH2 inhibitor) | Xa | +0.033 |  [-0.122, 0.263] | -0.003 | 0.030 | -0.022 | 508 / 191 | no |
+| GSK126 (EZH2 inhibitor) | Xi | +0.361 |  [0.104, 0.467] | +0.349 | 0.159 | -0.077 | 512 / 191 | — |
+| TSA + NaBu (HDAC inhibitors) | Xa | +0.293 |  [0.089, 0.359] | +0.274 | 0.109 | +0.221 | 508 / 219 | no |
+| TSA + NaBu (HDAC inhibitors) | Xi | -0.052 |  [-0.200, 0.174] | -0.084 | 0.189 | +0.170 | 512 / 201 | — |
+| 5-aza-dC (DNMT inhibitor) | Xa | +0.045 |  [-0.119, 0.200] | +0.045 | 1.000 | +0.067 | 508 / 118 | no |
+| 5-aza-dC (DNMT inhibitor) | Xi | -0.012 |  [-0.173, 0.186] | -0.012 | 1.000 | +0.155 | 512 / 118 | — |
+| DMOG (demethylase blocker) | Xa | -0.102 |  [-0.172, 0.007] | -0.092 | 0.657 | +0.129 | 508 / 383 | no |
+| DMOG (demethylase blocker) | Xi | -0.057 |  [-0.162, 0.113] | -0.086 | 0.055 | +0.065 | 512 / 336 | — |
+
+0 of 4 drugs pass. Verdict: **fail**.
 <!-- END generated:gate8 -->
+
+**Reading (written after the test run).** Gate 8 **failed**: no drug met the rule on the active X. Where the
+simulator's predicted pattern did agree with the measured one (the HDAC inhibitors on the active X; GSK126 on the
+inactive X, reported only), shuffling where the drug acts agreed about as well, so the agreement comes from the
+simulator's generic way of opening or compacting a fold, not from targeting the right loci; the same was seen with
+alpha-amanitin in practice. The overall size of the region grew after the HDAC inhibitors and after 5-aza-dC, the
+direction these opening classes predict, and also after DMOG, which the compacting demethylase-blocker class does not
+predict; overall size is not part of the rule because it is not comparable between imaging experiments. The Drug lab
+therefore stays labelled "mechanism simulator, not validated", now with this measurement behind the label, and the
+Drug guide shows the result. The test covered one 840 kb region in one cell line; drugs that act mostly elsewhere in the
+genome would not show here.
+
 
 ## Gates Q5–Q7 — quantum drug tabs: heart safety, molecules, docking (pre-registered)
 
@@ -1241,11 +1266,11 @@ Q5 practice: TDC hERG, 655 compounds read (0 unreadable), 69 % blockers. SMILES 
 
 | Features | Quantum-kernel SVM (CV AUC) | RBF-SVM | Logistic regression |
 |---|---|---|---|
-| lipinski6 | 0.852 | 0.849 | 0.849 |
-| herg8 | 0.860 | 0.860 | 0.855 |
-| pca8 | 0.858 | 0.857 | 0.852 |
+| lipinski6 | 0.853 | 0.849 | 0.849 |
+| herg8 | 0.862 | 0.860 | 0.855 |
+| pca8 | 0.858 | 0.858 | 0.852 |
 
-Chosen: {'features': 'herg8', 'qsvm': {'bandwidth': 0.01, 'reps': 1, 'C': 100.0}, 'rbf': {'gamma': 0.002, 'C': 100.0}}.
+Chosen: {'features': 'herg8', 'qsvm': {'bandwidth': 0.005, 'reps': 2, 'C': 1000.0}, 'rbf': {'gamma': 0.002, 'C': 100.0}}.
 
 Q6 practice: STO-3G Hartree-Fock against Szabo & Ostlund (Table 3.13, printed to 1 mEh): H2 +0.29 mEh; CO +0.42 mEh; N2 +0.16 mEh; CH4 +0.15 mEh; NH3 -0.07 mEh; H2O +0.06 mEh; HF +0.21 mEh. Against OpenFermion's H2 data (HF / FCI, mEh): 0.5 A +5.8e-05 / +5.1e-05; 0.7414 A +5.0e-05 / +3.9e-05; 1.0 A +7.0e-05 / +4.9e-05; 1.5 A +1.2e-04 / +4.2e-05; 2.0 A +2.0e-04 / +1.9e-05; 2.5 A +2.5e-04 / -3.1e-06.
 
@@ -1264,16 +1289,75 @@ Chosen: {'p': 5, 'objective': 'cvar'}.
 Test (run once):
 
 <!-- BEGIN generated:qdrug -->
-_results_qdrug.json: not run (python validation/quantum_drug_gates.py --test all)._
+Q5 (trained on 655 TDC hERG compounds, tested on 12989 hERG_Karim compounds not in the training set (456 removed), 50 % blockers):
+
+| Classifier | Test AUC (95 % interval) |
+|---|---|
+| Quantum-kernel SVM (simulated) | 0.710 [0.701, 0.718] |
+| RBF-kernel SVM (classical) | 0.695 [0.686, 0.703] |
+| Logistic regression (classical) | 0.686 [0.676, 0.694] |
+
+Quantum minus RBF +0.015 [0.013, 0.017]. Q5: **pass** (needed: within 0.03 of the RBF-SVM, lower bound above 0.5).
+
+Q6 (independent reference: OpenFermion's stored data; tolerance 0.1 mEh):
+
+| Reference | HF (ours) | HF (reference) | Difference (mEh) | FCI (ours) | FCI (reference) | Difference (mEh) |
+|---|---|---|---|---|---|---|
+| H1-Li1_sto-3g_singlet_1.45.hdf5 | -7.862568 | -7.862568 | +2.2e-04 | -7.880982 | -7.880982 | +2.2e-04 |
+
+Active-space UCCSD-VQE on stretched molecules (chemical accuracy 1.6 mHa):
+
+| Molecule | Bond × equilibrium | Active space | Qubits | Parameters | HF | Active-space FCI | VQE | Error (mHa) |
+|---|---|---|---|---|---|---|---|---|
+| H2O | 1.5 | 4e, 4o | 8 | 26 | -74.74717 | -74.78666 | -74.78666 | +0.003 |
+| NH3 | 1.5 | 6e, 5o | 10 | 54 | -55.12443 | -55.21169 | -55.21114 | +0.544 |
+| N2 | 1.5 | 6e, 6o | 12 | 117 | -106.94677 | -107.50580 | -107.42744 | +78.353 |
+| HF | 2.0 | 2e, 2o | 4 | 3 | -98.30081 | -98.47485 | -98.47485 | -0.000 |
+| CH2O | 1.3 | 4e, 4o | 8 | 26 | -112.21697 | -112.32501 | -112.32499 | +0.021 |
+| HCN | 1.3 | 4e, 4o | 8 | 26 | -91.42908 | -91.60457 | -91.60188 | +2.698 |
+
+Q6: **fail** (reference within tolerance; VQE outside chemical accuracy).
+
+Q7 (200 usable test complexes of 213; 20-qubit interaction graphs):
+
+| Measure | Value |
+|---|---|
+| QAOA found the maximum-weight clique | 100 % (needed ≥ 80 %) |
+| Mean probability of the best clique (uniform guess) | 0.0069 (2.5e-03) |
+| Docked within 2 A: QAOA route | 5.5 % |
+| Docked within 2 A: classical cliques, same graph | 6.5 % |
+| Docked within 2 A: random search, same score, 1,000 poses | 2.0 % |
+| Mean QAOA time per complex | 8.6 s |
+
+Q7: **pass** (solver pass, docking pass: QAOA route at least as good as random search).
 <!-- END generated:qdrug -->
+
+**Reading (written after the test run).**
+- **Q5 passed.** On almost 13,000 compounds the screen had never seen, from a different laboratory's measurements, the
+  quantum-kernel SVM ranked hERG blockers better than the RBF-SVM and logistic regression trained on the same 655
+  compounds; the margin is small but its interval excludes zero. Transfer between the two datasets is modest for every
+  model (AUC about 0.7, against 0.86 in cross-validation on the training set). The kernel is computed exactly on a
+  simulator, so this is a well-chosen kernel, not a quantum speed-up.
+- **Q6 failed** on its VQE half. The from-scratch chemistry agreed with OpenFermion's independently computed LiH energies
+  far inside the tolerance, and UCCSD-VQE reached chemical accuracy on four of the six stretched molecules; it missed on
+  nitrogen at 1.5 times its bond length (breaking a triple bond, where a single Hartree-Fock reference describes the
+  electrons badly and a disentangled UCCSD started from it stalls) and, by a little, on hydrogen cyanide at 1.3 times.
+  This is the known limit of the method, now measured; the panel shows the exact active-space energy next to VQE.
+- **Q7 passed** its pre-registered rule, modestly: QAOA found the best clique in every test graph, and the QAOA route
+  docked more test ligands correctly than random search with the same score, but far fewer than on practice, about as
+  many as the classical clique route on the same graph. The practice settings were tuned on 39 complexes and did not
+  carry over; with a 20-qubit graph and a simple score, this docking is a demonstration of the formulation, not a
+  docking tool.
 
 Summary:
 
 <!-- BEGIN generated:summary_qd -->
 | Test (held-out, real data) | Measured | Verdict |
 |---|---|---|
-| Gate 8: Drug lab vs chromatin tracing after real drug treatment | not run | — |
-| Gates Q5-Q7: quantum drug tabs | not run | — |
+| Gate 8: Drug lab vs chromatin tracing after real drug treatment (IMR-90 chrX, 4 drugs) | 0 of 4 drugs met the rule | fail |
+| Gate Q5: quantum-kernel hERG screen vs RBF-SVM (TDC hERG → hERG_Karim) | AUC 0.710 vs 0.695 | pass |
+| Gate Q6: molecule energies vs OpenFermion; stretched-molecule VQE | worst reference difference 2.2e-04 mHa; worst VQE error 78.35 mHa | fail |
+| Gate Q7: QAOA max-clique docking (PoseBusters) | docked 6 % vs random search 2 %; clique found 100 % | pass |
 <!-- END generated:summary_qd -->
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
