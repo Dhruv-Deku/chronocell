@@ -465,6 +465,7 @@ def _molecule_vqe(name: str, R: float, ansatz: str, noisy: bool) -> dict:
     m = CH.molecule(name, R)
     v = CH.vqe(m, ansatz, layers=2, noise=sim.NOISE_DEFAULT if noisy else None)
     return {"e_hf": m.e_hf, "e_fci": m.e_fci, "e_vqe": v.energy, "e_noisy": v.noisy_energy, "fidelity": v.fidelity,
+            "electrons": v.electrons,
             "evals": v.evaluations, "history": v.history, "qasm": v.circuit.to_qasm(), "paulis": m.paulis,
             "circuit_ops": v.circuit.ops, "n": v.circuit.n}
 
@@ -496,7 +497,12 @@ def vqe_panel(kp: str = "qvqe") -> None:
     err = res["e_vqe"] - res["e_fci"]
     readout([("Hartree–Fock", f"{res['e_hf']:.5f}", "Ha"), ("Exact (FCI)", f"{res['e_fci']:.5f}", "Ha"),
              ("VQE", f"{res['e_vqe']:.5f}", f"Ha · error {1e3 * err:+.3f} mHa"),
-             ("Chemical accuracy", "yes" if abs(err) <= CH.CHEMICAL_ACCURACY else "no", "≤ 1.6 mHa")])
+             ("Chemical accuracy", "yes" if abs(err) <= CH.CHEMICAL_ACCURACY else "no", "≤ 1.6 mHa"),
+             ("Electrons in the state", f"{res['electrons']:.3f}", "the molecule has 2")])
+    if a == "hea":
+        html('<p class="cc-note">The hardware-efficient circuit does not conserve the number of electrons by itself; a '
+             'penalty in its cost keeps it at two (without it, Gate Q’s test saw it drift to three electrons on HeH+, '
+             'with energies below the true one). It can still stop in a local minimum: compare with UCCSD.</p>')
     if noisy:
         html(f'<p class="cc-meta">With hardware noise the same circuit would read <b>{res["e_noisy"]:.4f} Ha</b> '
              f'(error {1e3 * (res["e_noisy"] - res["e_fci"]):+.0f} mHa; {100 * res["fidelity"]:.0f} % of runs unaffected).</p>')

@@ -184,10 +184,20 @@
   "bytes": 476667,
   "url": "https://www.encodeproject.org/files/ENCFF041XLP/@@download/ENCFF041XLP.bedpe.gz"
  },
+ "data/encode/ENCFF166QGX.bedpe.gz": {
+  "sha256": "d8d861dcd257f9d38333e99f6929ba5ff2319f2b2cb82d36d673f5c5ad95f87c",
+  "bytes": 414869,
+  "url": "https://www.encodeproject.org/files/ENCFF166QGX/@@download/ENCFF166QGX.bedpe.gz"
+ },
  "data/encode/ENCFF178CSM.bed.gz": {
   "sha256": "624b91bf4a2ce10fcd7adf14733b6a2e826655bd3ec43f8f61730cf3e6ff96b6",
   "bytes": 1177743,
   "url": "https://www.encodeproject.org/files/ENCFF178CSM/@@download/ENCFF178CSM.bed.gz"
+ },
+ "data/encode/ENCFF271SAF.bedpe.gz": {
+  "sha256": "700f513953568c21b3c8683aae8fd515a66357df3f45147fea6baccb5ed5515e",
+  "bytes": 299666,
+  "url": "https://www.encodeproject.org/files/ENCFF271SAF/@@download/ENCFF271SAF.bedpe.gz"
  },
  "data/encode/ENCFF296ZZB.bed.gz": {
   "sha256": "7f35b22342ad33b5a199a6d9f8b56109db186360a2490430b677a5a86b4030e6",

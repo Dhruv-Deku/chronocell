@@ -972,7 +972,8 @@ the simulator on the combination. Simulation, not a treatment recommendation.
 
 **Molecule energy (VQE).** H2 or HeH+ at any bond length: integrals, Hartree–Fock and the qubit Hamiltonian are
 computed from scratch; VQE with the UCCSD circuit (from the chemistry) or a hardware-efficient one (generic layers)
-finds the energy; the exact energy (FCI) and chemical accuracy are shown. *Compute the curve* draws the dissociation
+finds the energy; the exact energy (FCI), chemical accuracy and the number of electrons in the final state are shown
+(the hardware-efficient circuit does not conserve that number by itself, so a penalty keeps it at two). *Compute the curve* draws the dissociation
 curve. Drug-sized molecules are far beyond any quantum computer today.
 
 **Gene classifier.** Needs measured expression for at least 30 genes in view (05 Genes → *Add measured expression*).

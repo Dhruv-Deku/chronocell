@@ -1072,15 +1072,104 @@ Chemistry anchors (Szabo & Ostlund): H2 R=1.4 bohr E_HF (Szabo & Ostlund: -1.116
 Test (run once):
 
 <!-- BEGIN generated:gateq -->
-_results_gateq.json: not run (python validation/quantum_gateq.py --test all)._
+Q1 (run once, held-out K562 and IMR-90 windows; 19 qubits each):
+
+| Cell line | Windows | QAOA found the optimum | Mean P(optimum) | Random guessing found it | With noise | Simulated annealing | SQA | Mean QAOA s | Mean exact DP s |
+|---|---|---|---|---|---|---|---|---|---|
+| k562 | 33 | 100 % | 0.0768 | 3 % | 48 % | 100 % | 73 % | 2.9 | 0.0011 |
+| imr90 | 33 | 97 % | 0.0520 | 0 % | 39 % | 100 % | 67 % | 2.6 | 0.0011 |
+
+Pooled: 98.5 % of 66 windows (needed ≥ 90 %). Q1: **pass**.
+
+Q2 (reference: ENCODE Arrowhead domains on the same maps; a call matches within one bin; pass if QAOA's F1 ≥ the better classical caller's − 0.05 on both cell lines):
+
+| Cell line | Method | Precision | Recall | F1 |
+|---|---|---|---|---|
+| k562 | QAOA (simulated quantum) | 0.758 | 0.141 | 0.238 |
+| k562 | exact optimum of the QUBO | 0.758 | 0.141 | 0.238 |
+| k562 | insulation (classical) | 0.732 | 0.232 | 0.352 |
+| k562 | topdom (classical) | 0.667 | 0.271 | 0.386 |
+| imr90 | QAOA (simulated quantum) | 0.738 | 0.166 | 0.271 |
+| imr90 | exact optimum of the QUBO | 0.744 | 0.171 | 0.278 |
+| imr90 | insulation (classical) | 0.726 | 0.241 | 0.361 |
+| imr90 | topdom (classical) | 0.693 | 0.278 | 0.397 |
+
+Q2: **fail** (k562 fail, imr90 fail).
+
+Q3 (UCCSD-VQE vs exact diagonalisation; noise column: hardware-efficient ansatz under the noise model):
+
+| Molecule | Bond length (Å) | Ansatz | Hartree–Fock | FCI | VQE | Error (mHa) | With noise |
+|---|---|---|---|---|---|---|---|
+| H2 | 0.500 | UCCSD | -1.04300 | -1.05516 | -1.05516 | +1.4e-11 | -0.2798 |
+| H2 | 0.741 | UCCSD | -1.11668 | -1.13727 | -1.13727 | +1.6e-11 | -0.5762 |
+| H2 | 1.000 | UCCSD | -1.06611 | -1.10115 | -1.10115 | +1.3e-11 | -0.6832 |
+| H2 | 1.500 | UCCSD | -0.91087 | -0.99815 | -0.99815 | +1.4e-11 | -0.7245 |
+| H2 | 2.000 | UCCSD | -0.78379 | -0.94864 | -0.94864 | +1.2e-11 | -0.7246 |
+| H2 | 2.500 | UCCSD | -0.70294 | -0.93605 | -0.93605 | +1.2e-11 | -0.7240 |
+| H2 | 0.500 | hardware-efficient (2 layers) | -1.04300 | -1.05516 | -1.05516 | +2.7e-12 | -0.9524 |
+| H2 | 0.741 | hardware-efficient (2 layers) | -1.11668 | -1.13727 | -1.13727 | +1.8e-12 | -1.0629 |
+| H2 | 1.000 | hardware-efficient (2 layers) | -1.06611 | -1.10115 | -1.10115 | +2.1e-11 | -1.0458 |
+| H2 | 1.500 | hardware-efficient (2 layers) | -0.91087 | -0.99815 | -0.99815 | +7.1e-12 | -0.9619 |
+| H2 | 2.000 | hardware-efficient (2 layers) | -0.78379 | -0.94864 | -0.92454 | +24 | -0.8966 |
+| H2 | 2.500 | hardware-efficient (2 layers) | -0.70294 | -0.93605 | -0.93164 | +4.4 | -0.9038 |
+| HeH+ | 0.500 | UCCSD | -2.74612 | -2.76025 | -2.76025 | +4.1e-11 | -1.7161 |
+| HeH+ | 0.774 | UCCSD | -2.86066 | -2.88071 | -2.88071 | +4e-11 | -2.1460 |
+| HeH+ | 1.000 | UCCSD | -2.81376 | -2.83466 | -2.83466 | +3.7e-11 | -2.2457 |
+| HeH+ | 1.500 | UCCSD | -2.70084 | -2.71027 | -2.71027 | +5.1e-11 | -2.2694 |
+| HeH+ | 2.000 | UCCSD | -2.65539 | -2.65639 | -2.65639 | +3.8e-11 | -2.2574 |
+| HeH+ | 0.500 | hardware-efficient (2 layers) | -2.74612 | -2.76025 | -2.76014 | +0.11 | -2.6218 |
+| HeH+ | 0.774 | hardware-efficient (2 layers) | -2.86066 | -2.88071 | -2.92269 | -42 | -2.8223 |
+| HeH+ | 1.000 | hardware-efficient (2 layers) | -2.81376 | -2.83466 | -3.03982 | -2.1e+02 | -2.9471 |
+| HeH+ | 1.500 | hardware-efficient (2 layers) | -2.70084 | -2.71027 | -3.10132 | -3.9e+02 | -3.0149 |
+| HeH+ | 2.000 | hardware-efficient (2 layers) | -2.65539 | -2.65639 | -3.10940 | -4.5e+02 | -3.0241 |
+
+Q3: **pass** (worst UCCSD error 5.1e-11 mHa).
+
+Q4 (trained on 106 GM12878 genes, tested on 380 IMR-90 genes, 70 % expressed; 95 % intervals from 1,000 resamples of genes):
+
+| Classifier | Test AUC |
+|---|---|
+| Quantum-kernel SVM (simulated, exact kernel) | 0.623 [0.561, 0.683] |
+| Quantum-kernel SVM, kernel from 1000 shots per entry | 0.628 |
+| RBF-kernel SVM (classical) | 0.657 [0.596, 0.717] |
+| Logistic regression (classical) | 0.749 [0.690, 0.803] |
+
+Quantum minus RBF: -0.034 [-0.075, 0.001]. Q4: **fail** (needed: within 0.03 of the RBF-SVM and the lower 95 % bound above 0.5).
 <!-- END generated:gateq -->
+
+**Reading (written after the test run).**
+- **Q1 passed.** QAOA on the simulator found the optimum of real-data domain puzzles (19 qubits) in all but one
+  held-out window, where a random guess almost never does: the circuit concentrates probability on good answers, as
+  the algorithm intends. It is no advantage: the same windows are solved exactly by a classical dynamic programme in
+  about a millisecond, simulated annealing also found every optimum, and under the noise model most shots of a circuit
+  this deep are noise (the "with noise" column).
+- **Q2 failed** on both cell lines. QAOA's best shot was the QUBO's exact optimum in every window but one, so this is
+  the formulation, not the quantum solver: its boundaries are precise but too few, the practice tie with the insulation
+  caller did not carry over, and the TopDom-like caller agreed best with Arrowhead on both cell lines. The app keeps
+  the quantum domain walls as a demonstration, labelled with this result.
+- **Q3 passed.** UCCSD-VQE reached the exact energy at every geometry to numerical precision, as expected for two
+  electrons in a minimal basis, where UCCSD can represent the exact state; the noise column shows how far the same
+  circuit would drift on today's hardware. The hardware-efficient rows (reported, not gated) showed two things. On HeH+
+  the circuit, which does not conserve the electron count, converged to three-electron states whose energies lie below
+  the molecule's exact energy: physically wrong. After the test the app's hardware-efficient option was given the
+  standard electron-number penalty (`chem.vqe`, default 2 hartree per electron squared; the rows above are the run as
+  it happened). On stretched H2 it stopped in local minima, the known cost of generic circuits.
+- **Q4 failed**, narrowly: the quantum-kernel SVM transferred from GM12878 to IMR-90 above chance (its interval is above
+  0.5) but trailed the RBF-SVM by a little more than the margin, and plain logistic regression beat both. A kernel
+  estimated from shots gave about the same result as the exact kernel. The training set is small (106 genes).
+- **Overall.** The lab shows that ChronoCell's questions can be written as quantum algorithms and that those algorithms
+  do what they are designed to do on a simulator; on these real-data tests they do not beat the classical methods, and
+  the app says so on every quantum panel.
 
 Summary:
 
 <!-- BEGIN generated:summary_q -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
-| Gate Q: quantum lab (simulated quantum) | not run (python validation/quantum_gateq.py --test all) | — |
+| Gate Q1: QAOA (simulator) finds the optimum of the domain QUBO, 66 held-out windows | 98 % of windows (needed ≥ 90 %) | pass |
+| Gate Q2: quantum domain calls vs classical callers (F1 vs ENCODE Arrowhead) | k562: QAOA 0.24 vs insulation 0.35, TopDom-like 0.39; imr90: QAOA 0.27 vs insulation 0.36, TopDom-like 0.40 | fail |
+| Gate Q3: VQE within chemical accuracy (H2, HeH+) | worst error 5.1e-11 mHa (needed ≤ 1.6) | pass |
+| Gate Q4: quantum-kernel gene classifier vs RBF-SVM, GM12878 → IMR-90 | AUC 0.623 vs 0.657 | fail |
 <!-- END generated:summary_q -->
 
 The simulator against Qiskit (a software check, not a gate; `validation/quantum_crosscheck.py`):
