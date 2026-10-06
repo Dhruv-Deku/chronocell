@@ -332,3 +332,31 @@ three non-IMR-90 untreated practice regions.
 - **Gate 7 (differential).** On chr21:28–30 Mb (`results_gate7_practice.json`, generated in `RESULTS.md`): minimum
   mean count 5 or 10, distance normalisation on or off. **Frozen**: 5 reads with distance normalisation (mean FDP
   0.036 at nominal 0.05, recall 0.16 at ×2 and 0.94 at ×4; no discovery without a planted change).
+
+## 19. Quantum lab (Gate Q): settings chosen on practice data
+
+Everything "quantum" runs on ChronoCell's statevector simulator (`chronocell/quantum/sim.py`), which agrees with
+Qiskit 2.2.1 on every circuit type the lab builds (`results_quantum_crosscheck.json`). Practice data only: GM12878
+(Gate 6's practice map, chr1/2/3:100–110 Mb) and its ENCODE Arrowhead domains; the chemistry needs no data. The
+tables are generated in `RESULTS.md` (block `gateq_practice`).
+
+- **Domain QUBO (Q1/Q2).** 360 settings scored by the exact optimum of every 20-bin window (dynamic programming over
+  the QUBO's band, equal to full enumeration): bin size 40 or 50 kb; minimum domain 2–4 bins; resolution γ; a cost
+  per boundary (0–3, in units of the mean linear coefficient); weights as observed − γ·expected or as a log ratio.
+  The first grid (no boundary cost) peaked at F1 0.279, below the insulation caller; adding the boundary cost and the
+  wider γ range (still practice only) raised it. **Frozen**: 40 kb, minimum 3 bins, γ 1.5, boundary cost 1.5,
+  difference weights (F1 0.400, precision 0.542, recall 0.317). The classical callers were given the same chance
+  (grids widened alongside): insulation w 4, depth 0.25 (F1 0.395); TopDom-like window 3 (F1 0.303). Practice
+  agreement with Arrowhead is low for every method (sparse reference: 6–14 domains per 10 Mb).
+- **QAOA (Q1).** Depth 3 or 6, expectation or CVaR (α 0.1) objective, 4,096 shots, COBYLA 80 iterations per depth
+  with INTERP growth, on the frozen QUBO's 33 practice windows (19 qubits each). Every setting sampled the optimum in
+  33 of 33 windows. **Frozen**: p = 3, expectation (the lowest depth with the highest mean probability of the optimum,
+  0.119; a uniform guess 1.9 × 10⁻⁶). Reported alongside: under the approximate noise model only 0.6 % of shots
+  survive a depth-3 circuit (about 470 CX), and simulated annealing also found every optimum.
+- **Gene classifier (Q4).** 106 GM12878 genes, 5-fold cross-validation, the same grid width for both kernels.
+  **Frozen**: quantum kernel bandwidth 0.05, 1 repetition, C 100 (AUC 0.806); RBF-SVM γ 0.02, C 100 (AUC 0.796);
+  logistic regression 0.762 for reference. The first, narrower grid put the quantum bandwidth at its edge, so both
+  grids were widened before choosing.
+- **Chemistry (Q3).** No fitting. The from-scratch STO-3G pipeline reproduced Szabo & Ostlund's H2 integrals and
+  energies (E_HF −1.1167, E_FCI −1.1373 hartree at 1.4 bohr) and HeH+ (E_HF −2.86066), and the 15-term H2 qubit
+  Hamiltonian.

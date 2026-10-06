@@ -296,8 +296,9 @@ WORKSPACES = {   # key: (number, label, one-line plain-language purpose)
     "Drug lab": ("04", "Drug lab", "Apply a virtual epigenetic drug and see how far it pushes the fold back toward healthy."),
     "Genes": ("05", "Genes", "Find which genes sit in open, active chromatin and which are buried and likely silenced."),
     "Guide": ("06", "Guide", "What everything means, in plain words, with a 2-minute tour."),
+    "Quantum lab": ("07", "Quantum lab", "Try ChronoCell's problems on a simulated quantum computer, next to the classical answer."),
 }
-RESEARCH_ONLY = ("Drug lab",)        # mechanism simulators hidden when Research mode is off (Phase B8)
+RESEARCH_ONLY = ("Drug lab", "Quantum lab")   # hidden when Research mode is off (Phase B8; quantum lab: experimental)
 with st.sidebar:
     from ui import settings as APPSET
     research = st.toggle("Research mode", value=APPSET.load()["research_mode_default"], key="research_mode",
@@ -723,6 +724,16 @@ if workspace == "Genes":
             warning_card(f"Expression file {exp_files[0].name} could not be read", str(exc))
     genes_view.render(ds, float(b0), frame_idx, state_expr)
     chrono_agent(ds.frames[frame_idx], 0, ds.n, "Whole loaded structure", False, "genes")
+    status_bar()
+    st.stop()
+
+if workspace == "Quantum lab":      # experimental, Research mode only: simulated quantum algorithms
+    from ui import quantum_lab
+    ref_ds = ds if ds.is_reference else load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False,
+                                                     assembly=asm_name)
+    q_options = [(labels_src[0], ref_ds)] + [(labels_src[i], d) for i, d in sorted(cond_by_idx.items())]
+    q_base = state_datasets.get(S.HEALTHY) if agent_state != S.HEALTHY else None
+    quantum_lab.render(ds, q_options, q_base, float(b0), frame_idx)
     status_bar()
     st.stop()
 
@@ -1505,6 +1516,12 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
     with st.expander("06   Analysis suite (loops, domains, compartments · exports)", expanded=False):
         from ui import analysis_view
         analysis_view.render(ds, lo, hi)
+
+    # ---- 07 Quantum (experimental, Research mode) ------------------------------------------
+    if research:
+        with st.expander("07   Quantum (simulated) · domain walls and lattice fold", expanded=False):
+            from ui import quantum_lab
+            quantum_lab.structure_hooks(ds, lo, hi, sub)
 
 # ======================================================================================
 # ChronoAgent (fragment: questions and analyses re-render only the panel)

@@ -1,0 +1,87 @@
+{
+ "made": "2026-10-06T16:08:03+00:00",
+ "anchors": {
+  "H2 R=1.4 bohr E_HF (Szabo & Ostlund: -1.1167)": -1.1167142748376775,
+  "H2 R=1.4 bohr E_FCI (Szabo & Ostlund: -1.1373)": -1.137275904535373,
+  "HeH+ R=1.4632 bohr E_HF (Szabo & Ostlund: -2.86066)": -2.860658717119539
+ },
+ "pauli_terms_h2": {
+  "IIII": -0.09815690893764667,
+  "IIIZ": 0.1712824863290438,
+  "IIZI": 0.1712824863290438,
+  "IIZZ": 0.168648596862145,
+  "IZII": -0.22303986066415932,
+  "IZIZ": 0.12057651982926408,
+  "IZZI": 0.1658909911225402,
+  "XXYY": -0.04531447129327605,
+  "XYYX": 0.04531447129327605,
+  "YXXY": 0.04531447129327605,
+  "YYXX": -0.04531447129327605,
+  "ZIII": -0.22303986066415937,
+  "ZIIZ": 0.16589099112254016,
+  "ZIZI": 0.12057651982926411,
+  "ZZII": 0.17437375312783854
+ },
+ "rows": [
+  {
+   "molecule": "H2",
+   "R_angstrom": 0.735,
+   "e_hf": -1.1169989468145134,
+   "e_fci": -1.1373059968195336,
+   "e_vqe": -1.1373059968195174,
+   "error_mha": 1.6209256159527285e-11,
+   "within_chemical_accuracy": true,
+   "e_vqe_noisy": -0.571708092093875,
+   "fidelity": 0.45965064780730464,
+   "evaluations": 69,
+   "pauli_terms": 15,
+   "cx": 64,
+   "ansatz": "UCCSD"
+  },
+  {
+   "molecule": "H2",
+   "R_angstrom": 0.735,
+   "e_hf": -1.1169989468145134,
+   "e_fci": -1.1373059968195336,
+   "e_vqe": -1.1373059968195294,
+   "error_mha": 4.218847493575595e-12,
+   "within_chemical_accuracy": true,
+   "e_vqe_noisy": -1.0623444383617864,
+   "fidelity": 0.9283847602447467,
+   "evaluations": 1209,
+   "pauli_terms": 15,
+   "cx": 6,
+   "ansatz": "hardware-efficient (2 layers)"
+  },
+  {
+   "molecule": "HeH+",
+   "R_angstrom": 0.775,
+   "e_hf": -2.8605929861396904,
+   "e_fci": -2.880652585348599,
+   "e_vqe": -2.880652585348558,
+   "error_mha": 4.085620730620576e-11,
+   "within_chemical_accuracy": true,
+   "e_vqe_noisy": -2.1465485685702697,
+   "fidelity": 0.45965064780730464,
+   "evaluations": 73,
+   "pauli_terms": 27,
+   "cx": 64,
+   "ansatz": "UCCSD"
+  },
+  {
+   "molecule": "HeH+",
+   "R_angstrom": 0.775,
+   "e_hf": -2.8605929861396904,
+   "e_fci": -2.880652585348599,
+   "e_vqe": -2.923269765132786,
+   "error_mha": -42.617179784187,
+   "within_chemical_accuracy": false,
+   "e_vqe_noisy": -2.8229231976030236,
+   "fidelity": 0.9283847602447467,
+   "evaluations": 2445,
+   "pauli_terms": 27,
+   "cx": 6,
+   "ansatz": "hardware-efficient (2 layers)"
+  }
+ ]
+}

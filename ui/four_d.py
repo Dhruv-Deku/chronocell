@@ -272,6 +272,10 @@ def render(ds: Dataset, conditions: list[Dataset], b0: float, frame: int) -> Non
         with st.expander("05   Variant impact engine v2 · joins, two chromosomes, copy number, ranking", expanded=False):
             from ui import variant_engine_view
             variant_engine_view.render(ds, frame, float(b0))
+        if st.session_state.get("research_mode", True):
+            with st.expander("06   Quantum (simulated) · quantum walk, variant set", expanded=False):
+                from ui import quantum_lab
+                quantum_lab.dynamics_hooks(ds, float(b0), frame, traj)
 
     # ---- title + stage ----------------------------------------------------------------------
     with head_l:

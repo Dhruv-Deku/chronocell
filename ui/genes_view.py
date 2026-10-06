@@ -192,6 +192,10 @@ def render(ds: Dataset, b0: float, frame: int, state_expression: tuple[pd.Series
          'promoter is in 3D and how strong its activity mark is, relative to the region shown; flags mark curated '
          'cancer and neuro-disease genes.</p>')
     _reference_annotations(view)
+    if ss.get("research_mode", True):
+        with st.expander("Quantum (simulated) · gene classifier and gene group", expanded=False):
+            from ui import quantum_lab
+            quantum_lab.genes_hooks(ds, tab, frame, b0, lo)
 
 
 def _reference_annotations(view: pd.DataFrame) -> None:

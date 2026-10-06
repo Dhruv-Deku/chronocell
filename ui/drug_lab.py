@@ -174,3 +174,7 @@ def render(ds: Dataset, baseline: Dataset | None, patient_label: str, b0: float,
         st.dataframe(tab.round(3), hide_index=True, width="stretch", height=250)
         st.download_button("Dose table (CSV)", tab.to_csv(index=False), f"chronocell_druglab_{drug}.csv", "text/csv",
                            icon=":material/download:", key="lab_csv")
+
+    with st.expander("Quantum (simulated) · drug combination and molecule energy", expanded=False):
+        from ui import quantum_lab
+        quantum_lab.drug_hooks(ds, baseline, float(b0), frame)

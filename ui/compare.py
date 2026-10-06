@@ -51,7 +51,14 @@ def render(options: list[tuple[str, Dataset]], default_left: int, default_right:
     """Page 03. The first tab is the original side-by-side comparison (shown by default); the second
     is the Self-Math PDB State Evaluator (ui/pdb_eval_view.py); the third (Phase B2) is the two-condition
     differential analysis of contact maps (ui/diff_view.py)."""
-    side, evaluator, differential = st.tabs(["Side by side", "Self-Math PDB State Evaluator", "Differential analysis"])
+    labels = ["Side by side", "Self-Math PDB State Evaluator", "Differential analysis"]
+    research = st.session_state.get("research_mode", True)
+    tabs = st.tabs(labels + (["Quantum similarity (swap test)"] if research else []))
+    side, evaluator, differential = tabs[:3]
+    if research:
+        with tabs[3]:
+            from ui import quantum_lab
+            quantum_lab.swap_panel(options, "qc_swap")
     with side:
         _side_by_side(options, default_left, default_right, b0)
     with evaluator:

@@ -1,0 +1,13 @@
+# OPTIONAL. The quantum lab (chronocell/quantum, 07 Quantum lab) needs nothing beyond requirements.txt: its
+# statevector simulator, QUBO solvers, chemistry and kernels are written with NumPy / SciPy / scikit-learn and use
+# the GPU through PyTorch when one is present.
+#
+# These packages are only for the independent cross-check against Qiskit (validation/quantum_crosscheck.py), in an
+# ISOLATED environment so the app's own environment is never changed:
+#
+#   python -m venv .chronocell_cache/quantum-venv
+#   .chronocell_cache/quantum-venv/Scripts/python -m pip install -r requirements-quantum.txt
+#
+# Versions used for the recorded cross-check (Python 3.10.11, Windows 11):
+qiskit==2.2.1
+qiskit-aer==0.17.2
