@@ -49,7 +49,7 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 | **01 · 3D structure** | Rotate the fold, and read its size, span and activity signal. Colour it by position, activity mark, A/B compartment or TAD neighbourhood. Rebuild it from contacts as one structure (v3.2) or as a **population model**: v3.3 on windows of up to 400 beads, v4 on up to 6,000 beads, i.e. a whole human chromosome at 10 kb. Long fits show a progress bar and a Stop button. Measure the distance between any two beads, with the population's distribution and interval, and the measured coverage of that interval for your input type. **No contacts for a window?** Build the population from a prediction instead: CTCF ChIP-seq peaks of the cell type (upload, paste, or fetch from ENCODE by cell type) plus the DNA sequence, labelled *predicted* everywhere. When a window has both, the two maps are shown side by side with their agreement, never blended. Hover a bead for its locus and genes; optionally click beads or map pixels to measure. Slice the fold, show the population spread as an overlay (off by default), and export it with a reproducibility record (JSON and PDF). Two accuracy scores are shown, never mixed. **06 Analysis suite**: loops (HiCCUPS-like), boundaries and domains (insulation, TopDom-like, Arrowhead-like), compartments and P(s) from the window's contacts, exported for IGV and Juicebox (Gate 6). |
 | **02 · 4D dynamics** | Play time courses, or morph Healthy → Disease → Senescent. Simulate rearrangements from presets, a custom definition or **your own VCF / BEDPE file**. *04 Variant impact* lists the changed contacts, affected genes and enhancer–promoter pairs, with 90 % intervals from refits. It is labelled with its measured standing: "mechanism simulator, not validated". Export movies and GIFs. **05 Variant impact engine v2**: rearrangements described by their breakend joins (also across two chromosomes), typed derivative chromosomes, or copy number; domain boundaries, genes (with ClinVar counts), enhancer–promoter pairs, refit intervals and a ranking across a file's variants. Still a mechanism simulator (Gate 4d blocked; the shared cohesin model passed Gate 4c). |
 | **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. **Differential analysis** (third sub-tab): two conditions with replicate maps (.hic, .mcool, .cool, .pairs, read by region): differential contacts with a replicate-aware test and false-discovery control, loop gain / loss, boundary changes, compartment switches (Gate 7). |
-| **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. |
+| **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. **Drug set → Extended** adds eight more classes (DNMT, LSD1, DOT1L, menin, p300/CBP, BET degrader, demethylase blocker, transcription inhibitor). **Drug guide**: what each class is (target, status, examples, safety themes), where each acts on the fold, all twelve at full dose, pair synergy, and PubChem molecule cards (2D, 3D, drug-likeness). Tested against chromatin tracing after real drug treatment (Gate 8). |
 | **05 · Genes** | All 19,386 human genes (hg38) or 20,995 mouse genes (mm39) placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. Click a row to pick a gene; it is then marked in the 3D view. |
 | **06 · Guide** | A plain-language guide to every page and number. |
 | **07 · Quantum lab** | *Experimental, Research mode.* ChronoCell problems run as quantum algorithms on a **simulator on this computer** (GPU when present), always next to the classical answer: QAOA for domain walls, lattice folding, drug combinations, gene groups and variant sets; VQE for small-molecule energies; a quantum-kernel gene classifier; a quantum walk on the contact network; the swap test. Circuit diagrams, an optional hardware-noise model, OpenQASM export for real quantum computers, and a qubit-scaling chart. Each workspace also has a Quantum section. No speed-up is claimed; measured standing: Gate Q. |
@@ -175,6 +175,15 @@ The table below is generated from the result files by `python validation/report.
 | Gate Q4: quantum-kernel gene classifier vs RBF-SVM, GM12878 → IMR-90 | AUC 0.623 vs 0.657 | fail |
 <!-- END generated:summary_q -->
 
+**Drug lab and the quantum drug tabs (Gate 8, Gates Q5–Q7):**
+
+<!-- BEGIN generated:summary_qd -->
+| Test (held-out, real data) | Measured | Verdict |
+|---|---|---|
+| Gate 8: Drug lab vs chromatin tracing after real drug treatment | not run | — |
+| Gates Q5-Q7: quantum drug tabs | not run | — |
+<!-- END generated:summary_qd -->
+
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
 
 ## Bring your own data
@@ -299,10 +308,13 @@ ChronoCell-5D/
 │   ├── agent.py            ChronoAgent (offline rules + Gemini / OpenRouter)
 │   ├── pdf_report.py, snapshot.py, viz.py, theme.py
 │   ├── genome_fetch.py     add an assembly from UCSC
-│   ├── quantum/            quantum lab (experimental): statevector simulator, QAOA, VQE, quantum kernels, walks
+│   ├── quantum/            quantum lab (experimental): statevector simulator, QAOA, VQE, quantum kernels, walks;
+│   │                       molecules.py (STO-3G + active-space VQE), molfeat.py, safety.py (hERG), docking.py
+│   ├── drug_info.py        drug-class facts and on-demand PubChem molecule data
 │   └── data/               annotations (hg38, mm39), frozen calibration and perturbation parameters
 ├── ui/                     the six pages, sidebar and shared helpers (predict_view.py: prediction input)
 │                           quantum_lab.py: 07 Quantum lab and the Quantum sections (Research mode)
+│                           drug_guide.py: the Drug lab's Drug guide
 ├── tests/                  unit and end-to-end tests of every page
 ├── validation/             held-out tests, benchmark harness, tuning record, results
 ├── colab/                  GPU reconstruction notebook

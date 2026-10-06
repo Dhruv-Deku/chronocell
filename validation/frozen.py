@@ -326,3 +326,49 @@ QUANTUM_GATEQ = {"tad": {"res": 40_000, "min_size": 3, "gamma": 1.5, "boundary_c
                  "geometries": {"H2": [0.5, 0.7414, 1.0, 1.5, 2.0, 2.5], "HeH+": [0.5, 0.7743, 1.0, 1.5, 2.0]},
                  "qsvm": {"bandwidth": 0.05, "reps": 1, "C": 100.0}, "rbf": {"gamma": 0.02, "C": 100.0},
                  "q4_margin": 0.03, "qsvm_shots": 1000}
+
+# Gate 8 (the Drug lab's mechanism simulator against chromatin tracing after real drug treatment;
+# validation/drug_gate8.py). Pre-registered after the practice run (results_gate8_practice.json: untreated traces split
+# in halves, and alpha-amanitin) and before any test (drug-treated) trace was read. Data: MINA tracing of chrX:77.66-78.50
+# Mb (28 loci of 30 kb) in IMR-90 (Cheng et al., Genome Biol 2021; 4DN, MD5). Prediction from the untreated traces only
+# (MDS of the median distance matrix, IMR-90 H3K27ac peaks as the signal, the class at full dose, efficacy 0.8,
+# mechanism-only mode). Score: Spearman rho between predicted and measured centred log pair-distance changes; 95 %
+# interval from 200 trace bootstraps; permutation p from 200 shuffles of the signal track (does WHERE the drug acts
+# matter?). Practice: untreated half-vs-half gave |rho| up to 0.14 with intervals spanning 0 (noise); alpha-amanitin gave
+# rho 0.29 on Xa, but shuffled targeting did as well (permutation p 0.86): a generic compaction pattern, not targeting.
+# Hence: per drug, on the active X (Xa), pass if rho >= 0.20, its 95 % interval is above 0 AND permutation p <= 0.05.
+# Gate pass: at least 3 of the 4 test drugs (GSK126 -> ezh2, TSA + NaBu -> hdac, 5-aza-dC -> dnmt, DMOG -> kdm). The
+# classes' targets and directions were fixed from the literature before any treated data were read (the core four are
+# the original ones). Xi is reported, not gated. Until it passes, the Drug lab keeps "mechanism simulator, not validated".
+DRUG_GATE8 = {"allele": "Xa", "min_rho": 0.20, "max_perm_p": 0.05, "min_drugs": 3, "efficacy": 0.8, "min_detected": 0.7,
+              "bootstrap": 200, "permutations": 200,
+              "test_drugs": ["GSK126 (EZH2 inhibitor)", "TSA + NaBu (HDAC inhibitors)", "5-aza-dC (DNMT inhibitor)",
+                             "DMOG (demethylase blocker)"]}
+
+# Gates Q5-Q7 (quantum drug tabs; validation/quantum_drug_gates.py). Pre-registered after the practice runs
+# (results_qdrug_practice_{q5,q6,q7}.json) and before any test compound, reference file or test complex was read.
+# Q5 (hERG): practice TDC hERG (655 rows), 5-fold CV over three feature sets and matched grids for both kernels (the grids
+# were widened three times on practice when a best setting sat at an edge; the quantum kernel's C stays at the top of its
+# grid, where at its small bandwidth C and bandwidth trade off and the AUC changes in the third decimal). Chosen: the
+# 8 hERG-relevant descriptors; QSVM bandwidth 0.005, 2 repetitions, C 1000 (CV AUC 0.862); RBF-SVM gamma 0.002, C 100
+# (0.860); logistic regression 0.855. Test: train on all of TDC hERG, score TDC hERG_Karim minus compounds whose RDKit
+# canonical SMILES occur in training. Pass: QSVM AUC >= RBF AUC - 0.03 and its 95 % interval (1,000 resamples) above 0.5.
+# Q6 (molecules): practice reproduced Szabo & Ostlund's seven STO-3G HF energies within their printed precision and
+# OpenFermion's H2 HF / FCI energies within 3e-4 mEh. Test: OpenFermion's LiH (STO-3G, 1.45 A) HF and FCI within 0.1 mEh,
+# AND active-space UCCSD-VQE within chemical accuracy (1.6 mHa) of the active-space FCI for six stretched cases never
+# run before.
+# Q7 (docking): settings chosen on 39 usable practice complexes (1 in 5 by a hash of the PDB id): directional hot-spots,
+# tau 1.0 A, 8 polar + 4 hydrophobic features, 8 hot-spots per type, 20-vertex core subgraph, 30 cliques, best score;
+# practice docked 15 % (QAOA route) vs 3 % (random search, 1,000 placements). QAOA p 5 with CVaR found the maximum-weight
+# clique in 97 % of practice graphs. Pass: on the test complexes QAOA finds the maximum-weight clique in >= 80 % of
+# graphs AND the QAOA route docks (RMSD <= 2 A) at least as many as random search.
+QUANTUM_DRUG_GATES = {
+    "q5": {"features": "herg8", "qsvm": {"bandwidth": 0.005, "reps": 2, "C": 1000.0}, "rbf": {"gamma": 0.002, "C": 100.0},
+           "margin": 0.03},
+    "q6": {"openfermion_test": ["H1-Li1_sto-3g_singlet_1.45.hdf5"], "reference_tol_mEh": 0.1,
+           "vqe_cases": [["H2O", 1.5, [4, 4]], ["NH3", 1.5, [6, 5]], ["N2", 1.5, [6, 6]], ["HF", 2.0, [2, 2]],
+                         ["CH2O", 1.3, [4, 4]], ["HCN", 1.3, [4, 4]]]},
+    "q7": {"settings": {"tau": 1.0, "max_polar": 8, "max_hydrophobic": 4, "per_type": 8, "qubits": 20, "cliques": 30,
+                        "random_poses": 1000},
+           "qaoa": {"p": 5, "objective": "cvar"}, "min_hit_rate": 0.8},
+}

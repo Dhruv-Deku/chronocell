@@ -447,5 +447,65 @@
   "md5": "per file, from md5sum.txt in the same directory",
   "citation": "Genome Reference Consortium GRCm38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002).",
   "license": "UCSC mm10 (GRCm38) sequence, freely available for download and use; downloaded on demand."
+ },
+ {
+  "key": "encode_arrowhead_domains_gateq",
+  "role": "reference (Gate Q2: domain boundaries)",
+  "cell_line": "GM12878 / K562 / IMR-90",
+  "assembly": "GRCh38",
+  "url": "https://www.encodeproject.org/files/ENCFF531LSJ/ ; ENCFF271SAF ; ENCFF166QGX",
+  "md5": "73a79b71bf4a266d29a27f56dc7282ee ; 80e31b2bf8af3c8bff0e4c71a1a9c8dd ; 9fe299edc11042270272fbc555678c34",
+  "citation": "ENCODE Project Consortium, Nature 583, 699-710 (2020); Arrowhead: Rao et al., Cell 159, 1665-1680 (2014).",
+  "license": "Public ENCODE portal data; downloaded on demand; not redistributed."
+ },
+ {
+  "key": "4dn_mina_imr90_chrx_drugs",
+  "role": "test and practice (Gate 8: Drug lab vs chromatin tracing after drug treatment)",
+  "cell_line": "IMR-90",
+  "assembly": "GRCh38",
+  "url": "https://data.4dnucleome.org (4DNESDQV4VNJ, 4DNES73TYNAK, 4DNESUDN4NP6, 4DNES5XKLWKW, 4DNES4Y519FW, 4DNES82IH3OG); files from 4DN Open Data on AWS",
+  "md5": "per file, published by the 4DN portal (validation/drug_gate8.py SETS)",
+  "citation": "Cheng Y, Liu M, Hu M, Wang S. TAD-like single-cell domain structures exist on both active and inactive X chromosomes and persist under epigenetic perturbations. Genome Biol 22, 309 (2021).",
+  "license": "4DN Data Portal open data; cite the publication and 4DN; downloaded on demand; not redistributed."
+ },
+ {
+  "key": "tdc_herg",
+  "role": "practice and app training data (Gate Q5; Drug lab heart-safety screen)",
+  "url": "https://dataverse.harvard.edu/api/access/datafile/4259588?format=original",
+  "md5": "03a00602415d5fee10366eb679094305",
+  "citation": "Wang S et al., Mol Pharm 13, 2855-2866 (2016); Therapeutics Data Commons: Huang K et al., NeurIPS Datasets and Benchmarks (2021), doi:10.7910/DVN/21LKWG.",
+  "license": "TDC data on Harvard Dataverse (CC BY 4.0); downloaded on demand; not redistributed."
+ },
+ {
+  "key": "tdc_herg_karim",
+  "role": "test (Gate Q5)",
+  "url": "https://dataverse.harvard.edu/api/access/datafile/6822246",
+  "md5": "cf699546d80721c9a160f4a6ac9b368b",
+  "citation": "Karim A et al., J Chem Inf Model (2021); Therapeutics Data Commons, doi:10.7910/DVN/21LKWG.",
+  "license": "TDC data on Harvard Dataverse (CC BY 4.0); downloaded on demand; not redistributed."
+ },
+ {
+  "key": "posebusters_256",
+  "role": "practice and test (Gate Q7: docking); app examples",
+  "url": "https://zenodo.org/records/13851241 (posebusters_ligands_256.zip, posebusters_spruce_structures_256.zip)",
+  "md5": "fdeac0fa6ff4aeb46ce662f3ff8753dd ; faef0d4a67d05dbfddbeba61fee5df6e",
+  "citation": "Buttenschoen M, Morris GM, Deane CM. PoseBusters. Chem Sci 15, 3130-3139 (2024); prepared structures: Zenodo 13851241.",
+  "license": "Zenodo record licence (see the record); downloaded on demand; not redistributed."
+ },
+ {
+  "key": "openfermion_reference_data",
+  "role": "independent reference (Gate Q6: molecule energies)",
+  "url": "https://pypi.org/project/openfermion/1.7.1/ (package data openfermion/testing/data/*.hdf5)",
+  "md5": "pip verifies the wheel's published SHA-256",
+  "citation": "McClean JR et al. OpenFermion: the electronic structure package for quantum computers. Quantum Sci Technol 5, 034014 (2020).",
+  "license": "Apache-2.0; installed only in the isolated environment .chronocell_cache/quantum-venv."
+ },
+ {
+  "key": "pubchem_pug_rest",
+  "role": "app information only (Drug guide: molecule cards, SMILES for the heart-safety screen)",
+  "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug",
+  "md5": "none published; responses cached with their SHA-256 (.chronocell_cache/pubchem/manifest.json)",
+  "citation": "Kim S et al. PubChem 2023 update. Nucleic Acids Res 51, D1373-D1380 (2023).",
+  "license": "PubChem data are freely available; only the compound name is sent."
  }
 ]

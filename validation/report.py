@@ -854,11 +854,145 @@ def quantum_crosscheck() -> str:
     return "\n".join(out)
 
 
+# --------------------------------------------------------------------------------------------- Gate 8 and Q5-Q7 (drug tabs)
+def gate8() -> str:
+    pr = _load("results_gate8_practice.json")
+    r = _load("results_gate8.json")
+    out = []
+    if pr:
+        out += ["Practice (no treated test data): untreated traces split in two halves (no drug, so any agreement is noise) "
+                "and alpha-amanitin (transcription-inhibitor class):", "",
+                "| Comparison | Allele | Drug-lab class | Spearman rho | 95 % interval | Shuffled-target mean | Permutation p |",
+                "|---|---|---|---|---|---|---|"]
+        for allele, v in pr["split_halves"].items():
+            for k, x in v.items():
+                out.append(f"| untreated half vs half | {allele} | {k} | {x['rho']:+.3f} | {_ci(x['ci95'], 3, False)} | "
+                           f"{x['perm_mean']:+.3f} | {x['perm_p']:.3f} |")
+        for allele, x in pr["practice_drug"].items():
+            out.append(f"| alpha-amanitin vs untreated | {allele} | {x['drug_class']} | {x['rho']:+.3f} | {_ci(x['ci95'], 3, False)} | "
+                       f"{x['perm_mean']:+.3f} | {x['perm_p']:.3f} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_gate8.json: not run (python validation/drug_gate8.py --test)._"])
+    R = r["rule"]
+    out += [f"Test (run once; pass per drug on {R['allele']}: rho >= {R['min_rho']}, 95 % interval above 0, permutation p <= "
+            f"{R['max_perm_p']}; gate: at least {R['min_drugs']} of {len(r['drugs'])} drugs):", "",
+            "| Drug (class) | Allele | Spearman rho | 95 % interval | Shuffled-target mean | Permutation p | Measured global log change | Traces (untreated / treated) | Pass |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    for cond, v in r["drugs"].items():
+        for allele, x in v.items():
+            out.append(f"| {cond} | {allele} | {x['rho']:+.3f} | {_ci(x['ci95'], 3, False)} | {x['perm_mean']:+.3f} | "
+                       f"{x['perm_p']:.3f} | {x['measured_global_log_change']:+.3f} | {x['n_untreated']} / {x['n_treated']} | "
+                       f"{('yes' if x.get('passes') else 'no') if allele == R['allele'] else '—'} |")
+    out += ["", f"{r['passing_drugs']} of {len(r['drugs'])} drugs pass. Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def qdrug_practice() -> str:
+    q5, q6, q7 = (_load(f"results_qdrug_practice_{k}.json") for k in ("q5", "q6", "q7"))
+    out = []
+    if q5:
+        a = q5["featuriser_vs_rdkit"]
+        out += [f"Q5 practice: TDC hERG, {q5['compounds']} compounds read ({q5['unreadable']} unreadable), "
+                f"{100 * q5['blockers']:.0f} % blockers. SMILES descriptors against RDKit (share exact or within tolerance; "
+                "Pearson r): " + "; ".join(f"{k} {100 * v['exact_or_within_tol']:.0f} % (r {v['pearson']:.3f})" for k, v in a.items()) + ".",
+                "", "| Features | Quantum-kernel SVM (CV AUC) | RBF-SVM | Logistic regression |", "|---|---|---|---|"]
+        for fs, v in q5["feature_sets"].items():
+            out.append(f"| {fs} | {v['qsvm_best']['cv_auc']:.3f} | {v['rbf_best']['cv_auc']:.3f} | {v['logistic']:.3f} |")
+        out += ["", f"Chosen: {q5['choice']}.", ""]
+    if q6:
+        so = q6["szabo_ostlund"]
+        out += ["Q6 practice: STO-3G Hartree-Fock against Szabo & Ostlund (Table 3.13, printed to 1 mEh): "
+                + "; ".join(f"{k} {v['diff_mEh']:+.2f} mEh" for k, v in so.items()) + ". Against OpenFermion's H2 data (HF / FCI, mEh): "
+                + "; ".join(f"{k.split('_')[-1].replace('.hdf5', '')} A {v['diff_hf_mEh']:+.1e} / {v['diff_fci_mEh']:+.1e}"
+                            for k, v in q6["openfermion_h2"].items()) + ".", ""]
+    if q7:
+        out += [f"Q7 practice ({q7['qaoa'][next(iter(q7['qaoa']))]['usable']} usable complexes; settings {q7['settings']}):", "",
+                "| QAOA | Max clique found | Mean P(best clique) | Uniform | Docked (QAOA route) | Docked (classical cliques) | Docked (random search) | Mean QAOA s |",
+                "|---|---|---|---|---|---|---|---|"]
+        for k, v in q7["qaoa"].items():
+            out.append(f"| {k} | {100 * v['qaoa_hit_rate']:.0f} % | {v['mean_qaoa_p_optimal']:.4f} | {v['mean_uniform_p_optimal']:.1e} | "
+                       f"{100 * v['success_qaoa']:.0f} % | {100 * v['success_classical_clique']:.0f} % | "
+                       f"{100 * v['success_random_search']:.0f} % | {v['mean_qaoa_seconds']:.1f} |")
+        out += ["", f"Chosen: {q7['choice']}."]
+    return "\n".join(out) if out else "_Q5-Q7 practice: not run._"
+
+
+def qdrug() -> str:
+    r = _load("results_qdrug.json")
+    if not r or "overall" not in r:
+        return "_results_qdrug.json: not run (python validation/quantum_drug_gates.py --test all)._"
+    R = r["rule"]
+    q5, q6, q7 = r["q5"], r["q6"], r["q7"]
+    ci = q5["ci95"]
+    out = [f"Q5 (trained on {q5['train']} TDC hERG compounds, tested on {q5['test']} hERG_Karim compounds not in the training "
+           f"set ({q5['test_removed_overlap']} removed), {100 * q5['test_blockers']:.0f} % blockers):", "",
+           "| Classifier | Test AUC (95 % interval) |", "|---|---|",
+           f"| Quantum-kernel SVM (simulated) | {q5['auc']['qsvm']:.3f}{_ci(ci['qsvm'], 3)} |",
+           f"| RBF-kernel SVM (classical) | {q5['auc']['rbf']:.3f}{_ci(ci['rbf'], 3)} |",
+           f"| Logistic regression (classical) | {q5['auc']['logistic']:.3f}{_ci(ci['logistic'], 3)} |", "",
+           f"Quantum minus RBF {q5['auc']['qsvm'] - q5['auc']['rbf']:+.3f}{_ci(ci['qsvm_minus_rbf'], 3)}. Q5: "
+           f"**{'pass' if q5['pass'] else 'fail'}** (needed: within {R['q5']['margin']} of the RBF-SVM, lower bound above 0.5).", "",
+           f"Q6 (independent reference: OpenFermion's stored data; tolerance {R['q6']['reference_tol_mEh']} mEh):", "",
+           "| Reference | HF (ours) | HF (reference) | Difference (mEh) | FCI (ours) | FCI (reference) | Difference (mEh) |",
+           "|---|---|---|---|---|---|---|"]
+    for x in q6["reference"]:
+        out.append(f"| {x['file']} | {x['hf']:.6f} | {x['ref_hf']:.6f} | {x['diff_hf_mEh']:+.1e} | {x['fci']:.6f} | "
+                   f"{x['ref_fci']:.6f} | {x['diff_fci_mEh']:+.1e} |")
+    out += ["", "Active-space UCCSD-VQE on stretched molecules (chemical accuracy 1.6 mHa):", "",
+            "| Molecule | Bond × equilibrium | Active space | Qubits | Parameters | HF | Active-space FCI | VQE | Error (mHa) |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    for x in q6["vqe"]:
+        out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['active'][0]}e, {x['active'][1]}o | {x['qubits']} | {x['parameters']} | "
+                   f"{x['e_hf']:.5f} | {x['e_cas_fci']:.5f} | {x['e_vqe']:.5f} | {x['error_mEh']:+.3f} |")
+    out += ["", f"Q6: **{'pass' if q6['pass'] else 'fail'}** (reference {'within' if q6['reference_pass'] else 'outside'} "
+                f"tolerance; VQE {'within' if q6['vqe_pass'] else 'outside'} chemical accuracy).", "",
+            f"Q7 ({q7['usable']} usable test complexes of {q7['complexes']}; 20-qubit interaction graphs):", "",
+            "| Measure | Value |", "|---|---|",
+            f"| QAOA found the maximum-weight clique | {100 * q7['qaoa_hit_rate']:.0f} % (needed ≥ {100 * R['q7']['min_hit_rate']:.0f} %) |",
+            f"| Mean probability of the best clique (uniform guess) | {q7['mean_qaoa_p_optimal']:.4f} ({q7['mean_uniform_p_optimal']:.1e}) |",
+            f"| Docked within 2 A: QAOA route | {100 * q7['success_qaoa']:.1f} % |",
+            f"| Docked within 2 A: classical cliques, same graph | {100 * q7['success_classical_clique']:.1f} % |",
+            f"| Docked within 2 A: random search, same score, 1,000 poses | {100 * q7['success_random_search']:.1f} % |",
+            f"| Mean QAOA time per complex | {q7['mean_qaoa_seconds']:.1f} s |", "",
+            f"Q7: **{'pass' if q7['pass'] else 'fail'}** (solver {'pass' if q7['solver_pass'] else 'fail'}, docking "
+            f"{'pass' if q7['docking_pass'] else 'fail'}: QAOA route at least as good as random search)."]
+    return "\n".join(out)
+
+
+def _qd_rows() -> list[str]:
+    rows = []
+    r = _load("results_gate8.json")
+    if r:
+        rows.append(f"| Gate 8: Drug lab vs chromatin tracing after real drug treatment (IMR-90 chrX, 4 drugs) | "
+                    f"{r['passing_drugs']} of {len(r['drugs'])} drugs met the rule | {r['verdict']} |")
+    else:
+        rows.append("| Gate 8: Drug lab vs chromatin tracing after real drug treatment | not run | — |")
+    q = _load("results_qdrug.json")
+    if q and "overall" in q:
+        v = lambda k: "pass" if q["overall"][k] else "fail"
+        rows += [f"| Gate Q5: quantum-kernel hERG screen vs RBF-SVM (TDC hERG → hERG_Karim) | AUC {q['q5']['auc']['qsvm']:.3f} vs "
+                 f"{q['q5']['auc']['rbf']:.3f} | {v('q5')} |",
+                 f"| Gate Q6: molecule energies vs OpenFermion; stretched-molecule VQE | worst reference difference "
+                 f"{max(max(abs(x['diff_hf_mEh']), abs(x['diff_fci_mEh'])) for x in q['q6']['reference']):.1e} mHa; worst VQE error "
+                 f"{max(abs(x['error_mEh']) for x in q['q6']['vqe']):.2f} mHa | {v('q6')} |",
+                 f"| Gate Q7: QAOA max-clique docking (PoseBusters) | docked {100 * q['q7']['success_qaoa']:.0f} % vs random search "
+                 f"{100 * q['q7']['success_random_search']:.0f} %; clique found {100 * q['q7']['qaoa_hit_rate']:.0f} % | {v('q7')} |"]
+    else:
+        rows.append("| Gates Q5-Q7: quantum drug tabs | not run | — |")
+    return rows
+
+
+def summary_qd() -> str:
+    return "\n".join(["| Test (held-out, real data) | Measured | Verdict |", "|---|---|---|"] + _qd_rows())
+
+
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
           "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
           "gate4c": gate4c, "gate5m": gate5m, "gate6": gate6, "gate7": gate7, "b9tools": b9tools, "summary_ab": summary_ab, "scale": scale,
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy, "gateq_practice": gateq_practice,
-          "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q}
+          "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q, "gate8": gate8,
+          "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 

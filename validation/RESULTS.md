@@ -1189,6 +1189,93 @@ Qiskit 2.2.1 statevectors of the exported OpenQASM circuits vs ChronoCell's simu
 Verdict: agree.
 <!-- END generated:quantum_crosscheck -->
 
+## Gate 8 — the Drug lab against chromatin tracing after real drug treatment (pre-registered)
+
+The Drug lab (`chronocell/therapy.py`) is a mechanism simulator: each drug class is reduced to where it acts and which
+way it pushes. Gate 8 asks whether its predicted 3D change agrees with what real drugs do, using MINA chromatin tracing
+of an 840 kb region of chrX in IMR-90 cells (Cheng et al., Genome Biol 2021; 4DN) before and after GSK126 (EZH2
+inhibitor), Trichostatin A + sodium butyrate (HDAC inhibitors), 5-aza-2'-deoxycytidine (DNMT inhibitor) and DMOG
+(demethylase blocker). The prediction uses only the untreated traces and IMR-90 H3K27ac; the comparison is the pattern
+of pair-distance changes (Spearman rho, global scale removed), with the trace-bootstrap interval and a permutation check
+that shuffles where the drug acts. The rule (`validation/frozen.py`, `DRUG_GATE8`) was committed before any treated
+test data were read; practice used only untreated split halves and alpha-amanitin. Runner: `validation/drug_gate8.py`.
+
+<!-- BEGIN generated:gate8 -->
+Practice (no treated test data): untreated traces split in two halves (no drug, so any agreement is noise) and alpha-amanitin (transcription-inhibitor class):
+
+| Comparison | Allele | Drug-lab class | Spearman rho | 95 % interval | Shuffled-target mean | Permutation p |
+|---|---|---|---|---|---|---|
+| untreated half vs half | Xa | ezh2 | -0.137 |  [-0.265, 0.087] | -0.125 | 0.935 |
+| untreated half vs half | Xa | hdac | -0.119 |  [-0.246, 0.126] | -0.112 | 0.667 |
+| untreated half vs half | Xa | dnmt | -0.120 |  [-0.256, 0.097] | -0.120 | 1.000 |
+| untreated half vs half | Xa | kdm | +0.021 |  [-0.145, 0.179] | +0.013 | 0.189 |
+| untreated half vs half | Xa | txn | -0.048 |  [-0.161, 0.131] | -0.081 | 0.179 |
+| untreated half vs half | Xi | ezh2 | +0.120 |  [-0.144, 0.308] | +0.139 | 0.965 |
+| untreated half vs half | Xi | hdac | +0.135 |  [-0.153, 0.332] | +0.161 | 0.806 |
+| untreated half vs half | Xi | dnmt | +0.103 |  [-0.122, 0.293] | +0.103 | 1.000 |
+| untreated half vs half | Xi | kdm | +0.012 |  [-0.181, 0.207] | +0.002 | 0.249 |
+| untreated half vs half | Xi | txn | +0.069 |  [-0.124, 0.178] | +0.105 | 0.826 |
+| alpha-amanitin vs untreated | Xa | txn | +0.293 |  [0.165, 0.343] | +0.308 | 0.856 |
+| alpha-amanitin vs untreated | Xi | txn | +0.171 |  [0.065, 0.246] | +0.219 | 0.955 |
+
+_results_gate8.json: not run (python validation/drug_gate8.py --test)._
+<!-- END generated:gate8 -->
+
+## Gates Q5–Q7 — quantum drug tabs: heart safety, molecules, docking (pre-registered)
+
+Three drug-focused quantum tabs, each tested on held-out data against classical methods on the same input
+(`validation/quantum_drug_gates.py`; rules in `validation/frozen.py`, `QUANTUM_DRUG_GATES`):
+- **Q5, heart safety.** A quantum-kernel SVM screens molecules for hERG blocking from SMILES descriptors
+  (`chronocell/quantum/molfeat.py`, checked against RDKit). Trained on TDC hERG, tested on the independent
+  TDC hERG_Karim set, against an RBF-SVM and logistic regression.
+- **Q6, molecules.** The from-scratch STO-3G chemistry (`chronocell/quantum/molecules.py`) against OpenFermion's
+  independently computed reference energies (test: LiH), and active-space UCCSD-VQE on stretched molecules against
+  the exact energy in the same space.
+- **Q7, docking.** Rigid re-docking of PoseBusters ligands as a maximum-weight clique solved by QAOA on 20 qubits,
+  against the same pipeline with classical clique enumeration and against random search with the same score.
+
+Practice (settings; `validation/TUNING.md` §20):
+
+<!-- BEGIN generated:qdrug_practice -->
+Q5 practice: TDC hERG, 655 compounds read (0 unreadable), 69 % blockers. SMILES descriptors against RDKit (share exact or within tolerance; Pearson r): mw 100 % (r 1.000); hbd 100 % (r 1.000); hba 100 % (r 1.000); tpsa 69 % (r 0.991); rot_bonds 79 % (r 0.986); rings 98 % (r 0.994); aromatic_rings 100 % (r 1.000); heavy_atoms 100 % (r 1.000); fsp3 100 % (r 1.000).
+
+| Features | Quantum-kernel SVM (CV AUC) | RBF-SVM | Logistic regression |
+|---|---|---|---|
+| lipinski6 | 0.852 | 0.849 | 0.849 |
+| herg8 | 0.860 | 0.860 | 0.855 |
+| pca8 | 0.858 | 0.857 | 0.852 |
+
+Chosen: {'features': 'herg8', 'qsvm': {'bandwidth': 0.01, 'reps': 1, 'C': 100.0}, 'rbf': {'gamma': 0.002, 'C': 100.0}}.
+
+Q6 practice: STO-3G Hartree-Fock against Szabo & Ostlund (Table 3.13, printed to 1 mEh): H2 +0.29 mEh; CO +0.42 mEh; N2 +0.16 mEh; CH4 +0.15 mEh; NH3 -0.07 mEh; H2O +0.06 mEh; HF +0.21 mEh. Against OpenFermion's H2 data (HF / FCI, mEh): 0.5 A +5.8e-05 / +5.1e-05; 0.7414 A +5.0e-05 / +3.9e-05; 1.0 A +7.0e-05 / +4.9e-05; 1.5 A +1.2e-04 / +4.2e-05; 2.0 A +2.0e-04 / +1.9e-05; 2.5 A +2.5e-04 / -3.1e-06.
+
+Q7 practice (39 usable complexes; settings {'tau': 1.0, 'max_polar': 8, 'max_hydrophobic': 4, 'per_type': 8, 'qubits': 20, 'cliques': 30, 'random_poses': 1000}):
+
+| QAOA | Max clique found | Mean P(best clique) | Uniform | Docked (QAOA route) | Docked (classical cliques) | Docked (random search) | Mean QAOA s |
+|---|---|---|---|---|---|---|---|
+| p3_expectation | 82 % | 0.0011 | 1.4e-06 | 15 % | 15 % | 3 % | 3.5 |
+| p3_cvar | 79 % | 0.0011 | 1.4e-06 | 15 % | 15 % | 3 % | 3.6 |
+| p5_expectation | 90 % | 0.0013 | 1.4e-06 | 15 % | 15 % | 3 % | 8.5 |
+| p5_cvar | 97 % | 0.0027 | 1.4e-06 | 15 % | 15 % | 3 % | 8.8 |
+
+Chosen: {'p': 5, 'objective': 'cvar'}.
+<!-- END generated:qdrug_practice -->
+
+Test (run once):
+
+<!-- BEGIN generated:qdrug -->
+_results_qdrug.json: not run (python validation/quantum_drug_gates.py --test all)._
+<!-- END generated:qdrug -->
+
+Summary:
+
+<!-- BEGIN generated:summary_qd -->
+| Test (held-out, real data) | Measured | Verdict |
+|---|---|---|
+| Gate 8: Drug lab vs chromatin tracing after real drug treatment | not run | — |
+| Gates Q5-Q7: quantum drug tabs | not run | — |
+<!-- END generated:summary_qd -->
+
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
 `python validation/scale_benchmark.py`: each run in its own process. Input: windows of the

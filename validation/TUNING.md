@@ -360,3 +360,32 @@ tables are generated in `RESULTS.md` (block `gateq_practice`).
 - **Chemistry (Q3).** No fitting. The from-scratch STO-3G pipeline reproduced Szabo & Ostlund's H2 integrals and
   energies (E_HF −1.1167, E_FCI −1.1373 hartree at 1.4 bohr) and HeH+ (E_HF −2.86066), and the 15-term H2 qubit
   Hamiltonian.
+
+## 20. Drug lab and the quantum drug tabs (Gate 8, Gates Q5-Q7): settings chosen on practice data
+
+Tables generated in `RESULTS.md` (blocks `gate8` practice part and `qdrug_practice`).
+
+- **Gate 8 (Drug lab vs tracing after real drugs).** Nothing in the simulator was fitted: the four core classes are the
+  original ones and the eight extended classes were defined from their mechanisms in the literature before any
+  drug-treated trace was read. Practice used the untreated traces split in two halves (no drug: the noise level of the
+  comparison) and alpha-amanitin (a class not tested). The noise reached |rho| 0.14 with intervals spanning 0, and the
+  alpha-amanitin agreement (rho 0.29) was matched by shuffled targeting (permutation p 0.86): the simulator's generic
+  compaction pattern, not where it acts. The rule therefore asks for rho >= 0.20, an interval above 0 and a permutation
+  p <= 0.05 per drug. The transcription-inhibitor class keeps its literature direction (compaction of active chromatin):
+  the measured global size grew, but global scale is not trusted between imaging experiments.
+- **Q5 (hERG).** The TDC file contains commas inside compound names; the first practice run split on commas and read 637
+  of its 655 rows, so the reader was changed to a CSV parser before the settings were chosen (both runs are practice).
+  Feature sets: 6 Lipinski-type descriptors, 8 hERG-relevant descriptors (with basic amines, halogens, sp3 fraction), or
+  8 principal components of all 17. Grids for the quantum kernel (bandwidth, 1 or 2 repetitions, C) and the RBF kernel
+  (gamma, C) were widened together three times when a best value sat at an edge. **Frozen**: 8 hERG descriptors; QSVM
+  bandwidth 0.005, 2 repetitions, C 1000 (CV AUC 0.862; C at the top of its grid, where it trades off against the small
+  bandwidth and the AUC moves in the third decimal); RBF gamma 0.002, C 100 (0.860); logistic regression 0.855.
+- **Q6 (molecules).** No fitting. The STO-3G exponents equal the Basis Set Exchange values (basis_set_exchange 0.11, every element H-Ne,
+  largest relative difference 4.5e-6: rounding of the published fit); the HF
+  solver needed one practice fix (DIIS from the core guess locked N2 onto an excited solution: a damped warm-up and the
+  lower of two routes are kept) and VQE an exact closed-form rotation and an adjoint gradient (speed only). Practice
+  anchors: Szabo & Ostlund's seven HF energies and OpenFermion's H2 curve.
+- **Q7 (docking).** On 39 usable practice complexes: grid-based hot-spots docked none correctly; hot-spots placed along
+  protein N-H and C=O vectors, tau 1.0 A, 8 polar + 4 hydrophobic ligand features and a 20-vertex core subgraph (the
+  vertices with the most consistent pairs) docked 15 % against 3 % for random search with the same score. QAOA: p 3 or 5,
+  expectation or CVaR; **frozen** p 5, CVaR (best clique found in 97 % of practice graphs).

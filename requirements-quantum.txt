@@ -11,3 +11,8 @@
 # Versions used for the recorded cross-check (Python 3.10.11, Windows 11):
 qiskit==2.2.1
 qiskit-aer==0.17.2
+# independent references for the drug tabs (Gates Q5-Q6): RDKit descriptors, OpenFermion's stored molecule data,
+# the Basis Set Exchange's STO-3G definitions
+rdkit==2025.3.6
+openfermion==1.7.1
+basis_set_exchange==0.11
