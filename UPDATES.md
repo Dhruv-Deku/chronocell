@@ -862,3 +862,7 @@ the data its test had used (now practice), a rule committed before new test data
   there the active space's lowest state is a triplet, and ADAPT-VQE had reached the lowest singlet exactly (the state a
   closed-shell VQE targets). The verdict stays fail; the app now reports the spin of the exact state and the lowest
   singlet.
+- **Q4b (genes), pass, with a plain caveat.** Labels from ENCODE RNA-seq of each cell line, two more Hi-C features,
+  training on three cell lines; on 489 genes of HMEC (a cell line never used) the quantum-kernel classifier was level
+  with the classical ones, as the rule asks. All three are only modestly better than chance on a new cell line, and
+  with a kernel estimated from 1,000 shots per entry (a real device's situation) the quantum classifier falls to chance.

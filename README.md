@@ -193,6 +193,7 @@ original results above stand):**
 <!-- BEGIN generated:summary_r2 -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
+| Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
 <!-- END generated:summary_r2 -->
 
