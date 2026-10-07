@@ -372,3 +372,21 @@ QUANTUM_DRUG_GATES = {
                         "random_poses": 1000},
            "qaoa": {"p": 5, "objective": "cvar"}, "min_hit_rate": 0.8},
 }
+
+# Round 2 of the quantum gates (validation/quantum_round2.py; October 2026): new methods for the gates that failed,
+# each developed on data already seen (the failed tests' data are practice now), pre-registered here part by part
+# BEFORE its test data are read, and run once. The original results (results_gateq.json, results_qdrug.json) stay.
+# Q6b (molecules): ADAPT-VQE (molecules.adapt_vqe) in place of the fixed-order UCCSD circuit. Practice
+# (results_round2_practice_q6b.json): the six Q6 cases and nine more; the pool of generalized singles and doubles
+# reached chemical accuracy in 15 of 15 (largest error 0.19 mEh; N2 at 1.5x 0.04, HCN at 1.3x 0.00), the occupied ->
+# virtual pool in 13 of 15 (it stalls at a stationary point for stretched N2, 45 and 128 mEh), fixed-order UCCSD in 11
+# of 15. Chosen: generalized pool, stop when the pool gradient norm < 1e-3; two practice cases reached the 100-operator
+# cap (still within 0.2 mEh), so the cap is raised to 150 so that it binds less often. Test: eleven cases never run
+# (molecule, bond length x equilibrium, active electrons and orbitals). Pass: ADAPT-VQE within chemical accuracy
+# (1.6 mHa) of the active-space FCI in every case. Fixed-order UCCSD on the same cases is reported, not gated.
+QUANTUM_ROUND2 = {
+    "q6b": {"settings": {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 150}, "tolerance_mEh": 1.6,
+            "cases": [["N2", 1.8, [6, 6]], ["N2", 2.5, [6, 6]], ["CO", 1.6, [6, 6]], ["CO", 2.2, [6, 6]],
+                      ["HCN", 1.7, [6, 6]], ["H2O", 2.2, [8, 6]], ["NH3", 1.8, [6, 6]], ["CH2O", 1.7, [6, 6]],
+                      ["HF", 2.6, [6, 4]], ["LiH", 3.0, [2, 4]], ["CH4", 1.4, [4, 4]]]},
+}

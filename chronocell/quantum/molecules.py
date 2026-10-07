@@ -9,7 +9,8 @@ Restricted Hartree-Fock with DIIS. Active space: frozen doubly occupied core fol
 effective one-electron operator; active orbitals around the HOMO / LUMO. Qubits: Jordan-Wigner, spin orbital
 2 x orbital + spin = qubit (as chem.py), sparse matrices. FCI in the active space = exact diagonalisation in the
 right electron-number and spin sector (the reference VQE is scored against). VQE: disentangled UCCSD (spin-
-conserving singles and doubles, each a unitary exp(theta (T - T^dagger))), BFGS.
+conserving singles and doubles, each a unitary exp(theta (T - T^dagger))), BFGS; or ADAPT-VQE (October 2026), which
+grows the circuit one excitation at a time from a generalized pool (adapt_vqe; Gate Q6b).
 
 Everything here runs classically; the "quantum" part is that the VQE state is what a quantum computer would
 prepare (circuit export via chem.uccsd-style Pauli exponentials is available for small active spaces).
@@ -561,6 +562,98 @@ def vqe_uccsd(qm: QubitModel, maxiter: int = 300, gens: list | None = None) -> V
     return VQEResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)))
 
 
+def generalized_generators(qm: QubitModel) -> list:
+    """Generalized spin-conserving singles and doubles (every pair of spin orbitals, not only occupied -> virtual),
+    the pool of ADAPT-VQE's fermionic "GSD" variant (Grimsley et al., Nat Commun 2019)."""
+    a = qm.ops
+    ad = [x.T.tocsr() for x in a]
+    n = qm.n_qubits
+    gens = []
+    for p, q in itertools.combinations(range(n), 2):
+        if p % 2 == q % 2:
+            T = ad[q] @ a[p]
+            gens.append((f"{p}->{q}", (T - T.T).tocsr()))
+    pairs = list(itertools.combinations(range(n), 2))
+    for x, (p, q) in enumerate(pairs):
+        for r, s in pairs[x + 1:]:
+            if sorted([p % 2, q % 2]) == sorted([r % 2, s % 2]) and len({p, q, r, s}) == 4:
+                T = ad[r] @ ad[s] @ a[q] @ a[p]
+                if T.nnz:
+                    gens.append((f"{p}{q}->{r}{s}", (T - T.T).tocsr()))
+    return gens
+
+
+@dataclass
+class AdaptResult(VQEResult):
+    operators: list = field(default_factory=list)       # names, in the order the circuit applies them
+    gradient_norms: list = field(default_factory=list)  # pool gradient norm before each addition
+    energies: list = field(default_factory=list)        # energy after each re-optimisation
+    converged: bool = False                              # stopped on the gradient threshold (not the operator cap)
+
+
+def adapt_vqe(qm: QubitModel, pool: str = "sd", max_operators: int = 60, grad_tol: float = 1e-3,
+              maxiter: int = 400) -> AdaptResult:
+    """ADAPT-VQE (Grimsley et al., Nat Commun 2019): grow the circuit one excitation at a time, each time the pool
+    operator with the largest energy gradient |<psi|[H, A]|psi>| = |2 (H psi).(A psi)|, re-optimising every angle
+    (BFGS, warm start, exact closed-form rotations and the adjoint gradient). Operators may be chosen again.
+    Stops when the pool gradient norm falls below grad_tol or at max_operators; FCI is only used for scoring."""
+    from scipy.optimize import minimize
+    gens = uccsd_generators(qm) if pool == "sd" else generalized_generators(qm)
+    pool_A = [G for _, G in gens]
+    psi0 = np.zeros(2 ** qm.n_qubits)
+    psi0[qm.hf_index] = 1.0
+    e_hf = float(psi0 @ (qm.H @ psi0))
+    chosen: list[int] = []
+    As: list = []
+    A2s: list = []
+    th = np.zeros(0)
+    hist: list[float] = []
+    names, gnorms, energies = [], [], []
+
+    def state(t):
+        psi = psi0.copy()
+        for A, A2, x in zip(As, A2s, t):
+            psi = _rot(A, A2, x, psi)
+        return psi
+
+    def f_and_grad(t):
+        psi = state(t)
+        lam = qm.H @ psi
+        e = float(psi @ lam)
+        hist.append(e)
+        g = np.zeros(len(t))
+        cur = psi
+        for k in range(len(t) - 1, -1, -1):
+            g[k] = 2.0 * float(lam @ (As[k] @ cur))
+            cur = _rot(As[k], A2s[k], -t[k], cur)
+            lam = _rot(As[k], A2s[k], -t[k], lam)
+        return e, g
+
+    psi = psi0
+    converged = False
+    while len(chosen) < max_operators:
+        hp = qm.H @ psi
+        grads = np.array([2.0 * float(hp @ (A @ psi)) for A in pool_A])
+        gn = float(np.linalg.norm(grads))
+        gnorms.append(gn)
+        if gn < grad_tol:
+            converged = True
+            break
+        k = int(np.argmax(np.abs(grads)))
+        chosen.append(k)
+        names.append(gens[k][0])
+        As.append(pool_A[k])
+        A2s.append((pool_A[k] @ pool_A[k]).tocsr())
+        th = np.append(th, 0.0)
+        r = minimize(f_and_grad, th, jac=True, method="BFGS", options={"maxiter": maxiter, "gtol": 1e-8})
+        th = r.x
+        psi = state(th)
+        energies.append(float(psi @ (qm.H @ psi)))
+    e = float(psi @ (qm.H @ psi))
+    return AdaptResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)),
+                       names, gnorms, energies, converged)
+
+
 @dataclass
 class MoleculeResult:
     name: str
@@ -578,8 +671,11 @@ class MoleculeResult:
     labels: list
 
 
+ADAPT_SETTINGS = {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 150}   # as frozen for Gate Q6b (validation/frozen.py)
+
+
 def run(name: str, atoms: list | None = None, charge: int = 0, active: tuple = (2, 2), do_vqe: bool = True,
-        scale: float = 1.0) -> MoleculeResult:
+        scale: float = 1.0, method: str = "uccsd") -> MoleculeResult:
     import time
     t0 = time.perf_counter()
     if atoms is None:
@@ -590,7 +686,7 @@ def run(name: str, atoms: list | None = None, charge: int = 0, active: tuple = (
     ne_act, no_act = active
     asp = active_space(ints, hf, no_act, ne_act)
     qm = qubit_hamiltonian(asp)
-    v = vqe_uccsd(qm) if do_vqe else None
+    v = (adapt_vqe(qm, **ADAPT_SETTINGS) if method == "adapt" else vqe_uccsd(qm)) if do_vqe else None
     e_cas = v.fci if v is not None else fci(qm)
     gap = float(hf.eps[hf.n_occ] - hf.eps[hf.n_occ - 1]) if hf.n_occ < len(hf.eps) else float("nan")
     return MoleculeResult(name, atoms, len(ints.S), hf.energy, hf.converged, gap, hf.eps, active, qm.n_qubits, e_cas, v,

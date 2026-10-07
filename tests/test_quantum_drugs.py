@@ -63,6 +63,27 @@ def test_active_space_vqe_rotations_gradient_and_accuracy():
     assert r.energy <= r.hf + 1e-9 and r.fci <= r.energy + 1e-9
 
 
+def test_adapt_vqe_pool_gradients_and_accuracy():
+    """ADAPT-VQE (round 2): the generalized pool holds the UCCSD generators, its gradient formula matches a finite
+    difference, and the grown circuit reaches the FCI where fixed-order UCCSD stalls (HCN at 1.3x, Q6's failure)."""
+    ints = MO.integrals(MO.LIBRARY["H2O"][1]())
+    qm = MO.qubit_hamiltonian(MO.active_space(ints, MO.rhf(ints), 4, 4))
+    ucc = {n for n, _ in MO.uccsd_generators(qm)}
+    gen = MO.generalized_generators(qm)
+    assert ucc <= {n for n, _ in gen} and len(gen) > len(ucc)
+    psi = np.zeros(2 ** qm.n_qubits)
+    psi[qm.hf_index] = 1.0
+    A = dict(gen)["2->6"]
+    e = lambda t: float(MO._rot(A, (A @ A).tocsr(), t, psi) @ (qm.H @ MO._rot(A, (A @ A).tocsr(), t, psi)))
+    assert 2.0 * float((qm.H @ psi) @ (A @ psi)) == pytest.approx((e(1e-5) - e(-1e-5)) / 2e-5, abs=1e-6)
+    ints = MO.integrals(MO.LIBRARY["HCN"][1](1.3))
+    qm = MO.qubit_hamiltonian(MO.active_space(ints, MO.rhf(ints), 4, 4))
+    a = MO.adapt_vqe(qm, **MO.ADAPT_SETTINGS)
+    assert a.converged and abs(a.error) < MO.CHEMICAL_ACCURACY and a.electrons == pytest.approx(4.0)
+    assert np.all(np.diff(a.energies) <= 1e-9)                    # each added operator never raises the energy
+    assert abs(MO.vqe_uccsd(qm).error) > MO.CHEMICAL_ACCURACY       # the fixed-order circuit misses it here
+
+
 # ---------------------------------------------------------------- SMILES descriptors
 def test_smiles_descriptors_known_values():
     a = MF.descriptors("CC(=O)Oc1ccccc1C(=O)O")                 # aspirin

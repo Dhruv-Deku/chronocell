@@ -424,6 +424,124 @@ def hotspots_directional(prot: Protein, centre: np.ndarray, box: float = 9.0, pe
     return Points(np.array(out_p), out_k, np.array(out_w))
 
 
+# ======================================================================================
+# Round 2 (October 2026): an empirical scoring function and rigid-body refinement of each pose
+# ======================================================================================
+VINA_R = {"C": 1.9, "N": 1.8, "O": 1.7, "S": 2.0, "P": 2.1, "F": 1.5, "Cl": 1.8, "Br": 2.0, "I": 2.2}
+METALS = ("Zn", "Mg", "Mn", "Fe", "Ca", "Co", "Ni", "Cu", "Na", "K")
+VINA_W = {"gauss1": -0.0356, "gauss2": -0.00516, "repulsion": 0.840, "hydrophobic": -0.0351, "hbond": -0.587}
+
+
+@dataclass
+class Typed:
+    xyz: np.ndarray
+    R: np.ndarray               # van der Waals radius
+    hyd: np.ndarray             # hydrophobic (carbon with no N/O neighbour, halogens)
+    don: np.ndarray             # H-bond donor (N/O carrying H; metals act as donors, as in Vina)
+    acc: np.ndarray             # H-bond acceptor (O; N without H and fewer than three heavy neighbours)
+
+
+def ligand_types(lig: Ligand) -> Typed:
+    """X-Score / AutoDock Vina atom typing of the ligand's heavy atoms from its bond graph."""
+    n = len(lig.el)
+    nb = [[] for _ in range(n)]
+    for i, j, _ in lig.bonds:
+        nb[i].append(j)
+        nb[j].append(i)
+    heavy = np.flatnonzero(lig.heavy)
+    R, hyd, don, acc = [], [], [], []
+    for k in heavy:
+        e = lig.el[k]
+        hn = int(lig.h[k]) + sum(lig.el[j] == "H" for j in nb[k])
+        hetero = any(lig.el[j] in POLAR for j in nb[k])
+        heavy_nb = sum(lig.el[j] != "H" for j in nb[k])
+        R.append(VINA_R.get(e, 1.2 if e in METALS else 1.9))
+        hyd.append((e == "C" and not hetero) or e in ("F", "Cl", "Br", "I"))
+        don.append(e in POLAR and hn > 0)
+        acc.append(e == "O" or (e == "N" and hn == 0 and heavy_nb < 3))
+    return Typed(lig.xyz[heavy], np.array(R, float), np.array(hyd, bool), np.array(don, bool), np.array(acc, bool))
+
+
+def protein_types(prot: Protein, centre: np.ndarray, radius: float = 18.0) -> Typed:
+    """The same typing for protein heavy atoms within `radius` of the site centre (bonds from distances); pass the
+    ligand's extent + the 8 A cutoff + room to move."""
+    from scipy.spatial import cKDTree
+    heavy = prot.el != "H"
+    keep = np.flatnonzero(heavy & (np.linalg.norm(prot.xyz - centre, axis=1) <= radius))
+    hx = prot.xyz[keep]
+    he = prot.el[keep]
+    allh = cKDTree(prot.xyz[heavy])
+    hel = prot.el[heavy]
+    hyd_t = cKDTree(prot.xyz[~heavy]) if (~heavy).any() else None
+    R, hyd, don, acc = [], [], [], []
+    for x, e in zip(hx, he):
+        nbs = [j for j in allh.query_ball_point(x, 1.75) if np.linalg.norm(prot.xyz[heavy][j] - x) > 0.1]
+        hetero = any(hel[j] in POLAR for j in nbs)
+        hn = len(hyd_t.query_ball_point(x, 1.15)) if hyd_t is not None else 0
+        R.append(VINA_R.get(e, 1.2 if e in METALS else 1.9))
+        hyd.append((e == "C" and not hetero) or e in ("F", "Cl", "Br", "I"))
+        don.append((e in POLAR and hn > 0) or e in METALS)
+        acc.append(e == "O" or (e == "N" and hn == 0 and len(nbs) < 3))
+    return Typed(hx.reshape(-1, 3), np.array(R, float), np.array(hyd, bool), np.array(don, bool), np.array(acc, bool))
+
+
+def vina_score(L: np.ndarray, lt: Typed, pt: Typed, cutoff: float = 8.0) -> float:
+    """Intermolecular AutoDock Vina terms (Trott & Olson, J Comput Chem 2010), unweighted by rotatable bonds:
+    gauss1, gauss2, repulsion, hydrophobic and H-bond terms of the surface distance d = r - R_i - R_j (kcal/mol-like;
+    lower is better). The ligand is rigid, so intramolecular terms are constant and omitted."""
+    r = np.sqrt(((L[:, None, :] - pt.xyz[None, :, :]) ** 2).sum(-1))
+    m = r < cutoff
+    d = r - lt.R[:, None] - pt.R[None, :]
+    g1 = np.exp(-(d / 0.5) ** 2)
+    g2 = np.exp(-((d - 3.0) / 2.0) ** 2)
+    rep = np.where(d < 0, d * d, 0.0)
+    hp = (lt.hyd[:, None] & pt.hyd[None, :]) * np.clip(1.5 - d, 0.0, 1.0)
+    hbp = (lt.don[:, None] & pt.acc[None, :]) | (lt.acc[:, None] & pt.don[None, :])
+    hb = hbp * np.clip(-d / 0.7, 0.0, 1.0)
+    e = VINA_W["gauss1"] * g1 + VINA_W["gauss2"] * g2 + VINA_W["repulsion"] * rep + VINA_W["hydrophobic"] * hp \
+        + VINA_W["hbond"] * hb
+    return float((e * m).sum())
+
+
+def _rotvec(w: np.ndarray) -> np.ndarray:
+    th = float(np.linalg.norm(w))
+    if th < 1e-12:
+        return np.eye(3)
+    k = w / th
+    K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + math.sin(th) * K + (1 - math.cos(th)) * K @ K
+
+
+def refine(L: np.ndarray, lt: Typed, pt: Typed, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Rigid-body local optimisation of the Vina-like score from a starting pose (6 parameters: translation and a
+    rotation vector about the ligand centroid; Powell's method, at most `maxfev` evaluations)."""
+    from scipy.optimize import minimize
+    c = L.mean(0)
+    X = L - c
+
+    def place(p):
+        return X @ _rotvec(p[3:]).T + c + p[:3]
+
+    r = minimize(lambda p: vina_score(place(p), lt, pt), np.zeros(6), method="Powell",
+                 options={"maxfev": maxfev, "xtol": 1e-2, "ftol": 1e-4})
+    return place(r.x), float(r.fun)
+
+
+def random_search_vina(L: np.ndarray, centre: np.ndarray, lt: Typed, pt: Typed, n: int, refine_top: int,
+                       rng: np.random.Generator, shift: float = 2.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Classical baseline with the same score and the same refinement budget: n random rigid placements around the
+    site centre, the best `refine_top` refined, the best refined pose kept."""
+    c0 = L.mean(0)
+    cand = []
+    for _ in range(n):
+        pose = (L - c0) @ random_rotation(rng).T + centre + rng.normal(0, shift, 3)
+        cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
 def core_subgraph(g: Graph, k: int = 20) -> tuple[Graph, list[int]]:
     """The k vertices most connected to the rest (weighted degree): where large cliques live. Used to fit the
     interaction graph into a qubit budget."""
