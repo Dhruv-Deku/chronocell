@@ -449,3 +449,18 @@ QUANTUM_ROUND2["q2b"] = {"tad": {"res": 60_000, "min_size": 3, "gamma": 5.0, "bo
                          "test_cells": ["hmec", "hap1"],
                          "test_regions": [["chr1", 100_000_000], ["chr2", 100_000_000], ["chr3", 100_000_000],
                                           ["chr4", 100_000_000], ["chr7", 100_000_000], ["chr11", 60_000_000]]}
+# Q7b (docking; pre-registered after results_round2_practice_q7b.json, before any Astex Diverse complex was docked;
+# the Astex archive was only listed, and its protein files checked for hydrogens and for the ligand, to choose the
+# reader). Practice: all 256 PoseBusters complexes of Q7 (239 usable). The Vina-like score alone docked 10 % by the
+# QAOA route (11 % random search); with the best 10 poses refined, 35 % (QAOA route), 34 % (classical cliques) and
+# 52 % (random search with the same score and the same refinement); clique poses seeding a local search with random
+# search's budget, 33 %. Virtual polar hydrogens (needed: the Astex proteins have none) cost nothing on the 39 usable
+# Q7-practice complexes (QAOA route 31 % with either). Chosen: Vina-like score, best 10 poses refined (300 evaluations
+# each), QAOA as Q7 (p 5, CVaR). Pass (Q7's rule, with the improved pipeline): on the Astex Diverse set (85 complexes)
+# QAOA finds the maximum-weight clique in >= 80 % of graphs AND the QAOA route docks (heavy-atom RMSD <= 2 A) at least
+# as many as random search with the same score and refinement AND at least 20 % (Q7's test: 5.5 %). Practice predicts
+# a fail on the comparison with random search: with a reasonable score, poses built from cliques are worse starting
+# points than many random placements around the site.
+QUANTUM_ROUND2["q7b"] = {"settings": {"score": "vina", "refine_top": 10, "maxfev": 300, "hydrogens": "given"},
+                         "qaoa": {"p": 5, "objective": "cvar"}, "min_hit_rate": 0.8, "min_success": 0.2,
+                         "test_set": "Astex Diverse (PoseBusters paper data, Zenodo 8278563)"}

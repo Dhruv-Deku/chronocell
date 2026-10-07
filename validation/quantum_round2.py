@@ -515,12 +515,17 @@ def practice_q7b() -> dict:
     _json(ROOT / "results_round2_practice_q7b.json", out)
     st = {**best["settings"], "hydrogens": "virtual"}
     recs = []
+    sub = set(QD.complexes("practice"))                # the 43 Q7-practice complexes: enough to measure the cost
     for i, cid in enumerate(ids):
+        if cid not in sub:
+            continue
         if time.perf_counter() - t_start > BUDGET_S:
             print("time budget reached; run again to continue (every complex is cached)", flush=True)
             return out
         recs.append(dock_q7b(cid, _complex_pb, st, qcfg, i, "pb"))
-    out["virtual_hydrogens"] = {"settings": st, **summarise_q7b(recs)}
+    out["virtual_hydrogens"] = {"settings": st, "subset": "Q7 practice complexes", **summarise_q7b(recs)}
+    out["same_subset_given_hydrogens"] = summarise_q7b([dock_q7b(cid, _complex_pb, best["settings"], qcfg, i, "pb")
+                                                        for i, cid in enumerate(ids) if cid in sub])
     print("virtual hydrogens", out["virtual_hydrogens"], flush=True)
     _json(ROOT / "results_round2_practice_q7b.json", out)
     return out

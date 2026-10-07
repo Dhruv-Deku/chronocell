@@ -1467,8 +1467,11 @@ Q7b practice (256 PoseBusters complexes of Q7, all practice now; QAOA {'p': 5, '
 |---|---|---|---|---|---|
 | 0 poses refined | 239 | 10.0 % | 10.5 % | 11.3 % | 10.0 % |
 | 10 poses refined | 239 | 34.7 % | 33.9 % | 52.3 % | 10.0 % |
+| clique poses seed a local search (10 seeds), 10 refined | 239 | 32.6 % | 28.5 % | 52.3 % | 10.0 % |
 
-Chosen: None.
+The chosen setting with the structures' hydrogens removed and virtual polar hydrogens added (as the test structures need), on the 39 usable Q7-practice complexes: QAOA route 30.8 %, classical cliques 30.8 %, random search 51.3 % (with the structures' own hydrogens: 30.8 %, 28.2 %, 48.7 %).
+
+Chosen: {'score': 'vina', 'refine_top': 10, 'maxfev': 300, 'hydrogens': 'given'}.
 <!-- END generated:round2_practice -->
 
 Test (each part run once):
