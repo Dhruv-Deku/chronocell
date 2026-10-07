@@ -1041,3 +1041,9 @@ The same three tools are in *07 Quantum lab* (problem picker: *Drug molecules (V
 - *Docking*: after a run, **Polish the poses** scores the quantum route's poses with an AutoDock Vina-style function
   (steric, hydrophobic and H-bond terms), refines the best by small rigid moves, and gives random search the same score
   and refinement; the polished pose is drawn in the 3D view (red squares). Standing: Gate Q7b.
+- *Analysis* page: a **Loop calling** switch. *FDR 0.1*, the default, is unchanged; *FDR 0.01 (Gate 6b)* is the
+  setting chosen on three cell lines that then beat chromosight and Mustache on two new cell lines (with *kr*
+  balancing selected, as in that test). The page shows Gate 6b's standing under Gate 6's.
+- *07 Quantum lab → Domain walls*: a **Settings** switch. *Gate Q (original)*, the default, is unchanged; *Round 2
+  (Q2b)* loads the settings chosen on three cell lines (60 kb bins, minimum 3 bins, gamma 5, boundary cost 0.25, log
+  weights) that passed on two new cell lines.

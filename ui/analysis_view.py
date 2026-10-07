@@ -56,10 +56,16 @@ def render(ds: Dataset, lo: int, hi: int) -> None:
     if contacts_are_synthetic(ds):
         banner("Input is the <b>SYNTHETIC</b> reference contact map: the calls illustrate the method only.", "warn")
     standing_banner("6")
+    standing_banner("6b")
     c1, c2 = st.columns(2)
     norm = c1.segmented_control("Balancing", ["none", "kr", "ice"], default="none", required=True, key="an_norm",
                                 help="none: raw counts (as the validated settings); kr: Knight-Ruiz; ice: iterative correction.")
     loops_on = c2.toggle("Call loops", True, key="an_loops")
+    loop_fdr = st.segmented_control(
+        "Loop calling", [0.1, 0.01], default=0.1, required=True, key="an_loop_fdr",
+        format_func=lambda v: "FDR 0.1 (default)" if v == 0.1 else "FDR 0.01 (Gate 6b)",
+        help="Gate 6b (validation/RESULTS.md) chose FDR 0.01 with KR balancing on three cell lines; with those settings "
+             "the caller beat chromosight and Mustache on two new cell lines. Choose kr balancing above to match it.")
     if not st.button("Run analysis suite", key="an_go", type="primary", icon=":material/insights:"):
         if ss.get("an_last", {}).get("key") != f"{ds.key}:{lo}:{hi}":
             return
@@ -74,9 +80,9 @@ def render(ds: Dataset, lo: int, hi: int) -> None:
             c.weights = np.where(np.isfinite(b), 1.0 / b, np.nan)
         with st.spinner("Running the analysis suite…"):
             out = Path(tempfile.mkdtemp(prefix="chronocell_analysis_"))
-            r = PL.analyze(c, out, loops=loops_on, orient=np.asarray(ds.gc[lo:hi], float))
+            r = PL.analyze(c, out, loops=loops_on, orient=np.asarray(ds.gc[lo:hi], float), loop_fdr=float(loop_fdr))
             write_run(out, "analyze (app)", {"region": r["summary"]["region"], "resolution": c.resolution,
-                                             "normalization": norm, "loops": loops_on}, ds)
+                                             "normalization": norm, "loops": loops_on, "loop_fdr": float(loop_fdr)}, ds)
         ss.an_last = {"key": f"{ds.key}:{lo}:{hi}", "result": r, "out": str(out)}
     last = ss.get("an_last")
     if not last:

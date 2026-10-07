@@ -37,9 +37,10 @@ B0_NM = 50.0
 # ======================================================================================
 # Analysis suite
 # ======================================================================================
-def analyze(c: IO.Contacts, out: Path | None = None, loops: bool = True, orient: np.ndarray | None = None) -> dict:
+def analyze(c: IO.Contacts, out: Path | None = None, loops: bool = True, orient: np.ndarray | None = None,
+            loop_fdr: float = 0.1) -> dict:
     t0 = time.time()
-    rep = AN.run_suite(c.ci, c.cj, c.cm, c.n, c.resolution, c.weights, orient, loops)
+    rep = AN.run_suite(c.ci, c.cj, c.cm, c.n, c.resolution, c.weights, orient, loops, loop_fdr)
     pos = lambda k: c.start + int(k) * c.resolution                       # noqa: E731
     loops_df = pd.DataFrame([{"chrom1": c.chrom, "start1": pos(l.i), "end1": pos(l.i) + c.resolution, "chrom2": c.chrom,
                               "start2": pos(l.j), "end2": pos(l.j) + c.resolution, "observed": l.observed,

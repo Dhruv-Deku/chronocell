@@ -152,6 +152,7 @@ The table below is generated from the result files by `python validation/report.
 | Gate 5b: prediction with cohesin peaks | 0 of 5 test sets | fail |
 | Gate 5m: the human predictor on mouse ES-cell tracing (4DN) | 17.0 % of the ceiling; 7.2 % of the ceiling | pass (modest) |
 | Gate 6: loop calls vs ENCODE HiCCUPS calls, held-out cell lines | k562: F1 0.40 (chromosight 0.39, Mustache 0.49); imr90: F1 0.74 (chromosight 0.42, Mustache 0.47) | fail |
+| Gate 6b: loop calls, settings re-chosen on three cell lines, two new cell lines | hmec: F1 0.74 (chromosight 0.38, Mustache 0.47); hap1: F1 0.61 (chromosight 0.44, Mustache 0.47) | pass |
 | Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | mean FDP 0.002 at nominal 0.05; recall ×2 0.01, ×4 0.63 | pass |
 <!-- END generated:readme_accuracy -->
 
@@ -193,8 +194,10 @@ original results above stand):**
 <!-- BEGIN generated:summary_r2 -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
+| Gate Q2b: quantum domain calls vs classical callers, new cell lines | hmec: QAOA 0.49 vs insulation 0.45, TopDom-like 0.39; hap1: QAOA 0.34 vs insulation 0.37, TopDom-like 0.26 | pass |
 | Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
+| Gate Q6c: ADAPT-VQE on 12 new stretched molecules, against the lowest singlet | worst error 167.99 mHa (needed ≤ 1.6); 9 of 12 within | fail |
 <!-- END generated:summary_r2 -->
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).

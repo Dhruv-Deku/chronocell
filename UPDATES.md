@@ -866,3 +866,16 @@ the data its test had used (now practice), a rule committed before new test data
   training on three cell lines; on 489 genes of HMEC (a cell line never used) the quantum-kernel classifier was level
   with the classical ones, as the rule asks. All three are only modestly better than chance on a new cell line, and
   with a kernel estimated from 1,000 shots per entry (a real device's situation) the quantum classifier falls to chance.
+- **Gate 6b (loop calls), pass.** Gate 6 (fail, unchanged) had chosen the loop caller's settings on three GM12878
+  windows; re-chosen on all nine windows it had used, the same caller beat chromosight and Mustache on two cell lines
+  never used (HMEC, HAP-1; ENCODE HiCCUPS loops as the reference), mostly through far fewer false calls.
+- **Q2b (domains), pass.** The same domain QUBO and QAOA, settings re-chosen on all nine windows already seen: on two
+  new cell lines (HMEC, HAP-1) the quantum route's domain calls beat both classical callers on HMEC and came within
+  the margin on HAP-1. Plainly: at the new settings QAOA landed on the QUBO's exact optimum in only a minority of
+  windows (12-19 %, against 98 % in Gate Q1); its best shots scored about as well as the optimum would have.
+- **Q6c (molecules, reference corrected to the lowest singlet), fail.** The same ADAPT-VQE on twelve new cases: within
+  chemical accuracy in nine, including N2 at 1.3x and 3.0x and LiH where a triplet lies lowest. It missed three bonds
+  stretched to 2.2-2.8x (CO 168 mHa, HCN 16.5, CH2O 4.6): there the gradient-chosen circuit stops at a stationary point
+  far from the ground state. A real limit of the method; molecules are not re-tested again.
+- **App options from the passes** (defaults unchanged): the Analysis page's loop calling can use Gate 6b's setting
+  (FDR 0.01), and the Quantum lab's domain-wall panel can load Q2b's settings.
