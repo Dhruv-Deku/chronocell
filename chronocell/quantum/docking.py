@@ -578,6 +578,26 @@ def random_search_vina(L: np.ndarray, centre: np.ndarray, lt: Typed, pt: Typed, 
     return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
 
 
+def seeded_search(seeds: list[np.ndarray], lt: Typed, pt: Typed, n: int, refine_top: int, rng: np.random.Generator,
+                  max_angle: float = 0.6, shift: float = 1.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Local search around seed poses (from cliques) with random search's budget: n rigid perturbations shared among
+    the seeds (rotation about the pose centroid up to `max_angle` rad, shift ~ N(0, shift) A), the seeds included;
+    all scored, the best `refine_top` refined, the best refined pose kept."""
+    cand = [(vina_score(s, lt, pt), s) for s in seeds]
+    per = max(1, (n - len(seeds)) // max(1, len(seeds)))
+    for s in seeds:
+        c = s.mean(0)
+        for _ in range(per):
+            ax = rng.normal(size=3)
+            ax /= np.linalg.norm(ax)
+            pose = (s - c) @ _rotvec(ax * rng.uniform(0, max_angle)).T + c + rng.normal(0, shift, 3)
+            cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
 def core_subgraph(g: Graph, k: int = 20) -> tuple[Graph, list[int]]:
     """The k vertices most connected to the rest (weighted degree): where large cliques live. Used to fit the
     interaction graph into a qubit budget."""

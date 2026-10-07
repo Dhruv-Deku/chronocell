@@ -332,7 +332,10 @@ def test_q4b(R: dict) -> dict:
 # ======================================================================================
 # Q7b: docking with an empirical (Vina-like) score and rigid-body refinement
 # ======================================================================================
-Q7B_GRID = [{"score": "vina", "refine_top": k, "maxfev": 300, "hydrogens": "given"} for k in (0, 10, 30)]
+Q7B_GRID = [{"score": "vina", "refine_top": k, "maxfev": 300, "hydrogens": "given"} for k in (0, 10)] +     [{"score": "vina", "refine_top": 10, "maxfev": 300, "hydrogens": "given", "seeded": 10}]
+# refine_top 30 was started and stopped (slow; random search with the same refinement had already overtaken the clique
+# routes at 10). "seeded": the 10 best clique poses seed a local search with random search's budget (1,000 scored
+# poses, the best 10 refined), so the clique routes and random search spend the same number of evaluations.
 # the test structures (Astex Diverse) carry no hydrogens: the chosen setting is re-run on practice with the hydrogens
 # removed and virtual polar hydrogens added (docking.add_virtual_hydrogens), to measure what that costs
 
@@ -386,7 +389,10 @@ def dock_q7b(cid: str, loader, settings: dict, qcfg: dict, seed: int, tag: str) 
                 return {"rmsd": float("nan"), "score": float("nan"), "rmsd_unrefined": float("nan"), "poses": 0}
             poses.sort(key=lambda z: z[0])
             out = {"rmsd_unrefined": DK.rmsd(poses[0][1], L), "poses": len(poses)}
-            if k:
+            if settings.get("seeded"):              # local search around the best clique poses, random search's budget
+                best = DK.seeded_search([p for _, p in poses[:settings["seeded"]]], lt, pt, cfg["random_poses"], k,
+                                        np.random.default_rng(seed), maxfev=settings["maxfev"])
+            elif k:
                 best = min((DK.refine(p, lt, pt, settings["maxfev"]) for _, p in poses[:k]), key=lambda z: z[1])
             else:
                 best = (poses[0][1], poses[0][0])
@@ -498,11 +504,14 @@ def practice_q7b() -> dict:
             recs.append(dock_q7b(cid, _complex_pb, st, qcfg, i, "pb"))
             if i % 20 == 0:
                 print(st, i, cid, round(time.perf_counter() - t0), "s", flush=True)
-        out["grid"][f"refine{st['refine_top']}"] = {"settings": st, **summarise_q7b(recs)}
-        print(st, out["grid"][f"refine{st['refine_top']}"], flush=True)
+        name = f"seeded{st['seeded']}" if st.get("seeded") else f"refine{st['refine_top']}"
+        out["grid"][name] = {"settings": st, **summarise_q7b(recs)}
+        print(st, out["grid"][name], flush=True)
         _json(ROOT / "results_round2_practice_q7b.json", out)
     best = max(out["grid"].values(), key=lambda g: (g["success_qaoa"], -g["settings"]["refine_top"]))
     out["choice"] = best["settings"]
+    out["grid_note"] = ("refine_top 30 started and stopped: random search with the same refinement had already overtaken "
+                        "the clique routes at 10; replaced by the seeded local search (same budget as random search)")
     _json(ROOT / "results_round2_practice_q7b.json", out)
     st = {**best["settings"], "hydrogens": "virtual"}
     recs = []
