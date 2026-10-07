@@ -847,3 +847,18 @@ rule: where predicted and measured changes agreed, shuffled targeting agreed as 
 hERG screen slightly ahead of the classical models on about 13,000 unseen compounds), **Q6 fail** (the chemistry matched
 OpenFermion's independent LiH reference; VQE missed chemical accuracy on stretched N2 and HCN), **Q7 pass**, modestly
 (QAOA found every best clique; the QAOA route docked more ligands than random search, but far fewer than on practice).
+
+## 7 October 2026 — Round 2 of the quantum gates (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked to improve every quantum test and to try to turn every fail into a pass. Local commits on `feat/v4-evidence`
+only; nothing pushed. A failed result is never re-run or overwritten: each failed gate gets a *new* method, developed on
+the data its test had used (now practice), a rule committed before new test data are read, and one run. Numbers:
+`validation/RESULTS.md` (generated).
+
+- **Q6b (molecules), fail by one case.** ADAPT-VQE added (Drug molecules tab: *Circuit* switch; the fixed UCCSD circuit
+  stays the default). On eleven new stretched cases it came within chemical accuracy in ten (stretched N2: 0.02 and
+  0.29 mHa, where the fixed circuit is 126 mHa off); the eleventh, LiH at 3x, missed by 2.5 mHa. Found after the test:
+  there the active space's lowest state is a triplet, and ADAPT-VQE had reached the lowest singlet exactly (the state a
+  closed-shell VQE targets). The verdict stays fail; the app now reports the spin of the exact state and the lowest
+  singlet.

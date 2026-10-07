@@ -187,6 +187,15 @@ The table below is generated from the result files by `python validation/report.
 | Gate Q7: QAOA max-clique docking (PoseBusters) | docked 6 % vs random search 2 %; clique found 100 % | pass |
 <!-- END generated:summary_qd -->
 
+**Round 2: the failed quantum gates retested with new methods on new data (each pre-registered, run once; the
+original results above stand):**
+
+<!-- BEGIN generated:summary_r2 -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
+<!-- END generated:summary_r2 -->
+
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
 
 ## Bring your own data

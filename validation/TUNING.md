@@ -389,3 +389,18 @@ Tables generated in `RESULTS.md` (blocks `gate8` practice part and `qdrug_practi
   protein N-H and C=O vectors, tau 1.0 A, 8 polar + 4 hydrophobic ligand features and a 20-vertex core subgraph (the
   vertices with the most consistent pairs) docked 15 % against 3 % for random search with the same score. QAOA: p 3 or 5,
   expectation or CVaR; **frozen** p 5, CVaR (best clique found in 97 % of practice graphs).
+
+## 21. Round 2 of the quantum gates (Q2b, Q4b, Q6b, Q7b): settings chosen on practice data
+
+Tables generated in `RESULTS.md` (block `round2_practice`). The data of the failed tests are practice here.
+
+- **Q6b (molecules).** ADAPT-VQE with two operator pools on the six Q6 cases and nine more (equilibrium geometries, N2 at
+  2x): the occupied-to-virtual pool stalls at a stationary point for stretched N2 (45 and 128 mEh); the generalized pool
+  reached every case within 0.19 mEh. **Frozen**: generalized pool, gradient-norm threshold 1e-3; the cap of 100
+  operators was reached twice on practice (still within 0.2 mEh) and was raised to 150 so that it binds less often.
+- **Q4b (genes).** Labels: ENCODE CSHL long total RNA-seq of each cell line (one lab, one protocol), TPM >= 1. Features:
+  Q4's five plus the TSS bin's local observed / expected contacts and the insulation slope across the TSS. Settings by
+  leave-one-cell-line-out AUC over GM12878, K562 and IMR-90; both kernels' grids widened once together when the first
+  run's best values sat at their edges. **Frozen**: seven features; QSVM bandwidth 0.005, 1 repetition, C 10,000;
+  RBF-SVM gamma 0.0005, C 10,000 (both still at the edge where C and the kernel width trade off; the AUC moves in the
+  third decimal there).
