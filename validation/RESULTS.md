@@ -1544,6 +1544,18 @@ Q2b (new cell lines; settings {'res': 60000, 'min_size': 3, 'gamma': 5.0, 'bound
 
 QAOA found the QUBO's optimum in hmec 12 % of 42 windows; hap1 19 % of 42 windows.
 Q2b: **pass** (hmec pass; hap1 pass).
+
+Q7b (85 usable Astex Diverse complexes of 85):
+
+| Measure | Value |
+|---|---|
+| QAOA found the maximum-weight clique | 95 % |
+| Docked within 2 A: QAOA route, Vina-like score, refined | 35.3 % |
+| Docked within 2 A: classical cliques, same | 35.3 % |
+| Docked within 2 A: random search, same score and refinement | 57.6 % |
+| Docked within 2 A: QAOA route without refinement | 9.4 % |
+
+Q7b: **fail** (clique found in ≥ 80 %: yes; QAOA route at least as good as random search: no; QAOA route docks ≥ 20 %: yes).
 <!-- END generated:round2 -->
 
 Summary:
@@ -1555,6 +1567,7 @@ Summary:
 | Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
 | Gate Q6c: ADAPT-VQE on 12 new stretched molecules, against the lowest singlet | worst error 167.99 mHa (needed ≤ 1.6); 9 of 12 within | fail |
+| Gate Q7b: QAOA docking with Vina-like score and refinement (Astex Diverse) | docked 35 % vs random search 58 % | fail |
 <!-- END generated:summary_r2 -->
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
