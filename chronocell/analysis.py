@@ -307,7 +307,7 @@ class SuiteReport:
 
 
 def run_suite(ci, cj, cm, n: int, resolution: int, weights: np.ndarray | None = None, orient: np.ndarray | None = None,
-              loops: bool = True) -> SuiteReport:
+              loops: bool = True, loop_fdr: float = 0.1) -> SuiteReport:
     """Every analysis on one map (sparse counts of n bins at `resolution`)."""
     notes = []
     w = DOM.window_for(resolution, n)
@@ -318,7 +318,7 @@ def run_suite(ci, cj, cm, n: int, resolution: int, weights: np.ndarray | None = 
     ev, _ = DOM.compartments(ci, cj, cm, n, orient)
     if orient is None:
         notes.append("Compartment sign is arbitrary (no GC or gene-density track given).")
-    lp = call_loops(ci, cj, cm, n, resolution, weights) if loops else []
+    lp = call_loops(ci, cj, cm, n, resolution, weights, fdr=loop_fdr) if loops else []
     if weights is None and loops:
         notes.append("Loops called on raw counts (no balancing weights given).")
     return SuiteReport(resolution, n, lp, ins, bnd, td, arr, ev, p_of_s(ci, cj, cm, n, resolution, weights), notes)

@@ -20,8 +20,9 @@ VALIDATION = Path(__file__).resolve().parent.parent / "validation"
 GATES = {"4c": ("results_cohesin_hic.json", "Cohesin loss predicted for held-out Hi-C regions"),
          "4d": ("results_sv_v2.json", "Structural-variant effects on new events (Hi-C before and after)"),
          "6": ("results_gate6.json", "Loop calls against reference calls on held-out data"),
+         "6b": ("results_gate6b.json", "Loop calls, settings re-chosen on three cell lines, two new cell lines"),
          "7": ("results_gate7.json", "False-discovery control of the differential analysis")}
-KIND_GATES = {"analyze": ["6"], "diff": ["7"], "impact": ["4c", "4d"]}
+KIND_GATES = {"analyze": ["6", "6b"], "diff": ["7"], "impact": ["4c", "4d"]}
 CSS = """body{font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:24px auto;max-width:1100px;padding:0 16px;
 color:#1d2433;background:#fff}h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:28px 0 8px;border-bottom:1px solid
 #dfe3ea;padding-bottom:4px}table{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}td,th{border:1px solid

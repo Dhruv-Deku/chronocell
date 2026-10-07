@@ -319,6 +319,11 @@
   "bytes": 10896032,
   "url": "https://www.encodeproject.org/files/ENCFF413MYB/@@download/ENCFF413MYB.tsv"
  },
+ "data/encode/ENCFF459IDB.bedpe.gz": {
+  "sha256": "1a3f6da6cf20c9b9aac6d60b770b250a02dc4856fe7fe659a713368ed4fcf9dc",
+  "bytes": 207674,
+  "url": "https://www.encodeproject.org/files/ENCFF459IDB/@@download/ENCFF459IDB.bedpe.gz"
+ },
  "data/encode/ENCFF470EAN.bed.gz": {
   "sha256": "75565fdab146677b46972327309d2e4df8cd60c83acba1e986ec11c0a0df9700",
   "bytes": 1443448,
@@ -339,10 +344,20 @@
   "bytes": 553128,
   "url": "https://www.encodeproject.org/files/ENCFF533APC/@@download/ENCFF533APC.bed.gz"
  },
+ "data/encode/ENCFF557WIU.bedpe.gz": {
+  "sha256": "fe86f0aeb4dedcc4b7a7736aa844f176dfcbeb34aa05572675a6da49bcbe2425",
+  "bytes": 616695,
+  "url": "https://www.encodeproject.org/files/ENCFF557WIU/@@download/ENCFF557WIU.bedpe.gz"
+ },
  "data/encode/ENCFF558BLC.bed.gz": {
   "sha256": "f71c04db3c5c55a7760a79016e2642979ce078b1b5ee88227898ed78c7bf7fd4",
   "bytes": 4989495,
   "url": "https://www.encodeproject.org/files/ENCFF558BLC/@@download/ENCFF558BLC.bed.gz"
+ },
+ "data/encode/ENCFF578NLR.bedpe.gz": {
+  "sha256": "bb929f0dadc5b558e04ae99f57301a22b5ad88549cbb84d1d04cb9ef1023d48b",
+  "bytes": 330033,
+  "url": "https://www.encodeproject.org/files/ENCFF578NLR/@@download/ENCFF578NLR.bedpe.gz"
  },
  "data/encode/ENCFF582SNT.bed.gz": {
   "sha256": "ccfc21d5f4b7f97b1225da799ec9a56df23440270d6444774d0b2a88d78d14eb",
@@ -398,6 +413,11 @@
   "sha256": "1e2858ea67f1d451005e50c6d898dec3ad7ce703c22f060f9fbe86a2619f7e29",
   "bytes": 714504,
   "url": "https://www.encodeproject.org/files/ENCFF930WPG/@@download/ENCFF930WPG.bed.gz"
+ },
+ "data/encode/ENCFF999UXN.bedpe.gz": {
+  "sha256": "c2d2cb12389291bb101f831cc9fdd56cf6adafe1b88c0ea918be2a823cabb95d",
+  "bytes": 558132,
+  "url": "https://www.encodeproject.org/files/ENCFF999UXN/@@download/ENCFF999UXN.bedpe.gz"
  },
  "data/hg38/chr2.fa.gz": {
   "sha256": "748007e198312d16d6277dcdd48d4f050109273cacf1a7a09860f965f2060555",
@@ -734,9 +754,64 @@
   "bytes": 352072,
   "url": "https://www.encodeproject.org/files/ENCFF256UOW/@@download/ENCFF256UOW.hic"
  },
+ "data/hic_cache/encode_loops_hap1_chr11_60000000_70000000_10000.npz": {
+  "sha256": "8c4174dd7f1e301889756d88635f51945d39e543c1611644c6611a7cf6cddaff",
+  "bytes": 585026,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr12_60000000_70000000_10000.npz": {
+  "sha256": "ae0ae5e28b5c42240e9382f9cec5dc1b3b86d416085a697c78a532c0192582f9",
+  "bytes": 474056,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr17_40000000_50000000_10000.npz": {
+  "sha256": "84bee3ed9a108915bcc26c97825d75d1f60329b1a63c82ebc8e7a06a6f497e78",
+  "bytes": 544861,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr1_100000000_110000000_10000.npz": {
+  "sha256": "d776e3c1636e75200715c751b71fb788de78aeb824a770b0716641e38cd85667",
+  "bytes": 398167,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr2_100000000_110000000_10000.npz": {
+  "sha256": "670fb218f84b15ee554c56de2e6e8462a0f002a9fd9953a9a24768518cb51746",
+  "bytes": 493401,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr3_100000000_110000000_10000.npz": {
+  "sha256": "487d4c948e468f5c89d1e006ebba11ba0ee6155ddd36f86261838a7f546b1448",
+  "bytes": 443074,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr4_100000000_110000000_10000.npz": {
+  "sha256": "eca665d87e7b2aaed93403aa5f4838a4c37529720ee21b4a376a67e9b579d4fa",
+  "bytes": 459712,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr5_100000000_110000000_10000.npz": {
+  "sha256": "b5eb34fd2c5c955fd0e63988ccff79cec8657ba2c37ac2c67246270f3cd77e32",
+  "bytes": 446121,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
+ "data/hic_cache/encode_loops_hap1_chr7_100000000_110000000_10000.npz": {
+  "sha256": "10dc55661a8e9602da32134a47a774b431ea8490a5d1f3999b0c85b08fd2d720",
+  "bytes": 481801,
+  "url": "https://www.encodeproject.org/files/ENCFF898HRO/@@download/ENCFF898HRO.hic"
+ },
  "data/hic_cache/encode_loops_hmec_chr11_60000000_70000000_10000.npz": {
   "sha256": "4b8949431c9418ce0e7712a253460e87d4fc6dd5cde77c8a065726eae07e39d7",
   "bytes": 595704,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr12_60000000_70000000_10000.npz": {
+  "sha256": "3eb361f740e5e31f2572514cccd03316d3e32729d0696d3333b342bb49700ef8",
+  "bytes": 643474,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr17_40000000_50000000_10000.npz": {
+  "sha256": "88fba308ad6fac184ec48b528b04a41fe7cb01aa843d803b74aa50c8a2fc81fe",
+  "bytes": 569558,
   "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
  },
  "data/hic_cache/encode_loops_hmec_chr1_100000000_110000000_10000.npz": {
@@ -757,6 +832,11 @@
  "data/hic_cache/encode_loops_hmec_chr4_100000000_110000000_10000.npz": {
   "sha256": "284bf784c2dfafd397fcd8b2ee288ca717697f2921b83a6fb15fb3b8c687d57a",
   "bytes": 676430,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr5_100000000_110000000_10000.npz": {
+  "sha256": "894e699eb6cb58f7b260fa89014463ab3d845958869a9b362bd21d42a748131b",
+  "bytes": 662891,
   "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
  },
  "data/hic_cache/encode_loops_hmec_chr7_100000000_110000000_10000.npz": {

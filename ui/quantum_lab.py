@@ -43,13 +43,13 @@ KIND_COLOUR = {"exact": T.INK, "classical": T.TERRACOTTA, "quantum-inspired": T.
 # ======================================================================================
 # Shared pieces
 # ======================================================================================
-def frozen_settings() -> dict | None:
+def frozen_settings(name: str = "QUANTUM_GATEQ") -> dict | None:
     try:
         import importlib.util
         spec = importlib.util.spec_from_file_location("chronocell_frozen", VALIDATION / "frozen.py")
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        return getattr(mod, "QUANTUM_GATEQ", None)
+        return getattr(mod, name, None)
     except Exception:
         return None
 
@@ -252,13 +252,20 @@ def tad_panel(ds: Dataset, lo: int, hi: int, kp: str = "qtad") -> None:
     round2_standing(("q2b",))
     fz = frozen_settings() or {}
     tad_set = fz.get("tad", {"res": 50_000, "min_size": 3, "gamma": 1.5, "boundary_cost": 0.0, "weight": "difference"})
+    r2 = (frozen_settings("QUANTUM_ROUND2") or {}).get("q2b")
+    choice = st.radio("Settings", ["gateq", "q2b"], horizontal=True, key=f"{kp}_settings",
+                      format_func=lambda k: {"gateq": "Gate Q (original)",
+                                             "q2b": "Round 2 (Q2b: chosen on three cell lines)"}[k]) if r2 else "gateq"
+    if choice == "q2b":
+        tad_set = r2["tad"]
+    sk = "" if choice == "gateq" else "_q2b"                  # separate slider state per settings choice
     res = int(ds.chrom.resolution)
     f = max(1, int(round(tad_set["res"] / res)))
     c1, c2, c3, c4 = st.columns(4)
     nb = c1.slider("Window (bins) → qubits = bins − 1", 8, 21, 16, key=f"{kp}_nb",
                    help="Each extra bin doubles the simulator's memory; 21 bins = 20 qubits.")
-    m = c2.slider("Minimum domain (bins)", 2, 5, int(tad_set["min_size"]), key=f"{kp}_m")
-    gamma = c3.slider("Resolution γ", 0.5, 4.0, float(tad_set["gamma"]), 0.1, key=f"{kp}_g",
+    m = c2.slider("Minimum domain (bins)", 2, 5, int(tad_set["min_size"]), key=f"{kp}_m{sk}")
+    gamma = c3.slider("Resolution γ", 0.5, 8.0, float(tad_set["gamma"]), 0.1, key=f"{kp}_g{sk}",
                       help="Higher: more, smaller domains.")
     p = c4.slider("QAOA depth p", 1, 8, int(fz.get("qaoa", {}).get("p", 3)), key=f"{kp}_p")
     span = 2 * m
@@ -269,7 +276,7 @@ def tad_panel(ds: Dataset, lo: int, hi: int, kp: str = "qtad") -> None:
         return
     start = st.slider(f"Window start (bin of {f * res / 1000:g} kb)", span, n_coarse - nb - span, span, key=f"{kp}_start")
     noise = noise_toggle(kp)
-    run_key = f"{ds.key}:{lo}:{hi}:{f}:{nb}:{m}:{gamma}:{p}:{start}"
+    run_key = f"{ds.key}:{lo}:{hi}:{f}:{nb}:{m}:{gamma}:{p}:{start}{sk}"
     if st.button("Run on the quantum simulator", key=f"{kp}_go", type="primary", icon=":material/memory:"):
         a = lo + (start - span) * f
         b = lo + (start + nb + span) * f

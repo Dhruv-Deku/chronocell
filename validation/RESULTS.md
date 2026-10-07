@@ -68,6 +68,7 @@ SHA-256 in `validation/data_manifest.json`. The data themselves are not committe
 | Gate 5b: prediction with cohesin peaks | 0 of 5 test sets | fail |
 | Gate 5m: the human predictor on mouse ES-cell tracing (4DN) | 17.0 % of the ceiling; 7.2 % of the ceiling | pass (modest) |
 | Gate 6: loop calls vs ENCODE HiCCUPS calls, held-out cell lines | k562: F1 0.40 (chromosight 0.39, Mustache 0.49); imr90: F1 0.74 (chromosight 0.42, Mustache 0.47) | fail |
+| Gate 6b: loop calls, settings re-chosen on three cell lines, two new cell lines | hmec: F1 0.74 (chromosight 0.38, Mustache 0.47); hap1: F1 0.61 (chromosight 0.44, Mustache 0.47) | pass |
 | Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | mean FDP 0.002 at nominal 0.05; recall ×2 0.01, ×4 0.63 | pass |
 <!-- END generated:summary_ab -->
 
@@ -971,7 +972,18 @@ Practice (nine windows: GM12878, K562, IMR-90; 84 settings). Chosen: {'fdr': 0.0
 | k562 | 200 | 156 | 90 | 0.450 | 0.577 | 0.506 | 0.390 | 0.486 |
 | imr90 | 118 | 154 | 104 | 0.881 | 0.675 | 0.765 | 0.420 | 0.474 |
 
-_results_gate6b.json: not run (python validation/loops_gate6b.py --test)._
+Test (run once; HMEC and HAP-1, three new windows each):
+
+| Cell line | Method | Calls | Reference loops | Matched | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|---|
+| hmec | chronocell | 70 | 90 | 59 | 0.843 | 0.656 | 0.738 |
+| hmec | chromosight | 255 | 90 | 65 | 0.255 | 0.722 | 0.377 |
+| hmec | mustache | 176 | 90 | 63 | 0.358 | 0.700 | 0.474 |
+| hap1 | chronocell | 80 | 125 | 63 | 0.787 | 0.504 | 0.615 |
+| hap1 | chromosight | 229 | 125 | 77 | 0.336 | 0.616 | 0.435 |
+| hap1 | mustache | 165 | 125 | 68 | 0.412 | 0.544 | 0.469 |
+
+Verdict: **pass**.
 <!-- END generated:gate6b -->
 
 ## Gate 7 — false-discovery control of the differential analysis (Phase B2)
@@ -1433,6 +1445,15 @@ Q6b practice (error vs active-space FCI, mHa; chemical accuracy 1.6):
 | CH4 | 1.0 | 4e, 4o | 8 | 0.001 | 0.001 | 0.001 (23) |
 
 Chosen: {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 100} (the operator cap was raised to 150 in the frozen rule).
+
+Q7b practice (256 PoseBusters complexes of Q7, all practice now; QAOA {'p': 5, 'objective': 'cvar'}):
+
+| Refined poses | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |
+|---|---|---|---|---|---|
+| 0 | 239 | 10.0 % | 10.5 % | 11.3 % | 10.0 % |
+| 10 | 239 | 34.7 % | 33.9 % | 52.3 % | 10.0 % |
+
+Chosen: None.
 <!-- END generated:round2_practice -->
 
 Test (each part run once):
@@ -1458,6 +1479,25 @@ Q6b: **fail**: ADAPT-VQE within chemical accuracy in 10 of 11 (worst 2.465 mHa);
 
 Found after the test (not part of the verdict): LiH at 3.0x: the sector's lowest state is a triplet (S(S+1) 2.0), 2.465 mHa below the lowest singlet; ADAPT-VQE is -0.0001 mHa from that singlet. Against the lowest singlet, ADAPT-VQE is within chemical accuracy in 11 of 11 cases, fixed-order UCCSD in 3. The app now reports the spin of the exact state and the lowest singlet next to it.
 
+Q6c (reference corrected to the lowest singlet; 12 cases never run; settings {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 150}):
+
+| Molecule | Bond × eq. | Active space | Qubits | Lowest singlet | Sector's lowest state (S(S+1)) | ADAPT-VQE | ADAPT error vs singlet (mHa) | Operators | Fixed UCCSD error vs singlet (mHa) |
+|---|---|---|---|---|---|---|---|---|---|
+| N2 | 1.3 | 6e, 6o | 12 | -107.58474 | -107.58474 (-0.0) | -107.58471 | +0.027 | 42 | +55.668 |
+| N2 | 3.0 | 6e, 6o | 12 | -107.43812 | -107.43812 (0.0) | -107.43810 | +0.023 | 25 | +0.058 |
+| CO | 1.3 | 6e, 6o | 12 | -111.25220 | -111.25220 (-0.0) | -111.25215 | +0.051 | 150 | +26.054 |
+| CO | 2.8 | 6e, 6o | 12 | -111.00367 | -111.00367 (-0.0) | -110.83568 | +167.990 | 20 | +0.444 |
+| HCN | 2.2 | 6e, 6o | 12 | -91.23083 | -91.23083 (-0.0) | -91.21433 | +16.501 | 60 | +22.249 |
+| H2O | 1.8 | 8e, 6o | 12 | -74.80706 | -74.80706 (0.0) | -74.80701 | +0.043 | 45 | +0.188 |
+| NH3 | 2.5 | 6e, 6o | 12 | -55.11944 | -55.11944 (-0.0) | -55.11939 | +0.056 | 150 | +14.948 |
+| CH2O | 2.2 | 6e, 6o | 12 | -112.23271 | -112.23271 (0.0) | -112.22813 | +4.572 | 40 | +1.328 |
+| HF | 3.5 | 6e, 4o | 8 | -98.45302 | -98.45305 (2.0) | -98.45282 | +0.198 | 3 | +0.145 |
+| LiH | 2.5 | 2e, 4o | 8 | -7.74306 | -7.74887 (2.0) | -7.74307 | -0.005 | 4 | +0.000 |
+| LiH | 4.0 | 2e, 4o | 8 | -7.33742 | -7.33742 (0.0) | -7.33742 | +0.000 | 5 | +0.000 |
+| CH4 | 2.0 | 4e, 4o | 8 | -38.80658 | -38.80658 (0.0) | -38.80657 | +0.010 | 32 | +1.705 |
+
+Q6c: **fail**: ADAPT-VQE within chemical accuracy of the lowest singlet in 9 of 12 (worst 167.990 mHa); fixed-order UCCSD in 7 of 12; the sector's lowest state was a triplet in 2.
+
 Q4b (trained on 867 genes of GM12878, K562 and IMR-90; tested on 489 HMEC genes, 45 % active):
 
 | Classifier | Test AUC (95 % interval) |
@@ -1470,6 +1510,22 @@ Q4b (trained on 867 genes of GM12878, K562 and IMR-90; tested on 489 HMEC genes,
 Quantum minus RBF +0.011 [-0.004, 0.027].
 
 Q4b: **pass** (needed: within 0.03 of the RBF-SVM, lower bound above 0.5).
+
+Q2b (new cell lines; settings {'res': 60000, 'min_size': 3, 'gamma': 5.0, 'boundary_cost': 0.25, 'weight': 'log'}):
+
+| Cell line | Method | Precision | Recall | F1 |
+|---|---|---|---|---|
+| hmec | QAOA (simulated quantum) | 0.47 | 0.52 | 0.494 |
+| hmec | exact optimum of the QUBO | 0.46 | 0.54 | 0.493 |
+| hmec | insulation (classical) | 0.68 | 0.33 | 0.450 |
+| hmec | topdom (classical) | 0.71 | 0.27 | 0.395 |
+| hap1 | QAOA (simulated quantum) | 0.26 | 0.49 | 0.343 |
+| hap1 | exact optimum of the QUBO | 0.26 | 0.52 | 0.349 |
+| hap1 | insulation (classical) | 0.39 | 0.36 | 0.374 |
+| hap1 | topdom (classical) | 0.34 | 0.22 | 0.264 |
+
+QAOA found the QUBO's optimum in hmec 12 % of 42 windows; hap1 19 % of 42 windows.
+Q2b: **pass** (hmec pass; hap1 pass).
 <!-- END generated:round2 -->
 
 Summary:
@@ -1477,8 +1533,10 @@ Summary:
 <!-- BEGIN generated:summary_r2 -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
+| Gate Q2b: quantum domain calls vs classical callers, new cell lines | hmec: QAOA 0.49 vs insulation 0.45, TopDom-like 0.39; hap1: QAOA 0.34 vs insulation 0.37, TopDom-like 0.26 | pass |
 | Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
+| Gate Q6c: ADAPT-VQE on 12 new stretched molecules, against the lowest singlet | worst error 167.99 mHa (needed ≤ 1.6); 9 of 12 within | fail |
 <!-- END generated:summary_r2 -->
 
 ## Cost (Pillar 1): runtime and peak memory against bead count
