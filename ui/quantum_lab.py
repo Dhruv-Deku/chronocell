@@ -962,14 +962,15 @@ def _drug_standing(part: str, label: str) -> None:
 
 
 @st.cache_data(show_spinner=False, max_entries=64)
-def _run_molecule(name: str, scale: float, ne: int, no: int) -> dict:
+def _run_molecule(name: str, scale: float, ne: int, no: int, method: str = "uccsd") -> dict:
     from chronocell.quantum import molecules as MO
-    r = MO.run(name, active=(ne, no), scale=scale)
+    r = MO.run(name, active=(ne, no), scale=scale, method=method)
     n_el = sum(MO.Z[a] for a, _ in r.atoms) - MO.LIBRARY[name][2]
     return {"e_hf": r.e_hf, "e_cas": r.e_cas_fci, "e_vqe": r.vqe.energy, "err": r.vqe.error, "qubits": r.n_qubits,
             "params": r.vqe.parameters, "electrons": r.vqe.electrons, "gap": r.homo_lumo_gap, "eps": r.orbital_energies.tolist(),
             "n_occ": n_el // 2, "atoms": r.atoms, "nbf": r.n_basis, "seconds": r.seconds, "history": r.vqe.history,
-            "hf_converged": r.hf_converged}
+            "hf_converged": r.hf_converged, "method": method,
+            "adapt_energies": list(getattr(r.vqe, "energies", [])), "adapt_ops": list(getattr(r.vqe, "operators", []))}
 
 
 def molecules_panel(kp: str = "qmol") -> None:
@@ -989,11 +990,17 @@ def molecules_panel(kp: str = "qmol") -> None:
     space = c3.selectbox("Active space (electrons, orbitals)", ["2, 2", "4, 4", "6, 6"], index=1, key=f"{kp}_space",
                          help="Qubits = 2 × orbitals. 6, 6 = 12 qubits.")
     ne, no = (int(v) for v in space.split(","))
-    key = (name, float(scale), ne, no)
+    method = st.radio("Circuit", ["uccsd", "adapt"], horizontal=True, key=f"{kp}_method",
+                      format_func=lambda m: {"uccsd": "UCCSD (fixed circuit)",
+                                             "adapt": "ADAPT-VQE (grows the circuit one step at a time)"}[m],
+                      help="ADAPT-VQE adds, one at a time, the excitation that lowers the energy most, and can reuse "
+                           "them; it reached chemical accuracy where the fixed UCCSD circuit did not (stretched bonds). "
+                           "It takes longer: up to a few minutes at 12 qubits.")
+    key = (name, float(scale), ne, no, method)
     if st.button("Run VQE on the quantum simulator", key=f"{kp}_go", type="primary", icon=":material/memory:"):
         try:
             with st.spinner("Integrals, Hartree–Fock, qubit Hamiltonian, VQE…"):
-                ss[f"{kp}_last"] = {"key": key, "res": _run_molecule(name, float(scale), ne, no)}
+                ss[f"{kp}_last"] = {"key": key, "res": _run_molecule(name, float(scale), ne, no, method)}
         except ValueError as exc:
             warning_card("This active space does not fit the molecule", str(exc))
             return
@@ -1008,6 +1015,18 @@ def molecules_panel(kp: str = "qmol") -> None:
              ("HOMO–LUMO gap", f"{27.2114 * r['gap']:.1f}", "eV")])
     html(f'<p class="cc-note">Correlation energy captured by the active space: {1e3 * (r["e_cas"] - r["e_hf"]):+.1f} mHa. '
          f'Electrons in the VQE state: {r["electrons"]:.3f}. {r["seconds"]:.1f} s.</p>')
+    if r.get("method") == "adapt" and r.get("adapt_energies"):
+        err = np.maximum(np.abs(np.array(r["adapt_energies"]) - r["e_cas"]) * 1e3, 1e-4)
+        fig = go.Figure(go.Scatter(x=np.arange(1, len(err) + 1), y=err, mode="lines+markers",
+                                   line=dict(color=T.ACCENT), marker=dict(size=5),
+                                   hovertext=r["adapt_ops"], hoverinfo="text+y"))
+        fig.add_hline(y=1e3 * MO.CHEMICAL_ACCURACY, line=dict(color=T.TERRACOTTA, dash="dot"),
+                      annotation_text="chemical accuracy", annotation_position="top right")
+        fig.update_layout(**_layout(260, xaxis=dict(title="operators in the circuit"),
+                                    yaxis=dict(title="error vs exact (mHa)", type="log")))
+        st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_adapt")
+        html('<p class="cc-note">How ADAPT-VQE grows its circuit: each step adds the excitation with the steepest energy '
+             'gradient (hover for which orbitals it moves electrons between) and re-optimises every angle.</p>')
     c1, c2 = st.columns(2)
     with c1:
         el = [a for a, _ in r["atoms"]]
@@ -1030,15 +1049,15 @@ def molecules_panel(kp: str = "qmol") -> None:
         bar = st.progress(0.0)
         for k, s_ in enumerate(np.round(np.linspace(0.8, 2.2, 8), 2)):
             try:
-                x = _run_molecule(name, float(s_), ne, no)
+                x = _run_molecule(name, float(s_), ne, no, method)
                 rows.append({"scale": float(s_), "Hartree–Fock": x["e_hf"], "Exact (active space)": x["e_cas"], "VQE": x["e_vqe"]})
             except ValueError:
                 pass
             bar.progress((k + 1) / 8)
         bar.empty()
-        ss[f"{kp}_curve_rows"] = {"key": (name, ne, no), "rows": rows}
+        ss[f"{kp}_curve_rows"] = {"key": (name, ne, no, method), "rows": rows}
     cur = ss.get(f"{kp}_curve_rows")
-    if cur and cur["key"] == (name, ne, no) and cur["rows"]:
+    if cur and cur["key"] == (name, ne, no, method) and cur["rows"]:
         df = pd.DataFrame(cur["rows"])
         fig = go.Figure()
         for col, colr, dash in (("Hartree–Fock", T.MUTED, "dot"), ("Exact (active space)", T.INK, "solid"), ("VQE", T.ACCENT, "dash")):

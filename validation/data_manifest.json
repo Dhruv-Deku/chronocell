@@ -234,6 +234,21 @@
   "bytes": 20080720,
   "url": "https://raw.githubusercontent.com/BogdanBintu/ChromatinImaging/master/Data/K562_chr21-28-30Mb.csv"
  },
+ "data/encode/ENCFF018CAH.bed.gz": {
+  "sha256": "5494daeb9ccf620518f9c8e4fbae13638aa76dde6f1be60ad3321153e6be2d90",
+  "bytes": 895138,
+  "url": "https://www.encodeproject.org/files/ENCFF018CAH/@@download/ENCFF018CAH.bed.gz"
+ },
+ "data/encode/ENCFF019KLP.tsv": {
+  "sha256": "647984a333e15832aad908c4a3468775f351bb9abd5c3144837331e8ba36f92c",
+  "bytes": 10872705,
+  "url": "https://www.encodeproject.org/files/ENCFF019KLP/@@download/ENCFF019KLP.tsv"
+ },
+ "data/encode/ENCFF028IKO.bed.gz": {
+  "sha256": "0acc1dee8647363f03dd2b8f1c3e12c0ddbc2c67ca25169a8e72cdca58374813",
+  "bytes": 2820114,
+  "url": "https://www.encodeproject.org/files/ENCFF028IKO/@@download/ENCFF028IKO.bed.gz"
+ },
  "data/encode/ENCFF038DDS.bed.gz": {
   "sha256": "85681a36be22e5384db81e79d56f13c0e5d7a83d98033656e3225d676dcf1737",
   "bytes": 1298162,
@@ -244,15 +259,45 @@
   "bytes": 476667,
   "url": "https://www.encodeproject.org/files/ENCFF041XLP/@@download/ENCFF041XLP.bedpe.gz"
  },
+ "data/encode/ENCFF129GMS.bed.gz": {
+  "sha256": "d9b5ca3e0db2875808d7d0d3007bf09e548d956dc683be45f8bc876f092f1b61",
+  "bytes": 4317464,
+  "url": "https://www.encodeproject.org/files/ENCFF129GMS/@@download/ENCFF129GMS.bed.gz"
+ },
+ "data/encode/ENCFF136UBW.tsv": {
+  "sha256": "e5b75b2c844ed5669a5e7f0c1b89d00b92aeb858118589d45b8c4abfdc789893",
+  "bytes": 10880926,
+  "url": "https://www.encodeproject.org/files/ENCFF136UBW/@@download/ENCFF136UBW.tsv"
+ },
  "data/encode/ENCFF166QGX.bedpe.gz": {
   "sha256": "d8d861dcd257f9d38333e99f6929ba5ff2319f2b2cb82d36d673f5c5ad95f87c",
   "bytes": 414869,
   "url": "https://www.encodeproject.org/files/ENCFF166QGX/@@download/ENCFF166QGX.bedpe.gz"
  },
+ "data/encode/ENCFF171FQU.tsv": {
+  "sha256": "9badf422985d51e1f0816c3ac8eca5ed8f3e68b452e2037e40b724e185c14828",
+  "bytes": 10874690,
+  "url": "https://www.encodeproject.org/files/ENCFF171FQU/@@download/ENCFF171FQU.tsv"
+ },
  "data/encode/ENCFF178CSM.bed.gz": {
   "sha256": "624b91bf4a2ce10fcd7adf14733b6a2e826655bd3ec43f8f61730cf3e6ff96b6",
   "bytes": 1177743,
   "url": "https://www.encodeproject.org/files/ENCFF178CSM/@@download/ENCFF178CSM.bed.gz"
+ },
+ "data/encode/ENCFF230BCM.bed.gz": {
+  "sha256": "c4be03481aa3de3dd019bd50f49abe071802661ae213af565ed35149f9b66b95",
+  "bytes": 1601947,
+  "url": "https://www.encodeproject.org/files/ENCFF230BCM/@@download/ENCFF230BCM.bed.gz"
+ },
+ "data/encode/ENCFF247ZMO.bed.gz": {
+  "sha256": "6fe8146c22aa853338ed56cfdfc18e348d3f8b4cecff71a160a1704de6194c58",
+  "bytes": 4018754,
+  "url": "https://www.encodeproject.org/files/ENCFF247ZMO/@@download/ENCFF247ZMO.bed.gz"
+ },
+ "data/encode/ENCFF268IJX.tsv": {
+  "sha256": "f87c672345aa71f4eee00444d5ca73b62f5d38f16864573a0e3ee3ae510d3528",
+  "bytes": 10898245,
+  "url": "https://www.encodeproject.org/files/ENCFF268IJX/@@download/ENCFF268IJX.tsv"
  },
  "data/encode/ENCFF271SAF.bedpe.gz": {
   "sha256": "700f513953568c21b3c8683aae8fd515a66357df3f45147fea6baccb5ed5515e",
@@ -268,6 +313,11 @@
   "sha256": "f3af296ca5e2fe35e9719c924894813d78bdc14f42f57795e046a47ff4a6a07c",
   "bytes": 868329,
   "url": "https://www.encodeproject.org/files/ENCFF391AAM/@@download/ENCFF391AAM.bed.gz"
+ },
+ "data/encode/ENCFF413MYB.tsv": {
+  "sha256": "c7548cda4ef02abfd6e4421ea0e4b9d86927b9ecf02fdd4589831e5c1f45f56e",
+  "bytes": 10896032,
+  "url": "https://www.encodeproject.org/files/ENCFF413MYB/@@download/ENCFF413MYB.tsv"
  },
  "data/encode/ENCFF470EAN.bed.gz": {
   "sha256": "75565fdab146677b46972327309d2e4df8cd60c83acba1e986ec11c0a0df9700",
@@ -304,6 +354,11 @@
   "bytes": 761536,
   "url": "https://www.encodeproject.org/files/ENCFF624ZSR/@@download/ENCFF624ZSR.bed.gz"
  },
+ "data/encode/ENCFF639UBT.bed.gz": {
+  "sha256": "2e42a78d7159dce67c7d3ec647f5d532892e662f8037fcb4d6d9c6f331d63d9c",
+  "bytes": 4746937,
+  "url": "https://www.encodeproject.org/files/ENCFF639UBT/@@download/ENCFF639UBT.bed.gz"
+ },
  "data/encode/ENCFF670ULH.bed.gz": {
   "sha256": "5941d1232b84ca46dd573806cfa9a36c5333166dfe501ea85848d07958187ded",
   "bytes": 595548,
@@ -328,6 +383,11 @@
   "sha256": "39538408e50940dfc697b98b752f6213f657dda99e226728ddfbcc77e43e35bf",
   "bytes": 699619,
   "url": "https://www.encodeproject.org/files/ENCFF895JAW/@@download/ENCFF895JAW.bed.gz"
+ },
+ "data/encode/ENCFF910XWA.tsv": {
+  "sha256": "5dc04400665b7d2d38a4761a7b173394c39bf0d66384b207e641f98fd326b199",
+  "bytes": 10899054,
+  "url": "https://www.encodeproject.org/files/ENCFF910XWA/@@download/ENCFF910XWA.tsv"
  },
  "data/encode/ENCFF930WPG.bed.gz": {
   "sha256": "1e2858ea67f1d451005e50c6d898dec3ad7ce703c22f060f9fbe86a2619f7e29",
