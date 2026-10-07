@@ -1083,10 +1083,13 @@ def round2_practice() -> str:
                        f"{100 * v['success_classical']:.1f} % | {100 * v['success_random']:.1f} % | {100 * v['success_qaoa_unrefined']:.1f} % |")
         vh = q7.get("virtual_hydrogens")
         if vh:
+            same = q7.get("same_subset_given_hydrogens", {})
             out += ["", f"The chosen setting with the structures' hydrogens removed and virtual polar hydrogens added (as the "
-                        f"test structures need): QAOA route {100 * vh['success_qaoa']:.1f} %, classical cliques "
-                        f"{100 * vh['success_classical']:.1f} %, random search {100 * vh['success_random']:.1f} % "
-                        f"({vh['usable']} usable)."]
+                        f"test structures need), on the {vh['usable']} usable Q7-practice complexes: QAOA route "
+                        f"{100 * vh['success_qaoa']:.1f} %, classical cliques {100 * vh['success_classical']:.1f} %, random "
+                        f"search {100 * vh['success_random']:.1f} % (with the structures' own hydrogens: "
+                        f"{100 * same.get('success_qaoa', float('nan')):.1f} %, {100 * same.get('success_classical', float('nan')):.1f} %, "
+                        f"{100 * same.get('success_random', float('nan')):.1f} %)."]
         out += ["", f"Chosen: {q7.get('choice')}."]
     return "\n".join(out) if out else "_Round 2 practice: not run._"
 

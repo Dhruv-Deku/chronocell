@@ -419,3 +419,9 @@ Here: the nine windows Gate 6 had used (GM12878, K562, IMR-90), a grid over FDR 
 when the best sat at 0.01, the choice did not move), balancing (none, KR) and two optional post-filters (minimum donut
 enrichment 2.5 or 3.0; minimum cluster size 2), chromosight and Mustache run on the same windows. Choice by the worst
 cell line's margin over the better tool. **Frozen**: FDR 0.01, KR balancing, no post-filter.
+- **Q7b (docking).** On all 256 PoseBusters complexes of Q7 (239 usable): the Vina-like score (Trott & Olson's
+  intermolecular terms) alone, the best 10 or 30 poses refined (rigid body, Powell, 300 evaluations), or clique poses
+  seeding a local search with random search's budget; random search got the same score and refinement in every
+  variant. Refining 30 was stopped part-way: random search had already overtaken the clique routes at 10. Virtual polar
+  hydrogens (for structures deposited without them) were checked on the 43 Q7-practice complexes. **Frozen**: Vina-like
+  score, best 10 refined, QAOA p 5 with CVaR.
