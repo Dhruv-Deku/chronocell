@@ -691,6 +691,23 @@ def gate6() -> str:
     return "\n".join(out)
 
 
+def gate8_marks() -> str:
+    r = _load("results_gate8_marks_practice.json")
+    if not r:
+        return "_results_gate8_marks_practice.json: not run (python validation/drug_gate8.py --marks)._"
+    best = sorted(r["rows"], key=lambda x: x["perm_p"])[:6]
+    out = [f"Round-2 practice check (Gate 8's data, all seen): other IMR-90 marks as the drugs' targets, the simplest "
+           f"model (a pair changes with the two loci's mark coverage). {r['comparisons']} drug × allele × mark comparisons; "
+           f"{r['below_0.05']} had a permutation p ≤ 0.05 ({r['expected_below_0.05_by_chance']:.1f} expected by chance; "
+           "the comparisons overlap: the marks are correlated and every drug shares the untreated traces). Smallest p values:",
+           "", "| Drug | Allele | Mark | ρ | Permutation p |", "|---|---|---|---|---|"]
+    for x in best:
+        out.append(f"| {x['drug']} | {x['allele']} | {x['mark']} | {x['rho']:+.2f} | {x['perm_p']:.3f} |")
+    out += ["", "The directions differ by drug and would have to be fitted on these data; no fresh tracing after these drugs "
+                "exists to test such a model, so Gate 8 is not retested."]
+    return "\n".join(out)
+
+
 def gate6b() -> str:
     p = _load("results_gate6b_practice.json")
     r = _load("results_gate6b.json")
@@ -1057,10 +1074,12 @@ def round2_practice() -> str:
     q7 = _load("results_round2_practice_q7b.json")
     if q7:
         out += [f"Q7b practice ({q7['complexes']} PoseBusters complexes of Q7, all practice now; QAOA {q7['qaoa']}):", "",
-                "| Refined poses | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |",
+                "| Setting | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |",
                 "|---|---|---|---|---|---|"]
         for k, v in q7["grid"].items():
-            out.append(f"| {v['settings']['refine_top']} | {v['usable']} | {100 * v['success_qaoa']:.1f} % | "
+            lab = (f"clique poses seed a local search ({v['settings']['seeded']} seeds), {v['settings']['refine_top']} refined"
+                   if v["settings"].get("seeded") else f"{v['settings']['refine_top']} poses refined")
+            out.append(f"| {lab} | {v['usable']} | {100 * v['success_qaoa']:.1f} % | "
                        f"{100 * v['success_classical']:.1f} % | {100 * v['success_random']:.1f} % | {100 * v['success_qaoa_unrefined']:.1f} % |")
         vh = q7.get("virtual_hydrogens")
         if vh:
@@ -1189,7 +1208,8 @@ BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "g
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy, "gateq_practice": gateq_practice,
           "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q, "gate8": gate8,
           "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd,
-          "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2, "gate6b": gate6b}
+          "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2, "gate6b": gate6b,
+          "gate8_marks": gate8_marks}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 

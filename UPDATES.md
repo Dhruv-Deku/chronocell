@@ -879,3 +879,11 @@ the data its test had used (now practice), a rule committed before new test data
   far from the ground state. A real limit of the method; molecules are not re-tested again.
 - **App options from the passes** (defaults unchanged): the Analysis page's loop calling can use Gate 6b's setting
   (FDR 0.01), and the Quantum lab's domain-wall panel can load Q2b's settings.
+- **Not retested, and why.** *Gate 8* (Drug lab vs drug-treated cells): a practice check of other chromatin marks
+  (ENCODE IMR-90 H3K27me3, H3K9me3, H3K4me3, H3K36me3, H3K4me1, H3K9ac) as the drugs' targets on Gate 8's data
+  (`results_gate8_marks_practice.json`) found more agreements than chance alone would give, but small ones, in
+  directions that differ by drug and would have to be fitted on these very data; no fresh tracing after these drugs
+  exists to test such a model (the only drug-treated tracing that matches a Drug lab class is one compound, A-485, a
+  p300/CBP inhibitor, at the mouse Sox2 locus, 4DN). Gate 8 stays a fail and the Drug lab stays a mechanism simulator. *Gates 1c, 2d, 2e,
+  5b* (Phase A) need new modelling (nanometre scale from Hi-C, per-band intervals, per-pair reliability, cohesin-peak
+  prediction) and new held-out imaging data; they are left for later. *Gate 4d* stays blocked (no third event).

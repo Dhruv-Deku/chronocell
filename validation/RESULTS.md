@@ -1278,6 +1278,21 @@ Drug guide shows the result. The test covered one 840 kb region in one cell line
 genome would not show here.
 
 
+<!-- BEGIN generated:gate8_marks -->
+Round-2 practice check (Gate 8's data, all seen): other IMR-90 marks as the drugs' targets, the simplest model (a pair changes with the two loci's mark coverage). 70 drug × allele × mark comparisons; 11 had a permutation p ≤ 0.05 (3.5 expected by chance; the comparisons overlap: the marks are correlated and every drug shares the untreated traces). Smallest p values:
+
+| Drug | Allele | Mark | ρ | Permutation p |
+|---|---|---|---|---|
+| TSA + NaBu (HDAC inhibitors) | Xa | h3k4me1 | -0.33 | 0.005 |
+| alpha-amanitin (transcription inhibitor) | Xa | h3k36me3 | -0.18 | 0.010 |
+| alpha-amanitin (transcription inhibitor) | Xa | h3k4me1 | -0.19 | 0.010 |
+| DMOG (demethylase blocker) | Xa | h3k4me3 | +0.37 | 0.020 |
+| DMOG (demethylase blocker) | Xi | h3k36me3 | +0.28 | 0.020 |
+| DMOG (demethylase blocker) | Xa | h3k36me3 | +0.34 | 0.025 |
+
+The directions differ by drug and would have to be fitted on these data; no fresh tracing after these drugs exists to test such a model, so Gate 8 is not retested.
+<!-- END generated:gate8_marks -->
+
 ## Gates Q5–Q7 — quantum drug tabs: heart safety, molecules, docking (pre-registered)
 
 Three drug-focused quantum tabs, each tested on held-out data against classical methods on the same input
@@ -1448,10 +1463,10 @@ Chosen: {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 100} (the operator c
 
 Q7b practice (256 PoseBusters complexes of Q7, all practice now; QAOA {'p': 5, 'objective': 'cvar'}):
 
-| Refined poses | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |
+| Setting | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |
 |---|---|---|---|---|---|
-| 0 | 239 | 10.0 % | 10.5 % | 11.3 % | 10.0 % |
-| 10 | 239 | 34.7 % | 33.9 % | 52.3 % | 10.0 % |
+| 0 poses refined | 239 | 10.0 % | 10.5 % | 11.3 % | 10.0 % |
+| 10 poses refined | 239 | 34.7 % | 33.9 % | 52.3 % | 10.0 % |
 
 Chosen: None.
 <!-- END generated:round2_practice -->

@@ -219,13 +219,71 @@ def run_test() -> dict:
     return out
 
 
+MARKS = {   # IMR-90 ENCODE replicated peaks (GRCh38), MD5 from the portal: round-2 practice check of other targets
+    "h3k27me3": ("ENCFF247ZMO", "459a641ec019129a9c1614402afd1541"), "h3k9me3": ("ENCFF028IKO", "0b24230c339192887d7611b7a45fc9c9"),
+    "h3k4me3": ("ENCFF018CAH", "8a45fc9a7d6168c10dd118c345cc1571"), "h3k36me3": ("ENCFF639UBT", "abad46c9a0fef3c3aff3d292e465c680"),
+    "h3k4me1": ("ENCFF129GMS", "4c59a24e577c2e40e4f06c886d81a979"), "h3k9ac": ("ENCFF230BCM", "4b12ce23788fa74b242f9cc951c047be")}
+
+
+def mark_track(acc: str, md5: str, loci: np.ndarray, width: int = 30_000) -> np.ndarray:
+    p = D.fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz", D.DATA / "encode" / f"{acc}.bed.gz", md5)
+    sig = np.zeros(len(loci))
+    with gzip.open(p, "rt") as fh:
+        for ln in fh:
+            f = ln.split("	")
+            if f[0] != "chrX":
+                continue
+            a, b, v = int(f[1]), int(f[2]), float(f[6])
+            for k, s0 in enumerate(loci):
+                ov = min(b, s0 + width) - max(a, s0)
+                if ov > 0:
+                    sig[k] += v * ov / (b - a)
+    return sig
+
+
+def practice_marks() -> dict:
+    """Round 2, practice only (Gate 8's data, all seen): would another mark make a better target? For each drug, allele
+    and mark, Spearman rho between the measured change and the simplest mark model (pair change ~ z_i + z_j of the
+    mark's z-scored coverage), with a permutation p (200 shuffles of the mark across loci, two-sided)."""
+    from scipy.stats import spearmanr
+    un = load("untreated")
+    loci = un["Xa"][1]
+    tracks = {m: mark_track(*MARKS[m], loci) for m in MARKS}
+    tracks["h3k27ac"] = h3k27ac(loci)
+    iu = np.triu_indices(len(loci), 1)
+    rng = np.random.default_rng(0)
+    pair = lambda z: (z[:, None] + z[None, :])[iu]                     # noqa: E731
+    rows = []
+    for cond in TEST_DRUGS + [PRACTICE_DRUG]:
+        t = load(cond)
+        for allele in ("Xa", "Xi"):
+            m = measured(un[allele][0], t[allele][0])
+            for mk, sgl in tracks.items():
+                z = (sgl - sgl.mean()) / (sgl.std() or 1)
+                r = float(spearmanr(pair(z), m, nan_policy="omit").statistic)
+                perm = [abs(float(spearmanr(pair(rng.permutation(z)), m, nan_policy="omit").statistic)) for _ in range(PERM)]
+                rows.append({"drug": cond, "allele": allele, "mark": mk, "rho": r,
+                             "perm_p": float((np.sum(np.array(perm) >= abs(r)) + 1) / (PERM + 1))})
+    ps = np.array([x["perm_p"] for x in rows])
+    out = {"made": _now(), "comparisons": len(rows), "loci_marked": {k: int((v > 0).sum()) for k, v in tracks.items()},
+           "below_0.05": int((ps <= 0.05).sum()), "expected_below_0.05_by_chance": 0.05 * len(rows),
+           "smallest_p": float(ps.min()), "rows": rows}
+    (ROOT / "results_gate8_marks_practice.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+    print({k: out[k] for k in ("comparisons", "below_0.05", "expected_below_0.05_by_chance", "smallest_p")}, flush=True)
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--practice", action="store_true")
     g.add_argument("--test", action="store_true")
+    g.add_argument("--marks", action="store_true", help="round-2 practice check of other marks as targets")
     a = ap.parse_args()
-    run_practice() if a.practice else run_test()
+    if a.marks:
+        practice_marks()
+    else:
+        run_practice() if a.practice else run_test()
 
 
 if __name__ == "__main__":
