@@ -954,6 +954,26 @@ Verdict: **fail**.
 - **In the app** the analysis suite is labelled with this result; loop calls are offered as an analysis, not as a
   validated detector.
 
+## Gate 6b — loop calls again: settings chosen on three cell lines, tested on two new ones (pre-registered)
+
+Gate 6 chose ChronoCell's loop-calling settings on three GM12878 windows and failed on K562 (too many calls: precision
+0.30). Gate 6b (`validation/loops_gate6b.py`; rule `LOOPS_GATE6B` in `validation/frozen.py`): the same caller, its
+settings re-chosen on all nine windows Gate 6 had used, with two optional post-filters in the grid; chromosight and
+Mustache run on the same windows; test on HMEC and HAP-1 (ENCODE in situ Hi-C, HiCCUPS loops called on the same maps),
+three 10 Mb windows each. Gate 6's result above stands.
+
+<!-- BEGIN generated:gate6b -->
+Practice (nine windows: GM12878, K562, IMR-90; 84 settings). Chosen: {'fdr': 0.01, 'balance': 'kr', 'min_oe': 0.0, 'min_cluster': 1}.
+
+| Cell line | ChronoCell calls | Reference | Matched | Precision | Recall | F1 | chromosight F1 | Mustache F1 |
+|---|---|---|---|---|---|---|---|---|
+| gm12878 | 27 | 60 | 25 | 0.926 | 0.417 | 0.575 | 0.537 | 0.539 |
+| k562 | 200 | 156 | 90 | 0.450 | 0.577 | 0.506 | 0.390 | 0.486 |
+| imr90 | 118 | 154 | 104 | 0.881 | 0.675 | 0.765 | 0.420 | 0.474 |
+
+_results_gate6b.json: not run (python validation/loops_gate6b.py --test)._
+<!-- END generated:gate6b -->
+
 ## Gate 7 — false-discovery control of the differential analysis (Phase B2)
 
 **Question.** On real replicate maps with no biological difference, plus changes planted at known pixels,
@@ -1381,7 +1401,7 @@ original results above stay as they are; a round-2 pass does not turn an earlier
 Practice (`validation/TUNING.md` §21):
 
 <!-- BEGIN generated:round2_practice -->
-Q2b practice: 480 QUBO settings, exact optimum on the nine seen windows (GM12878, K562, IMR-90). Chosen: {'res': 60000, 'min_size': 3, 'gamma': 5.0, 'boundary_cost': 0.25, 'weight': 'log'}. F1 of the QUBO / better classical caller (tuned on the same windows, same resolution): gm12878 0.358 / 0.311; k562 0.464 / 0.393; imr90 0.481 / 0.387. Classical settings: {'insulation': [2, 0.15], 'topdom': [3]}.
+Q2b practice: 672 QUBO settings, exact optimum on the nine seen windows (GM12878, K562, IMR-90). Chosen: {'res': 60000, 'min_size': 3, 'gamma': 5.0, 'boundary_cost': 0.25, 'weight': 'log'}. F1 of the QUBO / better classical caller (tuned on the same windows, same resolution): gm12878 0.358 / 0.311; k562 0.464 / 0.393; imr90 0.481 / 0.387. Classical settings: {'insulation': [2, 0.15], 'topdom': [3]}.
 
 Q4b practice: 867 genes (gm12878 106, k562 381, imr90 380); ENCODE RNA-seq labels agree with Q4's GTEx labels for gm12878 89 %, imr90 61 % of genes. Leave-one-cell-line-out AUC:
 
@@ -1437,6 +1457,19 @@ Q6b (11 cases never run before; settings {'pool': 'gsd', 'grad_tol': 0.001, 'max
 Q6b: **fail**: ADAPT-VQE within chemical accuracy in 10 of 11 (worst 2.465 mHa); fixed-order UCCSD in 2 of 11.
 
 Found after the test (not part of the verdict): LiH at 3.0x: the sector's lowest state is a triplet (S(S+1) 2.0), 2.465 mHa below the lowest singlet; ADAPT-VQE is -0.0001 mHa from that singlet. Against the lowest singlet, ADAPT-VQE is within chemical accuracy in 11 of 11 cases, fixed-order UCCSD in 3. The app now reports the spin of the exact state and the lowest singlet next to it.
+
+Q4b (trained on 867 genes of GM12878, K562 and IMR-90; tested on 489 HMEC genes, 45 % active):
+
+| Classifier | Test AUC (95 % interval) |
+|---|---|
+| Quantum-kernel SVM (simulated) | 0.586 [0.537, 0.636] |
+| RBF-kernel SVM (classical) | 0.575 [0.525, 0.624] |
+| Logistic regression (classical) | 0.572 [0.524, 0.626] |
+| Quantum-kernel SVM, kernel from 1,000 shots per entry | 0.513 |
+
+Quantum minus RBF +0.011 [-0.004, 0.027].
+
+Q4b: **pass** (needed: within 0.03 of the RBF-SVM, lower bound above 0.5).
 <!-- END generated:round2 -->
 
 Summary:
@@ -1444,6 +1477,7 @@ Summary:
 <!-- BEGIN generated:summary_r2 -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
+| Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
 <!-- END generated:summary_r2 -->
 

@@ -417,3 +417,35 @@ QUANTUM_ROUND2["q6c"] = {"settings": {"pool": "gsd", "grad_tol": 1e-3, "max_oper
                                    ["HCN", 2.2, [6, 6]], ["H2O", 1.8, [8, 6]], ["NH3", 2.5, [6, 6]],
                                    ["CH2O", 2.2, [6, 6]], ["HF", 3.5, [6, 4]], ["LiH", 2.5, [2, 4]], ["LiH", 4.0, [2, 4]],
                                    ["CH4", 2.0, [4, 4]]]}
+
+# Gate 6b (loop calls; validation/loops_gate6b.py). Pre-registered after results_gate6b_practice.json and before any
+# HMEC or HAP-1 loop file or window of the test regions was read. Gate 6 (fail) stays as it is. Practice: the nine
+# windows already used (GM12878 practice, K562 and IMR-90 test windows of Gate 6); grid FDR x balancing x minimum donut
+# enrichment x minimum cluster size (FDR widened once when the best sat at 0.01, the edge); chromosight and Mustache run
+# on the same windows. Choice (largest worst-cell margin over the better tool): FDR 0.01, KR balancing, no extra
+# filter: F1 0.575 / 0.506 / 0.765 (GM12878 / K562 / IMR-90) against the better tool's 0.539 / 0.486 / 0.474.
+# Test: HMEC (map ENCFF943JRY, HiCCUPS loops ENCFF999UXN) and HAP-1 (ENCFF898HRO, ENCFF557WIU), three 10 Mb windows
+# each that no other round-2 test reads. Pass (Gate 6's rule): on BOTH, ChronoCell's F1 >= the higher of chromosight's
+# and Mustache's.
+LOOPS_GATE6B = {"choice": {"fdr": 0.01, "balance": "kr", "min_oe": 0.0, "min_cluster": 1}, "tolerance_bp": 25_000,
+                "min_sep": 30_000, "max_sep": 2_000_000, "res": 10_000, "window": 10_000_000,
+                "test": {"hmec": [("chr5", 100_000_000), ("chr12", 60_000_000), ("chr17", 40_000_000)],
+                         "hap1": [("chr5", 100_000_000), ("chr12", 60_000_000), ("chr17", 40_000_000)]},
+                "tools": {"chromosight": "1.6.3", "mustache": "1.3.3"}}
+# Q2b (domains; pre-registered after results_round2_practice_q2b.json, before any HMEC or HAP-1 domain file was read;
+# the HMEC Hi-C counts of the same six regions are read by the Q4b test, which runs first and uses no domain call).
+# Practice: the domain QUBO's exact optimum on the nine seen windows (GM12878, K562, IMR-90) for 672 settings (gamma
+# widened once to 6 and 8 when the first run's best sat at 5.0, the edge; the choice did not move), the classical
+# callers' grids on the same windows at the same resolution (each tuned jointly over the three cell lines). Choice
+# (largest worst-cell margin): 60 kb bins, minimum domain 3 bins, gamma 5.0, boundary cost 0.25, log weights; F1
+# 0.358 / 0.464 / 0.481 against the better classical caller's 0.311 / 0.393 / 0.387 (insulation window 2, depth 0.15;
+# TopDom-like window 3). QAOA as Gate Q (p 3, expectation objective, 4,096 shots, 80 COBYLA iterations per depth).
+# Test: HMEC and HAP-1, six 10 Mb regions each (chr1, chr2, chr3, chr4, chr7:100-110 Mb, chr11:60-70 Mb), reference
+# ENCODE Arrowhead domains called on each map. Pass (Q2's rule): on BOTH, F1 of QAOA's best-shot boundaries >= the
+# higher F1 of the two classical callers - 0.05. Reported: QAOA's hit rate on the windows, the exact optimum's F1.
+QUANTUM_ROUND2["q2b"] = {"tad": {"res": 60_000, "min_size": 3, "gamma": 5.0, "boundary_cost": 0.25, "weight": "log"},
+                         "qaoa": {"p": 3, "objective": "expectation"}, "noise": {"p1": 1e-3, "p2": 1e-2, "readout": 2e-2},
+                         "classical": {"insulation": [2, 0.15], "topdom": [3]}, "margin": 0.05,
+                         "test_cells": ["hmec", "hap1"],
+                         "test_regions": [["chr1", 100_000_000], ["chr2", 100_000_000], ["chr3", 100_000_000],
+                                          ["chr4", 100_000_000], ["chr7", 100_000_000], ["chr11", 60_000_000]]}

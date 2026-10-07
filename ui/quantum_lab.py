@@ -83,6 +83,26 @@ def standing(parts: tuple[str, ...] | None = None) -> None:
            ". Details in validation/RESULTS.md.", "info" if all(r["overall"].get(k, False) for k in parts) else "warn")
 
 
+R2_LABEL = {"q2b": "Q2b domain calls, new cell lines", "q4b": "Q4b gene classifier, new cell line",
+            "q6b": "Q6b ADAPT-VQE, new molecules", "q6c": "Q6c ADAPT-VQE vs the lowest singlet, new molecules",
+            "q7b": "Q7b docking with refinement, Astex set"}
+
+
+def round2_standing(parts: tuple[str, ...]) -> None:
+    """Round 2 retests (validation/results_round2.json): shown only for the parts that have been run."""
+    p = VALIDATION / "results_round2.json"
+    try:
+        r = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    except (OSError, ValueError):
+        r = {}
+    done = [k for k in parts if k in r and "pass" in r[k]]
+    if not done:
+        return
+    items = [f"{R2_LABEL[k]}: <b>{'pass' if r[k]['pass'] else 'fail'}</b>" for k in done]
+    banner("<b>Round 2</b> (new method, new held-out data; the original verdict above stands): " + " · ".join(items) +
+           ".", "info" if all(r[k]["pass"] for k in done) else "warn")
+
+
 def _layout(height: int, **kw) -> dict:
     return T.plot_layout(height, **kw)
 
@@ -229,6 +249,7 @@ def tad_panel(ds: Dataset, lo: int, hi: int, kp: str = "qtad") -> None:
     if contacts_are_synthetic(ds):
         banner("Input is the <b>SYNTHETIC</b> reference contact map: the calls illustrate the method only.", "warn")
     standing(("q1", "q2"))
+    round2_standing(("q2b",))
     fz = frozen_settings() or {}
     tad_set = fz.get("tad", {"res": 50_000, "min_size": 3, "gamma": 1.5, "boundary_cost": 0.0, "weight": "difference"})
     res = int(ds.chrom.resolution)
@@ -550,6 +571,7 @@ def qsvm_panel(tab: pd.DataFrame | None, kp: str = "qsvm") -> None:
          '(the overlap of their circuits\' states) becomes the kernel of a support-vector machine. A classical '
          'RBF-kernel SVM and logistic regression learn from the same genes.</p>')
     standing(("q4",))
+    round2_standing(("q4b",))
     if tab is None or "expression" not in tab.columns or tab["expression"].notna().sum() < 30:
         html('<p class="cc-note">Needs measured expression for at least 30 genes in view (Genes → "Add measured '
              'expression", or a state\'s RNA-seq file). Gate Q4 tested the method on GM12878 → IMR-90 Hi-C features.</p>')
@@ -981,6 +1003,7 @@ def molecules_panel(kp: str = "qmol") -> None:
          "qubits and runs <b>VQE</b> on them. The exact answer in the same space (FCI) is the reference. The integrals were "
          "checked against textbook values and against OpenFermion's independent reference data.</p>")
     _drug_standing("q6", "Molecule energies (Q6)")
+    round2_standing(("q6b", "q6c"))
     names = [n for n in MO.LIBRARY if n != "H2"]
     c1, c2, c3 = st.columns(3)
     name = c1.selectbox("Molecule", names, index=names.index("CH2O"), key=f"{kp}_name",
@@ -1130,6 +1153,7 @@ def docking_panel(kp: str = "qdock") -> None:
          "Examples: 256 drug–protein complexes from the PoseBusters benchmark (downloaded on demand, 37 MB, MD5-checked); "
          "the drug is re-docked into its own pocket.</p>")
     _drug_standing("q7", "Docking (Q7)")
+    round2_standing(("q7b",))
     if f"{kp}_ids" not in ss and not st.button("Load the PoseBusters examples", key=f"{kp}_load"):
         return
     try:

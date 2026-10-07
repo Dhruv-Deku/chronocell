@@ -600,6 +600,12 @@ def _phase_ab_rows() -> list[str]:
                     + "; ".join(f"{c}: F1 {v['chronocell']['f1']:.2f} (chromosight {v['chromosight'].get('f1', float('nan')):.2f}, "
                                 f"Mustache {v['mustache'].get('f1', float('nan')):.2f})" for c, v in r["sets"].items())
                     + f" | {r['verdict']} |")
+    r = _load("results_gate6b.json")
+    if r:
+        rows.append("| Gate 6b: loop calls, settings re-chosen on three cell lines, two new cell lines | "
+                    + "; ".join(f"{c}: F1 {v['chronocell']['f1']:.2f} (chromosight {v['chromosight'].get('f1', float('nan')):.2f}, "
+                                f"Mustache {v['mustache'].get('f1', float('nan')):.2f})" for c, v in r["sets"].items())
+                    + f" | {r['verdict']} |")
     r = _load("results_gate7.json")
     if r:
         rows.append(f"| Gate 7: false discoveries of the differential analysis (real replicates + planted changes) | "
@@ -673,6 +679,36 @@ def gate6() -> str:
             "cell lines (reference: ENCODE HiCCUPS calls on the same maps).", "",
             "| Cell line | Method | Calls | Reference loops | Matched | Precision | Recall | F1 |",
             "|---|---|---|---|---|---|---|---|"]
+    for cell, v in r["sets"].items():
+        for tool in ("chronocell", "chromosight", "mustache"):
+            m = v.get(tool, {})
+            if "f1" not in m:
+                out.append(f"| {cell} | {tool} | — | — | — | — | — | {m.get('status', 'not run')} |")
+                continue
+            out.append(f"| {cell} | {tool} | {m['calls']} | {m['reference']} | {m['matched']} | {m['precision']:.3f} | "
+                       f"{m['recall']:.3f} | {m['f1']:.3f} |")
+    out += ["", f"Verdict: **{r['verdict']}**."]
+    return "\n".join(out)
+
+
+def gate6b() -> str:
+    p = _load("results_gate6b_practice.json")
+    r = _load("results_gate6b.json")
+    out = []
+    if p:
+        b = p["choice_scores"]
+        out += [f"Practice (nine windows: GM12878, K562, IMR-90; {len(p['grid'])} settings). Chosen: {p['choice']}.", "",
+                "| Cell line | ChronoCell calls | Reference | Matched | Precision | Recall | F1 | chromosight F1 | Mustache F1 |",
+                "|---|---|---|---|---|---|---|---|---|"]
+        for c, m in b["detail"].items():
+            t = p["tools"][c]
+            out.append(f"| {c} | {m['calls']} | {m['reference']} | {m['matched']} | {m['precision']:.3f} | {m['recall']:.3f} | "
+                       f"{m['f1']:.3f} | {_f(t['chromosight'].get('f1'))} | {_f(t['mustache'].get('f1'))} |")
+        out.append("")
+    if not r:
+        return "\n".join(out + ["_results_gate6b.json: not run (python validation/loops_gate6b.py --test)._"])
+    out += ["Test (run once; HMEC and HAP-1, three new windows each):", "",
+            "| Cell line | Method | Calls | Reference loops | Matched | Precision | Recall | F1 |", "|---|---|---|---|---|---|---|---|"]
     for cell, v in r["sets"].items():
         for tool in ("chronocell", "chromosight", "mustache"):
             m = v.get(tool, {})
@@ -1085,6 +1121,7 @@ def round2() -> str:
                 f"| RBF-kernel SVM (classical) | {q['auc']['rbf']:.3f}{_ci(ci['rbf'], 3)} |",
                 f"| Logistic regression (classical) | {q['auc']['logistic']:.3f}{_ci(ci['logistic'], 3)} |",
                 f"| Quantum-kernel SVM, kernel from 1,000 shots per entry | {q['qsvm_auc_with_shots']:.3f} |", "",
+                f"Quantum minus RBF {q['auc']['qsvm'] - q['auc']['rbf']:+.3f}{_ci(ci['qsvm_minus_rbf'], 3)}.", "",
                 f"Q4b: **{'pass' if q['pass'] else 'fail'}** (needed: within {q['rule']['margin']} of the RBF-SVM, lower bound "
                 "above 0.5).", ""]
     if "q2b" in r:
@@ -1152,7 +1189,7 @@ BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "g
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy, "gateq_practice": gateq_practice,
           "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q, "gate8": gate8,
           "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd,
-          "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2}
+          "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2, "gate6b": gate6b}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 

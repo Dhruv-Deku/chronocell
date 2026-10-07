@@ -374,6 +374,11 @@
   "bytes": 3047341,
   "url": "https://www.encodeproject.org/files/ENCFF730BVO/@@download/ENCFF730BVO.bed.gz"
  },
+ "data/encode/ENCFF798WGM.tsv": {
+  "sha256": "e25d714133be2dd8afa716de513696b5c581a7fc2e675cf14cec58aab845146a",
+  "bytes": 10899266,
+  "url": "https://www.encodeproject.org/files/ENCFF798WGM/@@download/ENCFF798WGM.tsv"
+ },
  "data/encode/ENCFF853VVI.bed.gz": {
   "sha256": "dc159291cabb64af8a8594c009bf1952423b621d40585f2ca8351c2e1b669d96",
   "bytes": 1053266,
@@ -728,6 +733,36 @@
   "sha256": "e29ca953864a2e0c4f0b5cdc484aefbf0ca9736fa11a3bc5d185ac76ac479fe0",
   "bytes": 352072,
   "url": "https://www.encodeproject.org/files/ENCFF256UOW/@@download/ENCFF256UOW.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr11_60000000_70000000_10000.npz": {
+  "sha256": "4b8949431c9418ce0e7712a253460e87d4fc6dd5cde77c8a065726eae07e39d7",
+  "bytes": 595704,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr1_100000000_110000000_10000.npz": {
+  "sha256": "da0d8a003a24b681858713d09c3141b70f3662b869bf71c68a61ce1e983c1de1",
+  "bytes": 634318,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr2_100000000_110000000_10000.npz": {
+  "sha256": "7652419b34ce64e3babb64896e5be97a2642a02d1c61f5cde2d545fe16d9fe11",
+  "bytes": 638584,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr3_100000000_110000000_10000.npz": {
+  "sha256": "0c26cb908988d6dfd8c5cb816af7e2235a49e63c8f00aa78699bed4a3de9363c",
+  "bytes": 683230,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr4_100000000_110000000_10000.npz": {
+  "sha256": "284bf784c2dfafd397fcd8b2ee288ca717697f2921b83a6fb15fb3b8c687d57a",
+  "bytes": 676430,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
+ },
+ "data/hic_cache/encode_loops_hmec_chr7_100000000_110000000_10000.npz": {
+  "sha256": "36643e863ff4790d9fc3ac80dfd98bb12c74c8d80b82014c124e1d0752a35df1",
+  "bytes": 595207,
+  "url": "https://www.encodeproject.org/files/ENCFF943JRY/@@download/ENCFF943JRY.hic"
  },
  "data/hic_cache/encode_loops_imr90_chr11_60000000_70000000_10000.npz": {
   "sha256": "3dbd4243cf7415d374023ce9213952fc90c3a737b6c3dff0a1b47cc7cac6a8ce",

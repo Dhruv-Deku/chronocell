@@ -404,3 +404,18 @@ Tables generated in `RESULTS.md` (block `round2_practice`). The data of the fail
   run's best values sat at their edges. **Frozen**: seven features; QSVM bandwidth 0.005, 1 repetition, C 10,000;
   RBF-SVM gamma 0.0005, C 10,000 (both still at the edge where C and the kernel width trade off; the AUC moves in the
   third decimal there).
+- **Q2b (domains).** Gate Q's domain settings were chosen on three GM12878 windows holding 41 reference boundaries
+  and called too few boundaries on the test cell lines (recall 0.14-0.17). Here: every setting's exact optimum on all
+  nine windows already seen (GM12878, K562, IMR-90), 672 settings (resolution 40-80 kb, minimum domain 2-4 bins, gamma,
+  boundary cost, difference or log weights; gamma widened once when the best sat at 5.0, without moving the choice);
+  the classical callers re-tuned on the same windows at each resolution (insulation: window and depth; TopDom-like:
+  window), jointly over the three cell lines. Choice by the worst cell line's margin over the better classical caller.
+  **Frozen**: 60 kb, minimum 3 bins, gamma 5.0, boundary cost 0.25, log weights; insulation (2, 0.15); TopDom-like 3.
+
+## 22. Gate 6b (loop calls): settings chosen on practice data
+
+Gate 6 chose FDR 0.2 with KR balancing on three GM12878 windows; on K562 that made 315 calls for 156 reference loops.
+Here: the nine windows Gate 6 had used (GM12878, K562, IMR-90), a grid over FDR (0.001-0.2; the lower end added once
+when the best sat at 0.01, the choice did not move), balancing (none, KR) and two optional post-filters (minimum donut
+enrichment 2.5 or 3.0; minimum cluster size 2), chromosight and Mustache run on the same windows. Choice by the worst
+cell line's margin over the better tool. **Frozen**: FDR 0.01, KR balancing, no post-filter.
