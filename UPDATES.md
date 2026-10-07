@@ -887,3 +887,14 @@ the data its test had used (now practice), a rule committed before new test data
   p300/CBP inhibitor, at the mouse Sox2 locus, 4DN). Gate 8 stays a fail and the Drug lab stays a mechanism simulator. *Gates 1c, 2d, 2e,
   5b* (Phase A) need new modelling (nanometre scale from Hi-C, per-band intervals, per-pair reliability, cohesin-peak
   prediction) and new held-out imaging data; they are left for later. *Gate 4d* stays blocked (no third event).
+- **Q7b (docking), fail, as practice predicted.** With a Vina-like score and pose refinement the docking pipeline got
+  much better: on the 85 complexes of the Astex Diverse set (never used) the QAOA route placed 35 % of ligands within
+  2 A, against 5.5 % in Q7's test, and QAOA found the best clique in 95 % of graphs. But random search with the same
+  score and the same refinement placed 58 %: once the score is reasonable, poses built from clique matches are worse
+  starting points than many random placements around the site. Q7's earlier pass came from a crude score that also
+  handicapped random search. The Docking tab's *Polish* button shows both side by side.
+
+**Round 2 in one line.** Passed on new data: Q2b (domains), Q4b (genes, weakly), Gate 6b (loops). Failed: Q6b and
+Q6c (molecules: 10 of 11 and 9 of 12; ADAPT-VQE stalls on nearly broken bonds), Q7b (docking: the quantum route loses
+to random search). Not retested: Gate 8, Gates 1c / 2d / 2e / 5b, Gate 4d (reasons above). Every original verdict
+stands.
