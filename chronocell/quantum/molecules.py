@@ -479,6 +479,32 @@ def fci(qm: QubitModel) -> float:
     return float(np.linalg.eigvalsh(Hs)[0])
 
 
+def spin_squared(qm: QubitModel):
+    """Total spin S^2 = S+ S- + Sz^2 - Sz as a sparse matrix (S+ = sum_k a+_{k,up} a_{k,down})."""
+    a = qm.ops
+    ad = [x.T.tocsr() for x in a]
+    Sp = sum(ad[2 * k] @ a[2 * k + 1] for k in range(qm.n_qubits // 2))
+    return (Sp @ Sp.T + qm.Sz @ qm.Sz - qm.Sz).tocsr()
+
+
+def fci_states(qm: QubitModel, k: int = 6) -> list[tuple[float, float]]:
+    """The k lowest states of the electron-number / Sz = 0 sector as (energy, S(S+1)). The lowest state of the sector,
+    which `fci` returns, can be a triplet at stretched geometries; a VQE started from a closed-shell determinant with
+    spin-conserving excitations targets the lowest singlet (Round 2, Q6b post hoc)."""
+    sec = sector(qm)
+    w, V = np.linalg.eigh(qm.H[sec][:, sec].toarray())
+    S2 = spin_squared(qm)[sec][:, sec]
+    return [(float(w[i]), float(V[:, i] @ (S2 @ V[:, i]))) for i in range(min(k, len(w)))]
+
+
+def fci_singlet(qm: QubitModel) -> float:
+    """Energy of the lowest singlet (S^2 = 0) of the sector."""
+    for e, s2 in fci_states(qm, 2 ** qm.n_qubits):
+        if abs(s2) < 1e-3:
+            return e
+    return float("nan")
+
+
 def uccsd_generators(qm: QubitModel) -> list:
     """Anti-Hermitian generators T - T^dagger (sparse) of spin-conserving singles and doubles from the HF state."""
     a = qm.ops
@@ -669,6 +695,8 @@ class MoleculeResult:
     vqe: VQEResult | None
     seconds: float
     labels: list
+    lowest_spin: float = float("nan")      # S(S+1) of the sector's lowest state (0 singlet, 2 triplet)
+    e_singlet: float = float("nan")        # lowest singlet of the active space (what a closed-shell VQE targets)
 
 
 ADAPT_SETTINGS = {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 150}   # as frozen for Gate Q6b (validation/frozen.py)
@@ -689,5 +717,6 @@ def run(name: str, atoms: list | None = None, charge: int = 0, active: tuple = (
     v = (adapt_vqe(qm, **ADAPT_SETTINGS) if method == "adapt" else vqe_uccsd(qm)) if do_vqe else None
     e_cas = v.fci if v is not None else fci(qm)
     gap = float(hf.eps[hf.n_occ] - hf.eps[hf.n_occ - 1]) if hf.n_occ < len(hf.eps) else float("nan")
+    states = fci_states(qm, 1)
     return MoleculeResult(name, atoms, len(ints.S), hf.energy, hf.converged, gap, hf.eps, active, qm.n_qubits, e_cas, v,
-                          time.perf_counter() - t0, ints.labels)
+                          time.perf_counter() - t0, ints.labels, states[0][1], fci_singlet(qm))

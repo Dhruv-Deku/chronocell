@@ -84,6 +84,21 @@ def test_adapt_vqe_pool_gradients_and_accuracy():
     assert abs(MO.vqe_uccsd(qm).error) > MO.CHEMICAL_ACCURACY       # the fixed-order circuit misses it here
 
 
+def test_sector_ground_state_spin_and_lowest_singlet():
+    """Q6b post hoc: stretched LiH's lowest state in the N = 2, Sz = 0 sector is a triplet; a closed-shell VQE reaches
+    the lowest singlet, which fci_singlet reports. At equilibrium the two coincide."""
+    ints = MO.integrals(MO.LIBRARY["LiH"][1](3.0))
+    qm = MO.qubit_hamiltonian(MO.active_space(ints, MO.rhf(ints), 4, 2))
+    (e0, s0), = MO.fci_states(qm, 1)
+    assert s0 == pytest.approx(2.0, abs=1e-6) and e0 == pytest.approx(MO.fci(qm))
+    es = MO.fci_singlet(qm)
+    assert es > e0 + 1e-3
+    assert MO.vqe_uccsd(qm).energy == pytest.approx(es, abs=1e-6)
+    ints = MO.integrals(MO.LIBRARY["LiH"][1]())
+    qm = MO.qubit_hamiltonian(MO.active_space(ints, MO.rhf(ints), 4, 2))
+    assert MO.fci_singlet(qm) == pytest.approx(MO.fci(qm)) and MO.fci_states(qm, 1)[0][1] == pytest.approx(0.0, abs=1e-6)
+
+
 # ---------------------------------------------------------------- SMILES descriptors
 def test_smiles_descriptors_known_values():
     a = MF.descriptors("CC(=O)Oc1ccccc1C(=O)O")                 # aspirin

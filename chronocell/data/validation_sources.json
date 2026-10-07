@@ -507,5 +507,37 @@
   "md5": "none published; responses cached with their SHA-256 (.chronocell_cache/pubchem/manifest.json)",
   "citation": "Kim S et al. PubChem 2023 update. Nucleic Acids Res 51, D1373-D1380 (2023).",
   "license": "PubChem data are freely available; only the compound name is sent."
+ },
+ {
+  "key": "encode_hmec_insitu_hic",
+  "role": "test (round 2: Gates Q2b, Q4b, 6b), new cell line",
+  "url": "https://www.encodeproject.org/experiments/ENCSR711AVS/ (map ENCFF943JRY read by region; Arrowhead domains ENCFF578NLR; HiCCUPS loops ENCFF999UXN)",
+  "md5": "ENCFF578NLR 6fdf3e26d2b051f8be4b4b9f190838b6; ENCFF999UXN b38bad690aff7dcb26ec77c9d236d8c0 (portal); the .hic map is read by HTTP range requests, only region counts are cached",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; cite the project and experiment. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "encode_hap1_insitu_hic",
+  "role": "test (round 2: Gates Q2b, 6b), new cell line",
+  "url": "https://www.encodeproject.org/experiments/ENCSR390HMC/ (map ENCFF898HRO read by region; Arrowhead domains ENCFF459IDB; HiCCUPS loops ENCFF557WIU)",
+  "md5": "ENCFF459IDB 9dccc20b714c5d9c3412475d6fd06a4b; ENCFF557WIU 9454561b55b69123cadb53078a533354 (portal); map read by region",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; cite the project and experiment. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "encode_cshl_total_rnaseq",
+  "role": "labels (round 2: Gate Q4b): gene activity per cell line",
+  "url": "https://www.encodeproject.org/ (GENCODE V29 gene quantifications: GM12878 ENCFF910XWA, ENCFF413MYB; IMR-90 ENCFF019KLP, ENCFF268IJX; K562 ENCFF136UBW, ENCFF171FQU; HMEC ENCFF798WGM)",
+  "md5": "published by the portal for every file (checked on download)",
+  "citation": "ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. Nature 583, 699-710 (2020).",
+  "license": "Public ENCODE portal data; cite the project and experiment. Downloaded on demand; not redistributed."
+ },
+ {
+  "key": "posebusters_paper_data",
+  "role": "test (round 2: Gate Q7b, Astex Diverse set, 85 complexes)",
+  "url": "https://zenodo.org/records/8278563 (posebusters_paper_data.zip)",
+  "md5": "f004ac7c4e68317b5348497d2bb6bee6 (Zenodo)",
+  "citation": "Buttenschoen M, Morris GM, Deane CM. PoseBusters: AI-based docking methods fail to generate physically valid poses or generalise to novel sequences. Chem Sci 15, 3130-3139 (2024); Hartshorn MJ et al. Diverse, high-quality test set for the validation of protein-ligand docking performance. J Med Chem 50, 726-741 (2007).",
+  "license": "CC BY 4.0 (Zenodo record); downloaded on demand, not redistributed."
  }
 ]

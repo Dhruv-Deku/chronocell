@@ -1,0 +1,160 @@
+{
+ "made": "2026-10-07T13:49:00+00:00",
+ "note": "computed after the Q6b test; the pre-registered verdict is unchanged",
+ "rows": [
+  {
+   "molecule": "N2",
+   "bond_scale": 1.8,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": -1.2456559175843128e-17,
+   "sector_ground": -107.4497164697208,
+   "lowest_singlet": -107.4497164697208,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.023721532429021863,
+   "uccsd_error_vs_singlet_mEh": 125.99073969801111
+  },
+  {
+   "molecule": "N2",
+   "bond_scale": 2.5,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": 1.876951251081035e-18,
+   "sector_ground": -107.43880462779308,
+   "lowest_singlet": -107.43880462779308,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.2936592377693614,
+   "uccsd_error_vs_singlet_mEh": 126.52473897529148
+  },
+  {
+   "molecule": "CO",
+   "bond_scale": 1.6,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": 3.590826297929783e-18,
+   "sector_ground": -111.11358164041134,
+   "lowest_singlet": -111.11358164041134,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.32814333084729697,
+   "uccsd_error_vs_singlet_mEh": 43.300830077058095
+  },
+  {
+   "molecule": "CO",
+   "bond_scale": 2.2,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": -6.177320738599227e-17,
+   "sector_ground": -111.01334778148127,
+   "lowest_singlet": -111.01334778148127,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.19530639680453987,
+   "uccsd_error_vs_singlet_mEh": 4.228543247577932
+  },
+  {
+   "molecule": "HCN",
+   "bond_scale": 1.7,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": -3.512023645929291e-18,
+   "sector_ground": -91.29840894643452,
+   "lowest_singlet": -91.29840894643452,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.12966481200749058,
+   "uccsd_error_vs_singlet_mEh": 16.826730250912192
+  },
+  {
+   "molecule": "H2O",
+   "bond_scale": 2.2,
+   "active": [
+    8,
+    6
+   ],
+   "sector_ground_S2": 1.8002714038965667e-17,
+   "sector_ground": -74.75338413076733,
+   "lowest_singlet": -74.75338413076733,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.006787499941651731,
+   "uccsd_error_vs_singlet_mEh": 9.34370513945737
+  },
+  {
+   "molecule": "NH3",
+   "bond_scale": 1.8,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": -1.2538036408702407e-18,
+   "sector_ground": -55.17977901835797,
+   "lowest_singlet": -55.17977901835797,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.3150040954764677,
+   "uccsd_error_vs_singlet_mEh": 2.221289328929288
+  },
+  {
+   "molecule": "CH2O",
+   "bond_scale": 1.7,
+   "active": [
+    6,
+    6
+   ],
+   "sector_ground_S2": -4.795465873547122e-17,
+   "sector_ground": -112.26227495130473,
+   "lowest_singlet": -112.26227495130473,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.017648340687514974,
+   "uccsd_error_vs_singlet_mEh": 8.22360939457667
+  },
+  {
+   "molecule": "HF",
+   "bond_scale": 2.6,
+   "active": [
+    6,
+    4
+   ],
+   "sector_ground_S2": 5.622369443691195e-26,
+   "sector_ground": -98.45553455647813,
+   "lowest_singlet": -98.45553455647813,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 9.658441513238358e-05,
+   "uccsd_error_vs_singlet_mEh": -2.8421709430404007e-11
+  },
+  {
+   "molecule": "LiH",
+   "bond_scale": 3.0,
+   "active": [
+    2,
+    4
+   ],
+   "sector_ground_S2": 2.000000000000001,
+   "sector_ground": -7.772118541733352,
+   "lowest_singlet": -7.769653631476007,
+   "singlet_minus_sector_mEh": 2.4649102573448545,
+   "adapt_error_vs_singlet_mEh": -6.97571120866769e-05,
+   "uccsd_error_vs_singlet_mEh": 0.0
+  },
+  {
+   "molecule": "CH4",
+   "bond_scale": 1.4,
+   "active": [
+    4,
+    4
+   ],
+   "sector_ground_S2": 7.098551850146488e-20,
+   "sector_ground": -39.40495869547016,
+   "lowest_singlet": -39.40495869547016,
+   "singlet_minus_sector_mEh": 0.0,
+   "adapt_error_vs_singlet_mEh": 0.01435552659501127,
+   "uccsd_error_vs_singlet_mEh": 0.06886238215031426
+  }
+ ]
+}

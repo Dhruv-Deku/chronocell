@@ -987,12 +987,172 @@ def summary_qd() -> str:
     return "\n".join(["| Test (held-out, real data) | Measured | Verdict |", "|---|---|---|"] + _qd_rows())
 
 
+# --------------------------------------------------------------------------------------------- round 2 (quantum)
+def round2_practice() -> str:
+    out = []
+    q2 = _load("results_round2_practice_q2b.json")
+    if q2:
+        c, s = q2["choice"], q2["choice_scores"]
+        out += [f"Q2b practice: {len(q2['grid'])} QUBO settings, exact optimum on the nine seen windows (GM12878, K562, "
+                f"IMR-90). Chosen: {c}. F1 of the QUBO / better classical caller (tuned on the same windows, same "
+                "resolution): " + "; ".join(f"{k} {s['f1'][k]:.3f} / {s['classical_best'][k]:.3f}" for k in s["f1"])
+                + f". Classical settings: {q2['classical_choice']}.", ""]
+    q4 = _load("results_round2_practice_q4b.json")
+    if q4:
+        out += [f"Q4b practice: {sum(q4['genes'].values())} genes ({', '.join(f'{k} {v}' for k, v in q4['genes'].items())}); "
+                "ENCODE RNA-seq labels agree with Q4's GTEx labels for "
+                + ", ".join(f"{k} {100 * v['agree']:.0f} %" for k, v in q4["agreement_with_gtex_labels"].items())
+                + " of genes. Leave-one-cell-line-out AUC:", "",
+                "| Features | Quantum-kernel SVM | RBF-SVM | Logistic regression |", "|---|---|---|---|"]
+        for k, v in q4["feature_sets"].items():
+            out.append(f"| {k} ({len(v['features'])}) | {v['qsvm_best']['mean']:.3f} | {v['rbf_best']['mean']:.3f} | "
+                       f"{v['logistic']['mean']:.3f} |")
+        out += ["", f"Chosen: {q4['choice']}.", ""]
+    q6 = _load("results_round2_practice_q6b.json")
+    if q6:
+        out += ["Q6b practice (error vs active-space FCI, mHa; chemical accuracy 1.6):", "",
+                "| Molecule | Bond × eq. | Active space | Qubits | Fixed UCCSD | ADAPT, occupied→virtual pool | ADAPT, generalized pool (operators) |",
+                "|---|---|---|---|---|---|---|"]
+        sd, gsd = q6["grid"]["sd"]["rows"], q6["grid"]["gsd"]["rows"]
+        for a, b in zip(sd, gsd):
+            out.append(f"| {a['molecule']} | {a['bond_scale']} | {a['active'][0]}e, {a['active'][1]}o | {a['qubits']} | "
+                       f"{a['uccsd_error_mEh']:.3f} | {a['adapt_error_mEh']:.3f} | {b['adapt_error_mEh']:.3f} ({b['adapt_operators']}) |")
+        out += ["", f"Chosen: {q6['choice']} (the operator cap was raised to 150 in the frozen rule).", ""]
+    q7 = _load("results_round2_practice_q7b.json")
+    if q7:
+        out += [f"Q7b practice ({q7['complexes']} PoseBusters complexes of Q7, all practice now; QAOA {q7['qaoa']}):", "",
+                "| Refined poses | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |",
+                "|---|---|---|---|---|---|"]
+        for k, v in q7["grid"].items():
+            out.append(f"| {v['settings']['refine_top']} | {v['usable']} | {100 * v['success_qaoa']:.1f} % | "
+                       f"{100 * v['success_classical']:.1f} % | {100 * v['success_random']:.1f} % | {100 * v['success_qaoa_unrefined']:.1f} % |")
+        vh = q7.get("virtual_hydrogens")
+        if vh:
+            out += ["", f"The chosen setting with the structures' hydrogens removed and virtual polar hydrogens added (as the "
+                        f"test structures need): QAOA route {100 * vh['success_qaoa']:.1f} %, classical cliques "
+                        f"{100 * vh['success_classical']:.1f} %, random search {100 * vh['success_random']:.1f} % "
+                        f"({vh['usable']} usable)."]
+        out += ["", f"Chosen: {q7.get('choice')}."]
+    return "\n".join(out) if out else "_Round 2 practice: not run._"
+
+
+def round2() -> str:
+    r = _load("results_round2.json")
+    if not r:
+        return "_results_round2.json: not run (python validation/quantum_round2.py --test q2b|q4b|q6b|q7b)._"
+    out = []
+    if "q6b" in r:
+        q = r["q6b"]
+        out += [f"Q6b ({q['cases']} cases never run before; settings {q['rule']['settings']}):", "",
+                "| Molecule | Bond × eq. | Active space | Qubits | HF | Active-space FCI | ADAPT-VQE | ADAPT error (mHa) | Operators | Fixed UCCSD error (mHa) |",
+                "|---|---|---|---|---|---|---|---|---|---|"]
+        for x in q["rows"]:
+            out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['active'][0]}e, {x['active'][1]}o | {x['qubits']} | {x['e_hf']:.5f} | "
+                       f"{x['e_cas_fci']:.5f} | {x['adapt_energy']:.5f} | {x['adapt_error_mEh']:+.3f} | {x['adapt_operators']} | "
+                       f"{x['uccsd_error_mEh']:+.3f} |")
+        out += ["", f"Q6b: **{'pass' if q['pass'] else 'fail'}**: ADAPT-VQE within chemical accuracy in {q['within']} of "
+                    f"{q['cases']} (worst {q['max_abs_error_mEh']:.3f} mHa); fixed-order UCCSD in {q['uccsd_within']} of {q['cases']}.", ""]
+        ph = _load("results_round2_q6b_posthoc.json")
+        if ph:
+            trip = [x for x in ph["rows"] if x["sector_ground_S2"] > 1e-3]
+            within = sum(abs(x["adapt_error_vs_singlet_mEh"]) <= 1.6 for x in ph["rows"])
+            uw = sum(abs(x["uccsd_error_vs_singlet_mEh"]) <= 1.6 for x in ph["rows"])
+            out += ["Found after the test (not part of the verdict): " + "; ".join(
+                        f"{x['molecule']} at {x['bond_scale']}x: the sector's lowest state is a triplet (S(S+1) "
+                        f"{x['sector_ground_S2']:.1f}), {x['singlet_minus_sector_mEh']:.3f} mHa below the lowest singlet; "
+                        f"ADAPT-VQE is {x['adapt_error_vs_singlet_mEh']:+.4f} mHa from that singlet" for x in trip)
+                    + f". Against the lowest singlet, ADAPT-VQE is within chemical accuracy in {within} of {len(ph['rows'])} "
+                      f"cases, fixed-order UCCSD in {uw}. The app now reports the spin of the exact state and the lowest "
+                      "singlet next to it.", ""]
+    if "q6c" in r:
+        q = r["q6c"]
+        out += [f"Q6c (reference corrected to the lowest singlet; {q['cases']} cases never run; settings {q['rule']['settings']}):", "",
+                "| Molecule | Bond × eq. | Active space | Qubits | Lowest singlet | Sector's lowest state (S(S+1)) | ADAPT-VQE | ADAPT error vs singlet (mHa) | Operators | Fixed UCCSD error vs singlet (mHa) |",
+                "|---|---|---|---|---|---|---|---|---|---|"]
+        for x in q["rows"]:
+            out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['active'][0]}e, {x['active'][1]}o | {x['qubits']} | "
+                       f"{x['lowest_singlet']:.5f} | {x['e_cas_fci']:.5f} ({x['sector_ground_S2']:.1f}) | {x['adapt_energy']:.5f} | "
+                       f"{x['adapt_error_vs_singlet_mEh']:+.3f} | {x['adapt_operators']} | {x['uccsd_error_vs_singlet_mEh']:+.3f} |")
+        out += ["", f"Q6c: **{'pass' if q['pass'] else 'fail'}**: ADAPT-VQE within chemical accuracy of the lowest singlet in "
+                    f"{q['within']} of {q['cases']} (worst {q['max_abs_error_mEh']:.3f} mHa); fixed-order UCCSD in "
+                    f"{q['uccsd_within']} of {q['cases']}; the sector's lowest state was a triplet in {q['triplet_ground']}.", ""]
+    if "q4b" in r:
+        q = r["q4b"]
+        ci = q["ci95"]
+        out += [f"Q4b (trained on {q['train_genes']} genes of GM12878, K562 and IMR-90; tested on {q['test_genes']} HMEC genes, "
+                f"{100 * q['test_expressed_fraction']:.0f} % active):", "", "| Classifier | Test AUC (95 % interval) |", "|---|---|",
+                f"| Quantum-kernel SVM (simulated) | {q['auc']['qsvm']:.3f}{_ci(ci['qsvm'], 3)} |",
+                f"| RBF-kernel SVM (classical) | {q['auc']['rbf']:.3f}{_ci(ci['rbf'], 3)} |",
+                f"| Logistic regression (classical) | {q['auc']['logistic']:.3f}{_ci(ci['logistic'], 3)} |",
+                f"| Quantum-kernel SVM, kernel from 1,000 shots per entry | {q['qsvm_auc_with_shots']:.3f} |", "",
+                f"Q4b: **{'pass' if q['pass'] else 'fail'}** (needed: within {q['rule']['margin']} of the RBF-SVM, lower bound "
+                "above 0.5).", ""]
+    if "q2b" in r:
+        q = r["q2b"]
+        out += [f"Q2b (new cell lines; settings {q['rule']['tad']}):", "",
+                "| Cell line | Method | Precision | Recall | F1 |", "|---|---|---|---|---|"]
+        for cell, v in q["per_cell"].items():
+            for m, s in v["rows"].items():
+                out.append(f"| {cell} | {m} | {_f(s['precision'], 2)} | {_f(s['recall'], 2)} | {_f(s['f1'], 3)} |")
+        out += ["", "QAOA found the QUBO's optimum in " + "; ".join(f"{c} {100 * v['hit_rate']:.0f} % of {v['windows']} windows"
+                                                              for c, v in q["q1_like"].items()) + ".",
+                f"Q2b: **{'pass' if q['pass'] else 'fail'}** (" + "; ".join(f"{c} {'pass' if v['pass'] else 'fail'}"
+                                                                         for c, v in q["per_cell"].items()) + ").", ""]
+    if "q7b" in r:
+        q = r["q7b"]
+        out += [f"Q7b ({q['usable']} usable Astex Diverse complexes of {q['complexes']}):", "", "| Measure | Value |", "|---|---|",
+                f"| QAOA found the maximum-weight clique | {100 * q['qaoa_hit_rate']:.0f} % |",
+                f"| Docked within 2 A: QAOA route, Vina-like score, refined | {100 * q['success_qaoa']:.1f} % |",
+                f"| Docked within 2 A: classical cliques, same | {100 * q['success_classical']:.1f} % |",
+                f"| Docked within 2 A: random search, same score and refinement | {100 * q['success_random']:.1f} % |",
+                f"| Docked within 2 A: QAOA route without refinement | {100 * q['success_qaoa_unrefined']:.1f} % |", "",
+                f"Q7b: **{'pass' if q['pass'] else 'fail'}** (clique found in ≥ {100 * q['rule']['min_hit_rate']:.0f} %: "
+                f"{'yes' if q['solver_pass'] else 'no'}; QAOA route at least as good as random search: "
+                f"{'yes' if q['vs_random_pass'] else 'no'}; QAOA route docks ≥ {100 * q['rule']['min_success']:.0f} %: "
+                f"{'yes' if q['improvement_pass'] else 'no'}).", ""]
+    return "\n".join(out)
+
+
+def _r2_rows() -> list[str]:
+    r = _load("results_round2.json") or {}
+    rows = []
+    if "q2b" in r:
+        q = r["q2b"]
+        f1 = "; ".join(f"{c}: QAOA {v['rows']['QAOA (simulated quantum)']['f1']:.2f} vs insulation "
+                       f"{v['rows']['insulation (classical)']['f1']:.2f}, TopDom-like {v['rows']['topdom (classical)']['f1']:.2f}"
+                       for c, v in q["per_cell"].items())
+        rows.append(f"| Gate Q2b: quantum domain calls vs classical callers, new cell lines | {f1} | {'pass' if q['pass'] else 'fail'} |")
+    if "q4b" in r:
+        q = r["q4b"]
+        rows.append(f"| Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC {q['auc']['qsvm']:.3f} vs "
+                    f"{q['auc']['rbf']:.3f} | {'pass' if q['pass'] else 'fail'} |")
+    if "q6b" in r:
+        q = r["q6b"]
+        rows.append(f"| Gate Q6b: ADAPT-VQE on {q['cases']} new stretched molecules | worst error {q['max_abs_error_mEh']:.2f} mHa "
+                    f"(needed ≤ 1.6); {q['within']} of {q['cases']} within | {'pass' if q['pass'] else 'fail'} |")
+    if "q6c" in r:
+        q = r["q6c"]
+        rows.append(f"| Gate Q6c: ADAPT-VQE on {q['cases']} new stretched molecules, against the lowest singlet | worst error "
+                    f"{q['max_abs_error_mEh']:.2f} mHa (needed ≤ 1.6); {q['within']} of {q['cases']} within | "
+                    f"{'pass' if q['pass'] else 'fail'} |")
+    if "q7b" in r:
+        q = r["q7b"]
+        rows.append(f"| Gate Q7b: QAOA docking with Vina-like score and refinement (Astex Diverse) | docked "
+                    f"{100 * q['success_qaoa']:.0f} % vs random search {100 * q['success_random']:.0f} % | {'pass' if q['pass'] else 'fail'} |")
+    return rows or ["| Round 2 (Q2b, Q4b, Q6b, Q7b) | not run | — |"]
+
+
+def summary_r2() -> str:
+    return "\n".join(["| Test (held-out, real data; simulated quantum) | Measured | Verdict |", "|---|---|---|"] + _r2_rows())
+
+
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
           "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
           "gate4c": gate4c, "gate5m": gate5m, "gate6": gate6, "gate7": gate7, "b9tools": b9tools, "summary_ab": summary_ab, "scale": scale,
           "per_chromosome": per_chromosome, "readme_accuracy": readme_accuracy, "gateq_practice": gateq_practice,
           "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q, "gate8": gate8,
-          "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd}
+          "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd,
+          "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 

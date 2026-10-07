@@ -78,7 +78,8 @@ NEW_REGIONS = GQ.PRACTICE["gm12878"] + GQ.TEST["k562"]      # six 10 Mb regions,
 # ======================================================================================
 # Q2b: TAD boundaries (settings re-chosen on every seen window; new cell lines)
 # ======================================================================================
-Q2B_GRID = {"res": [40_000, 50_000, 60_000, 80_000], "min_size": [2, 3, 4], "gamma": [1.5, 2.0, 3.0, 4.0, 5.0],
+# gamma widened once (6, 8) when the first practice run's best setting sat at 5.0, the top of its grid
+Q2B_GRID = {"res": [40_000, 50_000, 60_000, 80_000], "min_size": [2, 3, 4], "gamma": [1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0],
             "boundary_cost": [0.0, 0.25, 0.5, 1.0], "weight": ["difference", "log"]}
 
 
@@ -331,7 +332,9 @@ def test_q4b(R: dict) -> dict:
 # ======================================================================================
 # Q7b: docking with an empirical (Vina-like) score and rigid-body refinement
 # ======================================================================================
-Q7B_GRID = [{"score": "vina", "refine_top": k, "maxfev": 300} for k in (0, 10, 30)]
+Q7B_GRID = [{"score": "vina", "refine_top": k, "maxfev": 300, "hydrogens": "given"} for k in (0, 10, 30)]
+# the test structures (Astex Diverse) carry no hydrogens: the chosen setting is re-run on practice with the hydrogens
+# removed and virtual polar hydrogens added (docking.add_virtual_hydrogens), to measure what that costs
 
 
 def _complex_pb(cid: str):
@@ -355,6 +358,8 @@ def dock_q7b(cid: str, loader, settings: dict, qcfg: dict, seed: int, tag: str) 
     if path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
     lig, prot = loader(cid)
+    if settings.get("hydrogens") == "virtual":
+        prot = DK.add_virtual_hydrogens(DK.strip_hydrogens(prot))
     heavy = lig.heavy
     L = lig.xyz[heavy]
     tree = cKDTree(prot.xyz[prot.el != "H"])
@@ -391,7 +396,8 @@ def dock_q7b(cid: str, loader, settings: dict, qcfg: dict, seed: int, tag: str) 
         if len(hs.kind) >= 3 and len(lf.kind) >= 3:
             full = DK.interaction_graph(lf, hs, tau=cfg["tau"], max_vertices=80)
             g, _ = DK.core_subgraph(full, cfg["qubits"])
-            gpath = QD.CACHE / f"q7b_{tag}_{cid}_graph_{hashlib.sha1(json.dumps(qcfg).encode()).hexdigest()[:10]}.json"
+            gkey = hashlib.sha1(json.dumps([qcfg, settings.get("hydrogens", "given")]).encode()).hexdigest()[:10]
+            gpath = QD.CACHE / f"q7b_{tag}_{cid}_graph_{gkey}.json"
             if gpath.exists():                         # QAOA and the exact cliques do not depend on the pose settings
                 gr = json.loads(gpath.read_text(encoding="utf-8"))
             else:
@@ -416,6 +422,48 @@ def dock_q7b(cid: str, loader, settings: dict, qcfg: dict, seed: int, tag: str) 
     return rec
 
 
+PB_PAPER = ("https://zenodo.org/api/records/8278563/files/posebusters_paper_data.zip/content", "posebusters_paper_data.zip",
+            "f004ac7c4e68317b5348497d2bb6bee6")       # PoseBusters paper data (Buttenschoen et al., Chem Sci 2024)
+
+
+def _astex_zip():
+    import zipfile
+    url, name, md5 = PB_PAPER
+    return zipfile.ZipFile(D.fetch_url(url, D.DATA / "posebusters" / name, md5))
+
+
+def astex_ids() -> list[str]:
+    return sorted(n.split("/")[1] for n in _astex_zip().namelist()
+                  if n.startswith("astex_diverse_set/") and n.endswith("_protein.pdb"))
+
+
+def _complex_astex(cid: str):
+    """Astex Diverse set (Hartshorn et al., J Med Chem 2007) as packaged by PoseBusters: the crystal ligand and the
+    protein (deposited without hydrogens: virtual polar hydrogens are added)."""
+    from chronocell.quantum import docking as DK
+    z = _astex_zip()
+    lig = DK.read_sdf(z.read(f"astex_diverse_set/{cid}/{cid}_ligand.sdf").decode(), cid)
+    prot = DK.read_pdb(z.read(f"astex_diverse_set/{cid}/{cid}_protein.pdb").decode(errors="replace"))
+    return lig, DK.add_virtual_hydrogens(prot)
+
+
+def test_q7b(R: dict) -> dict:
+    ids = astex_ids()
+    recs = []
+    t0 = time.perf_counter()
+    for i, cid in enumerate(ids):
+        recs.append(dock_q7b(cid, _complex_astex, R["settings"], R["qaoa"], i, "astex"))
+        if i % 10 == 0:
+            print(i, cid, round(time.perf_counter() - t0), "s", flush=True)
+    s = summarise_q7b(recs)
+    s["solver_pass"] = bool(s["qaoa_hit_rate"] >= R["min_hit_rate"])
+    s["vs_random_pass"] = bool(s["success_qaoa"] >= s["success_random"])
+    s["improvement_pass"] = bool(s["success_qaoa"] >= R["min_success"])
+    s["pass"] = bool(s["solver_pass"] and s["vs_random_pass"] and s["improvement_pass"])
+    s["per_complex"] = recs
+    return s
+
+
 def summarise_q7b(recs: list[dict]) -> dict:
     use = [r for r in recs if r.get("usable")]
     ok = lambda route: float(np.mean([np.isfinite(r.get(route, {}).get("rmsd", np.nan)) and r[route]["rmsd"] <= 2.0
@@ -429,17 +477,24 @@ def summarise_q7b(recs: list[dict]) -> dict:
                                                                   for r in qq if np.isfinite(r["qaoa"].get("score", np.nan))]))}
 
 
+BUDGET_S = 6000            # each call stops cleanly before the 2-hour job limit; every complex is cached: run again
+
+
 def practice_q7b() -> dict:
-    """All 256 PoseBusters complexes of the Q7 data (practice and test there; practice now)."""
+    """All 256 PoseBusters complexes of the Q7 data (practice and test there; practice now). Resumable in chunks."""
     import quantum_drug_gates as QD
     import frozen as F
     qcfg = F.QUANTUM_DRUG_GATES["q7"]["qaoa"]
     ids = QD.complexes("practice") + QD.complexes("test")
     out = {"made": _now(), "complexes": len(ids), "qaoa": qcfg, "grid": {}}
+    t_start = time.perf_counter()
     for st in Q7B_GRID:
         recs = []
         t0 = time.perf_counter()
         for i, cid in enumerate(ids):
+            if time.perf_counter() - t_start > BUDGET_S:
+                print("time budget reached; run again to continue (every complex is cached)", flush=True)
+                return out
             recs.append(dock_q7b(cid, _complex_pb, st, qcfg, i, "pb"))
             if i % 20 == 0:
                 print(st, i, cid, round(time.perf_counter() - t0), "s", flush=True)
@@ -448,6 +503,16 @@ def practice_q7b() -> dict:
         _json(ROOT / "results_round2_practice_q7b.json", out)
     best = max(out["grid"].values(), key=lambda g: (g["success_qaoa"], -g["settings"]["refine_top"]))
     out["choice"] = best["settings"]
+    _json(ROOT / "results_round2_practice_q7b.json", out)
+    st = {**best["settings"], "hydrogens": "virtual"}
+    recs = []
+    for i, cid in enumerate(ids):
+        if time.perf_counter() - t_start > BUDGET_S:
+            print("time budget reached; run again to continue (every complex is cached)", flush=True)
+            return out
+        recs.append(dock_q7b(cid, _complex_pb, st, qcfg, i, "pb"))
+    out["virtual_hydrogens"] = {"settings": st, **summarise_q7b(recs)}
+    print("virtual hydrogens", out["virtual_hydrogens"], flush=True)
     _json(ROOT / "results_round2_practice_q7b.json", out)
     return out
 
@@ -504,10 +569,47 @@ def test_q6b(R: dict) -> dict:
             "pass": bool(all(ok))}
 
 
+def test_q6c(R: dict) -> dict:
+    rows = []
+    for name, scale, act in R["cases"]:
+        row = q6b_case(name, scale, act, R["settings"])
+        qm, _ = _model(name, scale, act)
+        st = M.fci_states(qm, 1)
+        e_s = M.fci_singlet(qm)
+        row.update({"sector_ground_S2": st[0][1], "lowest_singlet": e_s, "adapt_error_vs_singlet_mEh": 1e3 * (row["adapt_energy"] - e_s),
+                    "uccsd_error_vs_singlet_mEh": row["uccsd_error_mEh"] + 1e3 * (row["e_cas_fci"] - e_s)})
+        rows.append(row)
+    ok = [abs(r["adapt_error_vs_singlet_mEh"]) <= R["tolerance_mEh"] for r in rows]
+    return {"rows": rows, "within": int(sum(ok)), "cases": len(rows),
+            "max_abs_error_mEh": float(max(abs(r["adapt_error_vs_singlet_mEh"]) for r in rows)),
+            "uccsd_within": int(sum(abs(r["uccsd_error_vs_singlet_mEh"]) <= R["tolerance_mEh"] for r in rows)),
+            "triplet_ground": int(sum(r["sector_ground_S2"] > 1e-3 for r in rows)), "pass": bool(all(ok))}
+
+
+def posthoc_q6b() -> dict:
+    """After the Q6b test (not part of its verdict): the spin of each test case's sector ground state and ADAPT-VQE's
+    error against the lowest singlet, from the recorded energies."""
+    r = json.loads(RESULTS.read_text(encoding="utf-8"))["q6b"]
+    rows = []
+    for x in r["rows"]:
+        qm, _ = _model(x["molecule"], x["bond_scale"], x["active"])
+        st = M.fci_states(qm, 4)
+        e_s = M.fci_singlet(qm)
+        rows.append({"molecule": x["molecule"], "bond_scale": x["bond_scale"], "active": x["active"],
+                     "sector_ground_S2": st[0][1], "sector_ground": st[0][0], "lowest_singlet": e_s,
+                     "singlet_minus_sector_mEh": 1e3 * (e_s - st[0][0]),
+                     "adapt_error_vs_singlet_mEh": 1e3 * (x["adapt_energy"] - e_s),
+                     "uccsd_error_vs_singlet_mEh": 1e3 * (x["uccsd_error_mEh"] / 1e3 + x["e_cas_fci"] - e_s)})
+        print(rows[-1], flush=True)
+    out = {"made": _now(), "note": "computed after the Q6b test; the pre-registered verdict is unchanged", "rows": rows}
+    _json(ROOT / "results_round2_q6b_posthoc.json", out)
+    return out
+
+
 # ======================================================================================
 # Test driver (each part once)
 # ======================================================================================
-TESTS = {"q2b": test_q2b, "q4b": test_q4b, "q6b": test_q6b}
+TESTS = {"q2b": test_q2b, "q4b": test_q4b, "q6b": test_q6b, "q6c": test_q6c, "q7b": test_q7b}
 PRACTICE = {"q2b": practice_q2b, "q4b": practice_q4b, "q6b": practice_q6b, "q7b": practice_q7b}
 
 
@@ -535,8 +637,11 @@ def main() -> None:
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--practice", choices=sorted(PRACTICE))
     g.add_argument("--test", choices=sorted(TESTS))
+    g.add_argument("--posthoc", choices=["q6b"])
     a = ap.parse_args()
-    if a.practice:
+    if a.posthoc:
+        posthoc_q6b()
+    elif a.practice:
         PRACTICE[a.practice]()
     else:
         run_test(a.test)

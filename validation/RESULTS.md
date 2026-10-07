@@ -1360,6 +1360,93 @@ Summary:
 | Gate Q7: QAOA max-clique docking (PoseBusters) | docked 6 % vs random search 2 %; clique found 100 % | pass |
 <!-- END generated:summary_qd -->
 
+## Round 2 — the failed quantum gates again, with new methods and new data (pre-registered)
+
+Gates Q2, Q4 and Q6 failed (above). Round 2 (`validation/quantum_round2.py`; rules in `validation/frozen.py`,
+`QUANTUM_ROUND2`) gives each a new method, developed on the data those tests had already used (which therefore count as
+practice now), writes the rule down and commits it before the new test data are read, and runs each test once. The
+original results above stay as they are; a round-2 pass does not turn an earlier fail into a pass.
+- **Q6b, molecules.** ADAPT-VQE (the circuit grows one excitation at a time, chosen by the energy gradient, from a pool
+  of generalized singles and doubles) in place of the fixed-order UCCSD circuit; eleven molecule / bond-length cases
+  never run before.
+- **Q4b, genes.** Gene-activity labels from ENCODE RNA-seq of each cell line itself, two more Hi-C features, training on
+  three cell lines (GM12878, K562, IMR-90); test on a cell line never used (HMEC).
+- **Q2b, domains.** The same QUBO and QAOA, settings re-chosen on all nine windows already seen (about ten times the
+  reference boundaries Gate Q's practice had), classical callers re-tuned on the same windows; test on two new cell
+  lines (HMEC, HAP-1).
+- **Q7b, docking** (Q7 passed only modestly): a Vina-like scoring function and rigid-body refinement of each pose, the
+  same refinement given to random search; test on the Astex Diverse set (85 complexes, none in the PoseBusters set used
+  before).
+
+Practice (`validation/TUNING.md` §21):
+
+<!-- BEGIN generated:round2_practice -->
+Q2b practice: 480 QUBO settings, exact optimum on the nine seen windows (GM12878, K562, IMR-90). Chosen: {'res': 60000, 'min_size': 3, 'gamma': 5.0, 'boundary_cost': 0.25, 'weight': 'log'}. F1 of the QUBO / better classical caller (tuned on the same windows, same resolution): gm12878 0.358 / 0.311; k562 0.464 / 0.393; imr90 0.481 / 0.387. Classical settings: {'insulation': [2, 0.15], 'topdom': [3]}.
+
+Q4b practice: 867 genes (gm12878 106, k562 381, imr90 380); ENCODE RNA-seq labels agree with Q4's GTEx labels for gm12878 89 %, imr90 61 % of genes. Leave-one-cell-line-out AUC:
+
+| Features | Quantum-kernel SVM | RBF-SVM | Logistic regression |
+|---|---|---|---|
+| q4 (5) | 0.699 | 0.696 | 0.691 |
+| q4b (7) | 0.701 | 0.694 | 0.688 |
+
+Chosen: {'features': 'q4b', 'qsvm': {'bandwidth': 0.005, 'reps': 1, 'C': 10000.0}, 'rbf': {'gamma': 0.0005, 'C': 10000.0}}.
+
+Q6b practice (error vs active-space FCI, mHa; chemical accuracy 1.6):
+
+| Molecule | Bond × eq. | Active space | Qubits | Fixed UCCSD | ADAPT, occupied→virtual pool | ADAPT, generalized pool (operators) |
+|---|---|---|---|---|---|---|
+| H2O | 1.5 | 4e, 4o | 8 | 0.003 | 0.003 | 0.003 (6) |
+| NH3 | 1.5 | 6e, 5o | 10 | 0.544 | 0.431 | 0.013 (70) |
+| N2 | 1.5 | 6e, 6o | 12 | 78.353 | 44.959 | 0.044 (43) |
+| HF | 2.0 | 2e, 2o | 4 | -0.000 | 0.005 | 0.005 (2) |
+| CH2O | 1.3 | 4e, 4o | 8 | 0.021 | 0.021 | 0.021 (6) |
+| HCN | 1.3 | 4e, 4o | 8 | 2.698 | 0.767 | 0.000 (34) |
+| N2 | 1.0 | 6e, 6o | 12 | 0.409 | 0.393 | 0.189 (53) |
+| CO | 1.0 | 6e, 6o | 12 | 5.907 | 0.495 | 0.179 (100) |
+| H2O | 1.0 | 8e, 6o | 12 | 0.101 | 0.097 | 0.020 (37) |
+| NH3 | 1.0 | 6e, 6o | 12 | 0.048 | 0.048 | 0.031 (99) |
+| HCN | 1.0 | 6e, 6o | 12 | 1.053 | 1.050 | 0.159 (100) |
+| CH2O | 1.0 | 6e, 6o | 12 | 0.558 | 0.542 | 0.081 (45) |
+| N2 | 2.0 | 6e, 6o | 12 | 127.640 | 127.640 | 0.037 (42) |
+| LiH | 2.0 | 2e, 4o | 8 | 0.000 | 0.000 | 0.000 (5) |
+| CH4 | 1.0 | 4e, 4o | 8 | 0.001 | 0.001 | 0.001 (23) |
+
+Chosen: {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 100} (the operator cap was raised to 150 in the frozen rule).
+<!-- END generated:round2_practice -->
+
+Test (each part run once):
+
+<!-- BEGIN generated:round2 -->
+Q6b (11 cases never run before; settings {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 150}):
+
+| Molecule | Bond × eq. | Active space | Qubits | HF | Active-space FCI | ADAPT-VQE | ADAPT error (mHa) | Operators | Fixed UCCSD error (mHa) |
+|---|---|---|---|---|---|---|---|---|---|
+| N2 | 1.8 | 6e, 6o | 12 | -106.76864 | -107.44972 | -107.44969 | +0.024 | 43 | +125.991 |
+| N2 | 2.5 | 6e, 6o | 12 | -106.80972 | -107.43880 | -107.43851 | +0.294 | 21 | +126.525 |
+| CO | 1.6 | 6e, 6o | 12 | -110.86193 | -111.11358 | -111.11325 | +0.328 | 150 | +43.301 |
+| CO | 2.2 | 6e, 6o | 12 | -110.76767 | -111.01335 | -111.01315 | +0.195 | 150 | +4.229 |
+| HCN | 1.7 | 6e, 6o | 12 | -91.03885 | -91.29841 | -91.29828 | +0.130 | 69 | +16.827 |
+| H2O | 2.2 | 8e, 6o | 12 | -74.35687 | -74.75338 | -74.75338 | +0.007 | 50 | +9.344 |
+| NH3 | 1.8 | 6e, 6o | 12 | -54.85750 | -55.17978 | -55.17946 | +0.315 | 150 | +2.221 |
+| CH2O | 1.7 | 6e, 6o | 12 | -112.06826 | -112.26227 | -112.26226 | +0.018 | 51 | +8.224 |
+| HF | 2.6 | 6e, 4o | 8 | -98.17878 | -98.45553 | -98.45553 | +0.000 | 4 | -0.000 |
+| LiH | 3.0 | 2e, 4o | 8 | -7.59035 | -7.77212 | -7.76965 | +2.465 | 4 | +2.465 |
+| CH4 | 1.4 | 4e, 4o | 8 | -39.37672 | -39.40496 | -39.40494 | +0.014 | 28 | +0.069 |
+
+Q6b: **fail**: ADAPT-VQE within chemical accuracy in 10 of 11 (worst 2.465 mHa); fixed-order UCCSD in 2 of 11.
+
+Found after the test (not part of the verdict): LiH at 3.0x: the sector's lowest state is a triplet (S(S+1) 2.0), 2.465 mHa below the lowest singlet; ADAPT-VQE is -0.0001 mHa from that singlet. Against the lowest singlet, ADAPT-VQE is within chemical accuracy in 11 of 11 cases, fixed-order UCCSD in 3. The app now reports the spin of the exact state and the lowest singlet next to it.
+<!-- END generated:round2 -->
+
+Summary:
+
+<!-- BEGIN generated:summary_r2 -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
+<!-- END generated:summary_r2 -->
+
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
 `python validation/scale_benchmark.py`: each run in its own process. Input: windows of the

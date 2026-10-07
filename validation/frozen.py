@@ -390,3 +390,30 @@ QUANTUM_ROUND2 = {
                       ["HCN", 1.7, [6, 6]], ["H2O", 2.2, [8, 6]], ["NH3", 1.8, [6, 6]], ["CH2O", 1.7, [6, 6]],
                       ["HF", 2.6, [6, 4]], ["LiH", 3.0, [2, 4]], ["CH4", 1.4, [4, 4]]]},
 }
+# Q4b (genes; pre-registered after results_round2_practice_q4b.json, before any HMEC file was read): labels from
+# ENCODE CSHL whole-cell long total RNA-seq of each cell line (GENCODE V29, mean TPM over replicates >= 1; they agree
+# with Q4's GTEx labels for 89 % of GM12878 and 61 % of IMR-90 genes); Q4's five Hi-C features plus local_oe and
+# insulation_slope; training on every gene of the seen windows (GM12878 106, K562 381, IMR-90 380). Leave-one-cell-
+# line-out AUC on practice: QSVM 0.701 (bandwidth 0.005, 1 repetition, C 10,000), RBF-SVM 0.694 (gamma 0.0005,
+# C 10,000), logistic 0.688; with Q4's five features 0.699 / 0.696 / 0.691. The grids were widened once (both kernels
+# alike); the best settings stay at the edge where C and the kernel width trade off and the AUC moves in the third
+# decimal. Test: HMEC (ENCODE in situ Hi-C ENCFF943JRY; RNA-seq ENCFF798WGM), genes of six 10 Mb regions (chr1, chr2,
+# chr3:100-110 Mb, chr4, chr7:100-110 Mb, chr11:60-70 Mb). Pass: QSVM AUC >= RBF AUC - 0.03 and its 95 % interval
+# (1,000 gene resamples) above 0.5 (Q4's rule). Reported: logistic regression, the QSVM with 1,000-shot kernel entries.
+QUANTUM_ROUND2["q4b"] = {"features": "q4b", "qsvm": {"bandwidth": 0.005, "reps": 1, "C": 10000.0},
+                         "rbf": {"gamma": 0.0005, "C": 10000.0}, "margin": 0.03, "qsvm_shots": 1000, "test_cell": "hmec",
+                         "test_regions": [["chr1", 100_000_000], ["chr2", 100_000_000], ["chr3", 100_000_000],
+                                          ["chr4", 100_000_000], ["chr7", 100_000_000], ["chr11", 60_000_000]]}
+# Q6c (molecules, reference corrected; pre-registered after the Q6b test and its post-hoc check,
+# results_round2_q6b_posthoc.json). Q6b scored ADAPT-VQE against the lowest state of the electron-number / Sz = 0
+# sector; for LiH at 3x that state is a triplet, while a VQE started from a closed-shell determinant with
+# spin-conserving excitations targets the lowest singlet (which it reached to 1e-4 mEh). Q6b stays a fail. Q6c: the
+# same method and settings, scored against the lowest singlet of the active space (molecules.fci_singlet), on twelve
+# cases never run. Pass: within chemical accuracy (1.6 mHa) in every case. Also reported: the lowest state of the sector
+# and its spin, and fixed-order UCCSD.
+QUANTUM_ROUND2["q6c"] = {"settings": {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 150}, "tolerance_mEh": 1.6,
+                         "reference": "lowest singlet",
+                         "cases": [["N2", 1.3, [6, 6]], ["N2", 3.0, [6, 6]], ["CO", 1.3, [6, 6]], ["CO", 2.8, [6, 6]],
+                                   ["HCN", 2.2, [6, 6]], ["H2O", 1.8, [8, 6]], ["NH3", 2.5, [6, 6]],
+                                   ["CH2O", 2.2, [6, 6]], ["HF", 3.5, [6, 4]], ["LiH", 2.5, [2, 4]], ["LiH", 4.0, [2, 4]],
+                                   ["CH4", 2.0, [4, 4]]]}

@@ -804,6 +804,11 @@
   "bytes": 279491,
   "url": "https://zenodo.org/api/records/13851241/files/posebusters_ligands_256.zip/content"
  },
+ "data/posebusters/posebusters_paper_data.zip": {
+  "sha256": "495a8f432ee5612c0dfa3cc582829f112bfca3c29dddc2db2c3a8dc7609e721c",
+  "bytes": 53660397,
+  "url": "https://zenodo.org/api/records/8278563/files/posebusters_paper_data.zip/content"
+ },
  "data/posebusters/posebusters_spruce_structures_256.zip": {
   "sha256": "7fd7c945050bb2aa781d40d7b1f70f03d3345d74361e2dd2ec1af926feef8446",
   "bytes": 36792515,

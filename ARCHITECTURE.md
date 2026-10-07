@@ -812,3 +812,14 @@ Running on hardware is left to the user (OpenQASM export); the app holds no quan
 Validation: `validation/drug_gate8.py` (Gate 8, MINA tracing after drug treatment, 4DN), `validation/quantum_drug_gates.py`
 (Q5-Q7; RDKit, OpenFermion and the Basis Set Exchange run only in `.chronocell_cache/quantum-venv`). New data sources are
 listed in `chronocell/data/validation_sources.json`.
+
+## 15. Round 2 of the quantum gates (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/molecules.py` (extended) | `generalized_generators`, `adapt_vqe` (ADAPT-VQE: gradient-selected operators, warm-started BFGS), `ADAPT_SETTINGS` (as frozen for Q6b), `run(..., method="adapt")`; `spin_squared`, `fci_states`, `fci_singlet` and two `MoleculeResult` fields (`lowest_spin`, `e_singlet`) | finite-difference gradient; FCI; Gate Q6b |
+| `quantum/docking.py` (extended) | Vina-like atom typing (`ligand_types`, `protein_types`), `vina_score`, rigid-body `refine` (Powell), `random_search_vina`, `polish` (the app's button), virtual polar hydrogens for structures without them | Gate Q7b |
+| `ui/quantum_lab.py` (extended) | Circuit switch and ADAPT growth chart; spin note; *Polish the poses* | AppTest |
+
+Validation: `validation/quantum_round2.py` (Q2b, Q4b, Q6b, Q7b; new cell lines HMEC and HAP-1, ENCODE RNA-seq labels,
+the Astex Diverse set) and `validation/loops_gate6b.py` (Gate 6 on the new cell lines).

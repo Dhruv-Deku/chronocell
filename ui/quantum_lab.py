@@ -969,7 +969,7 @@ def _run_molecule(name: str, scale: float, ne: int, no: int, method: str = "uccs
     return {"e_hf": r.e_hf, "e_cas": r.e_cas_fci, "e_vqe": r.vqe.energy, "err": r.vqe.error, "qubits": r.n_qubits,
             "params": r.vqe.parameters, "electrons": r.vqe.electrons, "gap": r.homo_lumo_gap, "eps": r.orbital_energies.tolist(),
             "n_occ": n_el // 2, "atoms": r.atoms, "nbf": r.n_basis, "seconds": r.seconds, "history": r.vqe.history,
-            "hf_converged": r.hf_converged, "method": method,
+            "hf_converged": r.hf_converged, "method": method, "lowest_spin": r.lowest_spin, "e_singlet": r.e_singlet,
             "adapt_energies": list(getattr(r.vqe, "energies", [])), "adapt_ops": list(getattr(r.vqe, "operators", []))}
 
 
@@ -1015,6 +1015,11 @@ def molecules_panel(kp: str = "qmol") -> None:
              ("HOMO–LUMO gap", f"{27.2114 * r['gap']:.1f}", "eV")])
     html(f'<p class="cc-note">Correlation energy captured by the active space: {1e3 * (r["e_cas"] - r["e_hf"]):+.1f} mHa. '
          f'Electrons in the VQE state: {r["electrons"]:.3f}. {r["seconds"]:.1f} s.</p>')
+    if r.get("lowest_spin", 0.0) > 1e-3:
+        banner(f"<b>The exact lowest state here is not a singlet</b> (S(S+1) = {r['lowest_spin']:.1f}: unpaired "
+               f"electrons, as when a bond is stretched to breaking). VQE starts from paired electrons and targets the "
+               f"lowest singlet, {r['e_singlet']:.5f} Ha: its error against that state is "
+               f"{1e3 * (r['e_vqe'] - r['e_singlet']):+.3f} mHa.", "info")
     if r.get("method") == "adapt" and r.get("adapt_energies"):
         err = np.maximum(np.abs(np.array(r["adapt_energies"]) - r["e_cas"]) * 1e3, 1e-4)
         fig = go.Figure(go.Scatter(x=np.arange(1, len(err) + 1), y=err, mode="lines+markers",
@@ -1155,6 +1160,21 @@ def docking_panel(kp: str = "qdock") -> None:
              ("Pose error · quantum route", ok(run.rmsd_qaoa), "RMSD to the crystal; ≤ 2 Å counts as correct"),
              ("Pose error · classical clique route", ok(run.rmsd_classical), "same graph"),
              ("Pose error · random search", ok(run.rmsd_random), "1,000 placements, same score")])
+    if st.button("Polish the poses: Vina-like score and refinement", key=f"{kp}_polish",
+                 help="Round 2 (Gate Q7b): the quantum route's poses are scored with an AutoDock Vina-style function "
+                      "(steric, hydrophobic and H-bond terms) and the best are nudged (rigid-body refinement); random "
+                      "search gets the same score and the same refinement."):
+        with st.spinner("Scoring and refining poses…"):
+            ss[f"{kp}_pol"] = (run.cid, DKM.polish(run))
+    pol = ss.get(f"{kp}_pol")
+    if pol and pol[0] == run.cid:
+        po = pol[1]
+        readout([("Pose error · quantum route, polished", ok(po.rmsd_qaoa), f"score {po.score_qaoa:.1f}"),
+                 ("Pose error · random search, polished", ok(po.rmsd_random), f"score {po.score_random:.1f}"),
+                 ("Score of the crystal pose", f"{po.score_crystal:.1f}", "lower is better")])
+        html('<p class="cc-note">The Vina-like score is in kcal/mol-like units (lower is better). When the crystal pose '
+             'scores better than the docked one, the search missed it; when the docked pose scores better but is far '
+             'from the crystal, the scoring function is at fault.</p>')
     heavy = run.lig.heavy
     centre = run.lig.xyz[heavy].mean(0)
     near = np.linalg.norm(run.prot.xyz - centre, axis=1) < 9
@@ -1169,6 +1189,11 @@ def docking_panel(kp: str = "qdock") -> None:
         pq = run.pose_qaoa[heavy]
         extra.append(go.Scatter3d(x=pq[:, 0], y=pq[:, 1], z=pq[:, 2], mode="markers", marker=dict(size=5, color=T.ACCENT),
                                   text=["docked (quantum route)"] * len(pq), hoverinfo="text"))
+    if pol and pol[0] == run.cid and pol[1].pose_qaoa is not None:
+        pp = pol[1].pose_qaoa
+        extra.append(go.Scatter3d(x=pp[:, 0], y=pp[:, 1], z=pp[:, 2], mode="markers",
+                                  marker=dict(size=5, color=T.TERRACOTTA, symbol="square"),
+                                  text=["polished (quantum route)"] * len(pp), hoverinfo="text"))
     el = [e for e, h in zip(run.lig.el, heavy) if h]
     idx = {k: i for i, k in enumerate(np.flatnonzero(heavy))}
     bonds = [(idx[i], idx[j], o) for i, j, o in run.lig.bonds if i in idx and j in idx]

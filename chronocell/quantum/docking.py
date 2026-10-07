@@ -441,6 +441,42 @@ class Typed:
     acc: np.ndarray             # H-bond acceptor (O; N without H and fewer than three heavy neighbours)
 
 
+DONORS = {"ARG": ("NE", "NH1", "NH2"), "ASN": ("ND2",), "GLN": ("NE2",), "HIS": ("ND1", "NE2"), "LYS": ("NZ",),
+          "SER": ("OG",), "THR": ("OG1",), "TYR": ("OH",), "TRP": ("NE1",), "CYS": ("SG",)}
+
+
+def strip_hydrogens(prot: Protein) -> Protein:
+    keep = prot.el != "H"
+    return Protein(prot.el[keep], prot.xyz[keep], prot.name[keep], prot.res[keep])
+
+
+def add_virtual_hydrogens(prot: Protein) -> Protein:
+    """For structures deposited without hydrogens: one virtual polar H (1.0 A) on every donor heavy atom (backbone N
+    except proline; side-chain donors by residue template), pointing away from its bonded heavy neighbours (their
+    unit vectors summed). Enough for the H-bond typing and the directional hot-spots; not a protonation model."""
+    if np.any(prot.el == "H"):
+        return prot
+    from scipy.spatial import cKDTree
+    tree = cKDTree(prot.xyz)
+    hs = []
+    for k in range(len(prot.el)):
+        nm, rn = prot.name[k], prot.res[k]
+        if not ((nm == "N" and rn != "PRO") or nm in DONORS.get(rn, ())):
+            continue
+        nb = [j for j in tree.query_ball_point(prot.xyz[k], 1.9) if j != k]
+        if not nb:
+            continue
+        u = sum((prot.xyz[k] - prot.xyz[j]) / np.linalg.norm(prot.xyz[k] - prot.xyz[j]) for j in nb)
+        if np.linalg.norm(u) < 1e-6:
+            continue
+        hs.append(prot.xyz[k] + 1.0 * u / np.linalg.norm(u))
+    if not hs:
+        return prot
+    m = len(hs)
+    return Protein(np.concatenate([prot.el, np.array(["H"] * m)]), np.vstack([prot.xyz, np.array(hs)]),
+                   np.concatenate([prot.name, np.array(["HV"] * m)]), np.concatenate([prot.res, np.array(["VIR"] * m)]))
+
+
 def ligand_types(lig: Ligand) -> Typed:
     """X-Score / AutoDock Vina atom typing of the ligand's heavy atoms from its bond graph."""
     n = len(lig.el)
@@ -596,6 +632,47 @@ class DockRun:
     rmsd_classical: float
     rmsd_random: float
     usable: bool = True
+
+
+@dataclass
+class Polish:
+    pose_qaoa: np.ndarray | None
+    pose_random: np.ndarray
+    rmsd_qaoa: float
+    rmsd_random: float
+    score_qaoa: float
+    score_random: float
+    score_crystal: float
+
+
+def polish(run: DockRun, refine_top: int = 10, maxfev: int = 300, seed: int = 0, cliques: int = 30) -> Polish:
+    """Round 2 (Gate Q7b): the QAOA route's cliques become poses, scored with the Vina-like function; the best
+    `refine_top` are refined (rigid body) and the best kept. Random search gets the same score and refinement."""
+    from . import qubo as QB
+    heavy = run.lig.heavy
+    L = run.lig.xyz[heavy]
+    centre = L.mean(0)
+    lt = ligand_types(run.lig)
+    pt = protein_types(run.prot, centre, float(np.linalg.norm(L - centre, axis=1).max()) + 11.0)
+    seen, qc = set(), []
+    for idx in list(np.argsort(-run.qaoa.probs)[:20000]) + list(run.qaoa.samples):
+        bits = QB.to_bits(int(idx), run.qubo.n)
+        on = tuple(np.flatnonzero(bits).tolist())
+        if len(on) >= 3 and on not in seen and is_clique(run.graph, bits):
+            seen.add(on)
+            qc.append((float(run.graph.weight[list(on)].sum()), list(on)))
+    poses = []
+    for _, c in sorted(qc, reverse=True)[:cliques]:
+        bits = np.zeros(len(run.graph.vertices))
+        bits[c] = 1
+        p = pose_from_clique(run.lig.xyz, run.features, run.sites, run.graph, bits)
+        if p is not None:
+            poses.append((vina_score(p[heavy], lt, pt), p[heavy]))
+    poses.sort(key=lambda z: z[0])
+    best = min((refine(p, lt, pt, maxfev) for _, p in poses[:refine_top]), key=lambda z: z[1]) if poses else (None, np.nan)
+    rb = random_search_vina(L, centre, lt, pt, DEFAULT["random_poses"], refine_top, np.random.default_rng(seed), maxfev=maxfev)
+    return Polish(best[0], rb[0], rmsd(best[0], L) if best[0] is not None else float("nan"), rmsd(rb[0], L),
+                  float(best[1]), float(rb[1]), vina_score(L, lt, pt))
 
 
 def dock(zl, zp, cid: str, cfg: dict | None = None, p: int = 3, objective: str = "expectation", seed: int = 0) -> DockRun:

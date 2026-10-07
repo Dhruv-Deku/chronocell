@@ -1029,3 +1029,15 @@ simulator against chromatin tracing of cells treated with real drugs), shown at 
   docked drug. Standing: Gate Q7.
 
 The same three tools are in *07 Quantum lab* (problem picker: *Drug molecules (VQE)*, *Heart safety*, *Docking*).
+
+## 25. Round 2 of the quantum tools (October 2026)
+
+- *Drug molecules*: a **Circuit** switch. *UCCSD (fixed circuit)*, the default, is unchanged; *ADAPT-VQE* grows the
+  circuit one excitation at a time (the one that lowers the energy most, re-optimising every angle) and draws how the
+  error falls as operators are added. It takes longer (up to a few minutes at 12 qubits) and reached chemical accuracy
+  on stretched bonds where the fixed circuit did not (Gate Q6b). When the exact lowest state of the active space is not
+  a singlet (unpaired electrons, as when a bond is stretched to breaking), a note gives the lowest singlet, the state a
+  VQE started from paired electrons aims for, and the error against it.
+- *Docking*: after a run, **Polish the poses** scores the quantum route's poses with an AutoDock Vina-style function
+  (steric, hydrophobic and H-bond terms), refines the best by small rigid moves, and gives random search the same score
+  and refinement; the polished pose is drawn in the 3D view (red squares). Standing: Gate Q7b.
