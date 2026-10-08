@@ -1608,7 +1608,33 @@ Practice (train_val sets only; training capped at 2500 compounds; 5-fold cross-v
 <!-- END generated:admet_practice -->
 
 <!-- BEGIN generated:admet -->
-_results_admet.json: not run (python validation/admet_gate.py --test)._
+Test (official held-out scaffold splits; run once):
+
+| Endpoint | Train / test | Quantum kernel (95 % interval) | RBF, same 8 inputs | RBF, all 17 | Quantum − RBF (95 %) | Verdict |
+|---|---|---|---|---|---|---|
+| caco2_wang | 728 / 182 | 0.750 [0.673, 0.812] | 0.755 | 0.780 | -0.006 [-0.039, 0.029] | pass |
+| hia_hou | 461 / 117 | 0.974 [0.946, 0.994] | 0.962 | 0.969 | +0.012 [-0.007, 0.039] | pass |
+| pgp_broccatelli | 973 / 245 | 0.851 [0.801, 0.898] | 0.832 | 0.836 | +0.020 [0.000, 0.040] | pass |
+| bioavailability_ma | 512 / 128 | 0.704 [0.602, 0.797] | 0.740 | 0.734 | -0.036 [-0.078, 0.011] | fail |
+| lipophilicity_astrazeneca | 2500 / 840 | 0.517 [0.464, 0.570] | 0.502 | 0.646 | +0.015 [-0.016, 0.053] | pass |
+| solubility_aqsoldb | 2500 / 1997 | 0.722 [0.694, 0.747] | 0.735 | 0.746 | -0.013 [-0.025, -0.003] | pass |
+| bbb_martins | 1624 / 406 | 0.832 [0.776, 0.879] | 0.838 | 0.852 | -0.006 [-0.045, 0.036] | pass |
+| ppbr_az | 2231 / 559 | 0.372 [0.304, 0.441] | 0.403 | 0.488 | -0.031 [-0.090, 0.031] | fail |
+| vdss_lombardo | 904 / 226 | 0.627 [0.529, 0.708] | 0.609 | 0.632 | +0.018 [-0.037, 0.075] | pass |
+| cyp2c9_veith | 2500 / 2419 | 0.813 [0.795, 0.830] | 0.817 | 0.824 | -0.005 [-0.008, -0.001] | pass |
+| cyp2d6_veith | 2500 / 2626 | 0.799 [0.777, 0.821] | 0.806 | 0.821 | -0.007 [-0.013, 0.001] | pass |
+| cyp3a4_veith | 2500 / 2467 | 0.792 [0.774, 0.810] | 0.788 | 0.806 | +0.004 [-0.001, 0.010] | pass |
+| cyp2c9_substrate_carbonmangels | 534 / 135 | 0.614 [0.517, 0.716] | 0.650 | 0.655 | -0.036 [-0.103, 0.020] | fail |
+| cyp2d6_substrate_carbonmangels | 532 / 135 | 0.757 [0.670, 0.842] | 0.739 | 0.794 | +0.018 [-0.004, 0.043] | pass |
+| cyp3a4_substrate_carbonmangels | 535 / 135 | 0.632 [0.537, 0.724] | 0.598 | 0.600 | +0.034 [-0.037, 0.105] | pass |
+| half_life_obach | 532 / 135 | 0.407 [0.254, 0.538] | 0.409 | 0.492 | -0.002 [-0.130, 0.119] | pass |
+| clearance_hepatocyte_az | 970 / 243 | 0.325 [0.200, 0.450] | 0.426 | 0.444 | -0.101 [-0.174, -0.030] | fail |
+| clearance_microsome_az | 881 / 221 | 0.411 [0.283, 0.527] | 0.527 | 0.572 | -0.116 [-0.196, -0.039] | fail |
+| ld50_zhu | 2500 / 1478 | 0.392 [0.344, 0.436] | 0.413 | 0.477 | -0.022 [-0.044, -0.001] | pass |
+| ames | 2500 / 1457 | 0.686 [0.658, 0.712] | 0.680 | 0.727 | +0.006 [-0.009, 0.021] | pass |
+| dili | 379 / 96 | 0.921 [0.858, 0.968] | 0.933 | 0.933 | -0.012 [-0.032, 0.008] | pass |
+
+Gate Q8: **fail**: 16 of 21 endpoints met the rule (needed 17).
 <!-- END generated:admet -->
 
 ## Gate Q9 — error mitigation on a simulated noisy quantum computer (pre-registered)
@@ -1640,7 +1666,28 @@ Chosen: richardson+sv135 ('+sv': symmetry verification; digits: noise scales).
 <!-- END generated:mitigation_practice -->
 
 <!-- BEGIN generated:mitigation -->
-_results_mitigation.json: not run (python validation/mitigation_gate.py --test)._
+Test (16 new cases; richardson+sv135; noise {'p1': 0.0003, 'p2': 0.003}):
+
+| Molecule | Bond × eq. | Noise-free circuit (Ha) | Noisy error, symmetry-verified (mHa) | Mitigated error (mHa) |
+|---|---|---|---|---|
+| LiH | 1.2 | -7.84021 | +9.31 | -0.318 |
+| LiH | 1.6 | -7.76747 | +7.43 | -0.258 |
+| HF | 1.2 | -98.55293 | +15.94 | -0.546 |
+| HF | 1.6 | -98.52178 | +15.51 | -0.554 |
+| H2O | 1.25 | -74.89831 | +12.57 | -0.431 |
+| H2O | 1.6 | -74.72753 | +11.40 | -0.402 |
+| NH3 | 1.25 | -55.34659 | +14.10 | -0.485 |
+| NH3 | 1.6 | -55.05105 | +8.89 | -0.312 |
+| CH4 | 1.2 | -39.61180 | +18.95 | -0.656 |
+| CH4 | 1.6 | -39.13314 | +8.78 | -0.304 |
+| N2 | 1.15 | -107.46613 | +8.68 | -0.301 |
+| N2 | 1.6 | -107.08699 | +14.68 | -0.602 |
+| CO | 1.15 | -111.18157 | +8.51 | -0.294 |
+| CO | 1.4 | -111.00156 | +11.58 | -0.414 |
+| HCN | 1.15 | -91.59758 | +7.68 | -0.265 |
+| CH2O | 1.15 | -112.39107 | +12.92 | -0.463 |
+
+Gate Q9: **pass**: 16 of 16 within chemical accuracy (median 0.41 mHa; median 29x smaller than the noisy error).
 <!-- END generated:mitigation -->
 
 Summary of the new tests:
@@ -1648,7 +1695,8 @@ Summary of the new tests:
 <!-- BEGIN generated:summary_new -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
-| Gates Q8, Q9 | not run | — |
+| Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | 16 of 21 endpoints met the rule; quantum − classical median -0.006 | fail |
+| Gate Q9: error mitigation on a simulated noisy chip, 16 new molecules | 16 of 16 within chemical accuracy after mitigation (median 0.41 mHa, noisy 11.5) | pass |
 <!-- END generated:summary_new -->
 
 ## Cost (Pillar 1): runtime and peak memory against bead count

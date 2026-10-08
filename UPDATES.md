@@ -912,3 +912,10 @@ run once, failures kept.
   verification.
 - **New tests pre-registered.** Gate Q8 (ADMET, 21 official TDC scaffold test splits) and Gate Q9 (error mitigation,
   16 new molecules).
+- **Gate Q9 (error mitigation), pass.** On 16 new molecules, symmetry verification + zero-noise extrapolation brought
+  the energy of a 4-qubit VQE circuit on a simulated chip at today's best noise level within chemical accuracy in
+  every case (median 0.41 mHa; about 29 times smaller than unmitigated).
+- **Gate Q8 (ADMET), fail by one endpoint.** On the official held-out splits of 21 drug properties the quantum-kernel
+  model was within the margin of the classical model on the same inputs for 16 (17 needed), ahead on several (P-gp,
+  CYP3A4 substrate, intestinal absorption); it fell clearly behind on the two clearance endpoints and just past the
+  margin on three more. The tab stays, with this standing shown.
