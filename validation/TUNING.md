@@ -438,3 +438,18 @@ cell line's margin over the better tool. **Frozen**: FDR 0.01, KR balancing, no 
   (1, 3, 5), with or without symmetry verification; noise at today's best device level (3e-3) and the lab's
   pessimistic level (1e-2). **Frozen**: symmetry verification + Richardson from (1, 3, 5) at 3e-3 (the only method
   that reached chemical accuracy in every practice case at that level).
+- **Q6d (molecules).** All 38 molecule cases run so far (Q6b practice and the Q6b and Q6c tests). First practice: the
+  escape alone (1e-4) fixed CO at 2.8x but not HCN at 2.2x, whose ground state shares nothing with Hartree-Fock; adding
+  starts from the three lowest other determinants fixed it, but one such start ended on a lower-lying triplet (LiH at
+  3x), so only runs that end in a singlet are kept. With escape 1e-5, four starts and the singlet rule: 38 of 38
+  within chemical accuracy of the lowest singlet (worst 0.29 mHa; `results_round2_practice_q6d.json`). **Frozen**:
+  generalized pool, gradient 1e-3, cap 200 operators (Q6c: 150; five practice cases needed 151-180 and NH3 at 1.8x
+  reached 200, still 0.17 mHa), escape 1e-5, three extra starts, singlet rule.
+- **Q7c (docking, hybrid search; no test).** On all 324 usable complexes of Q7 and Q7b (practice now), random
+  search's budget split between random placements and perturbations of the QAOA route's clique poses (25 % to the
+  seeds) docked more than the clique route alone but fewer than random search alone (`results_round2_practice_q7c.json`);
+  the practice run was stopped after that setting and no Q7c test was pre-registered.
+- **Q8 follow-up (no test).** A projected quantum kernel (each qubit's reduced state as features, Huang et al. 2021) was
+  compared with the plain quantum kernel on part of Q8's data (now practice); it was not better (below the plain kernel
+  on 4 of the 6 endpoints run, `results_admet_pqk_practice.json`), so no new ADMET test was pre-registered and Gate
+  Q8's fail stands.

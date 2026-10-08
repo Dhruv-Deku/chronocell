@@ -187,6 +187,31 @@ def render(version: str) -> None:
 
     _phase_b()
     _quantum()
+    _whats_new()
+
+
+def _whats_new() -> None:
+    """The newest tools (October 2026), with a button to the Scoreboard."""
+    html('<h2 class="cc-h2">New: the scoreboard and three quantum tools</h2>')
+    left, right = st.columns(2, gap="large")
+    with left:
+        html('<div class="cc-callout"><h4>08 Scoreboard</h4>Every accuracy test in one list: what it asks in plain words, '
+             'what was measured, and whether it passed. Each test was written down before its data were read and run '
+             'once; failures stay on the list. Charts compare the methods, and one button downloads the whole record '
+             'as a web page.</div>')
+        st.button("Open the Scoreboard", key="guide_go_Scoreboard", on_click=_go, args=("Scoreboard",))
+        html('<div class="cc-callout"><h4>Retests with new methods</h4>Where a test failed, a new method was tried on '
+             'new data: the room finder and the gene classifier now pass on new cell types, the loop caller beats two '
+             'standard tools on two new cell types, and the molecule circuit grows itself (ADAPT-VQE) and can start '
+             'from several arrangements of the electrons.</div>')
+    with right:
+        if st.session_state.get("research_mode", True):
+            html('<div class="cc-callout"><h4>ADMET profile</h4>Will a drug be absorbed, reach the brain, clash with liver '
+                 'enzymes or damage DNA? 21 such properties of any molecule, from a quantum-kernel model next to classical '
+                 'ones (07 Quantum lab, and the Quantum section of the Drug lab).</div>')
+            html('<div class="cc-callout"><h4>Noise &amp; mitigation</h4>Real quantum chips make errors on every gate. '
+                 'Run a molecule on a simulated noisy chip and watch two standard repairs (throwing away impossible '
+                 'results, and extrapolating to zero noise) bring the energy back within chemical accuracy.</div>')
 
 
 def _phase_b() -> None:

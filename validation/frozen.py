@@ -464,6 +464,28 @@ QUANTUM_ROUND2["q2b"] = {"tad": {"res": 60_000, "min_size": 3, "gamma": 5.0, "bo
 QUANTUM_ROUND2["q7b"] = {"settings": {"score": "vina", "refine_top": 10, "maxfev": 300, "hydrogens": "given"},
                          "qaoa": {"p": 5, "objective": "cvar"}, "min_hit_rate": 0.8, "min_success": 0.2,
                          "test_set": "Astex Diverse (PoseBusters paper data, Zenodo 8278563)"}
+# Q6d (molecules; pre-registered after results_round2_practice_q6d.json, before any test case was computed). Q6c (fail,
+# unchanged) missed three bonds stretched to 2.2-2.8x: the gradient-chosen circuit stopped at a stationary point. Q6d,
+# two changes to ADAPT-VQE (molecules.adapt_vqe, adapt_multistart): (1) escape: at a stationary point every pool
+# operator's exact one-angle energy scan is computed and the best is appended if it lowers the energy by > 1e-5 Eh;
+# (2) four starts: Hartree-Fock and the three lowest-energy other determinants of the active space, the lowest final
+# energy kept among runs that end in a singlet (S(S+1) < 0.1, measured on the state; if none does, among all runs).
+# No reference energy is used by the method. Practice: all 38 cases run so far (Q6b practice, the Q6b and Q6c tests):
+# 38 of 38 within chemical accuracy of the lowest singlet (worst 0.29 mHa; CO 2.8x 0.14, HCN 2.2x 0.06, CH2O 2.2x
+# 0.004, against 168 / 16.5 / 4.6 in Q6c); the Hartree-Fock start alone with the escape missed HCN 2.2x (16.5) and the
+# first practice of the starts without the singlet rule ended on a lower triplet for LiH 3x. Operator cap 200 (Q6c:
+# 150; five practice cases needed 151-180 and NH3 1.8x reached 200, 0.17 mHa). Test: fourteen molecule / bond-length
+# cases run by no test or practice before, mostly stretched. Pass: within chemical accuracy (1.6 mHa) of the active
+# space's lowest singlet (molecules.fci_singlet) in every case. Reported, not gated: the final state's S(S+1), each
+# start's error, the Hartree-Fock start's error.
+QUANTUM_ROUND2["q6d"] = {"settings": {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 200, "escape": 1e-5,
+                                      "references": 3},
+                         "tolerance_mEh": 1.6, "reference": "lowest singlet",
+                         "cases": [["N2", 2.2, [6, 6]], ["N2", 3.5, [6, 6]], ["CO", 1.9, [6, 6]], ["CO", 2.5, [6, 6]],
+                                   ["CO", 3.2, [6, 6]], ["HCN", 1.9, [6, 6]], ["HCN", 2.6, [6, 6]],
+                                   ["CH2O", 1.9, [6, 6]], ["CH2O", 2.6, [6, 6]], ["H2O", 2.6, [8, 6]],
+                                   ["NH3", 2.1, [6, 6]], ["HF", 3.0, [6, 4]], ["LiH", 3.5, [2, 4]],
+                                   ["CH4", 1.7, [4, 4]]]}
 
 # Gate Q9 (error mitigation; validation/mitigation_gate.py; chronocell/quantum/noisy.py). Pre-registered after
 # results_mitigation_practice.json, before any test case was run. The 2-electron, 2-orbital UCCSD-VQE circuit of a

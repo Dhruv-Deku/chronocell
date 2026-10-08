@@ -87,7 +87,7 @@ def standing(parts: tuple[str, ...] | None = None) -> None:
 
 R2_LABEL = {"q2b": "Q2b domain calls, new cell lines", "q4b": "Q4b gene classifier, new cell line",
             "q6b": "Q6b ADAPT-VQE, new molecules", "q6c": "Q6c ADAPT-VQE vs the lowest singlet, new molecules",
-            "q7b": "Q7b docking with refinement, Astex set"}
+            "q6d": "Q6d ADAPT-VQE with escape and several starts, new molecules", "q7b": "Q7b docking with refinement, Astex set"}
 
 
 def round2_standing(parts: tuple[str, ...]) -> None:
@@ -1023,7 +1023,7 @@ def molecules_panel(kp: str = "qmol") -> None:
          "qubits and runs <b>VQE</b> on them. The exact answer in the same space (FCI) is the reference. The integrals were "
          "checked against textbook values and against OpenFermion's independent reference data.</p>")
     _drug_standing("q6", "Molecule energies (Q6)")
-    round2_standing(("q6b", "q6c"))
+    round2_standing(("q6b", "q6c", "q6d"))
     names = [n for n in MO.LIBRARY if n != "H2"]
     c1, c2, c3 = st.columns(3)
     name = c1.selectbox("Molecule", names, index=names.index("CH2O"), key=f"{kp}_name",

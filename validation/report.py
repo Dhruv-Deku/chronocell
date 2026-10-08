@@ -1073,6 +1073,21 @@ def round2_practice() -> str:
             out.append(f"| {a['molecule']} | {a['bond_scale']} | {a['active'][0]}e, {a['active'][1]}o | {a['qubits']} | "
                        f"{a['uccsd_error_mEh']:.3f} | {a['adapt_error_mEh']:.3f} | {b['adapt_error_mEh']:.3f} ({b['adapt_operators']}) |")
         out += ["", f"Chosen: {q6['choice']} (the operator cap was raised to 150 in the frozen rule).", ""]
+    q6d = _load("results_round2_practice_q6d.json")
+    if q6d:
+        for k, g in q6d["grid"].items():
+            out += [f"Q6d practice ({len(g['rows'])} cases: every molecule case run so far; {g['settings']}): within chemical "
+                    f"accuracy of the lowest singlet in {g['within']} of {len(g['rows'])} (worst {g['max_abs_error_mEh']:.3f} "
+                    "mHa). Hartree-Fock start alone (with the escape) per case vs the start kept (lowest energy among "
+                    "runs ending in a singlet, else among all); S(S+1) of the kept state (0 singlet, 2 triplet; values "
+                    "between: a mix, where the bond is nearly broken):", "",
+                    "| Molecule | Bond × eq. | Active space | Hartree-Fock start (mHa) | Kept start (mHa) | S(S+1) |",
+                    "|---|---|---|---|---|---|"]
+            for x in g["rows"]:
+                hf = x.get("start_errors_mEh", [float("nan")])[0]
+                out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['active'][0]}e, {x['active'][1]}o | {hf:+.3f} | "
+                           f"{x['error_vs_singlet_mEh']:+.3f} | {x.get('spin') or 0:.2f} |")
+            out.append("")
     q7 = _load("results_round2_practice_q7b.json")
     if q7:
         out += [f"Q7b practice ({q7['complexes']} PoseBusters complexes of Q7, all practice now; QAOA {q7['qaoa']}):", "",
@@ -1093,6 +1108,15 @@ def round2_practice() -> str:
                         f"{100 * same.get('success_qaoa', float('nan')):.1f} %, {100 * same.get('success_classical', float('nan')):.1f} %, "
                         f"{100 * same.get('success_random', float('nan')):.1f} %)."]
         out += ["", f"Chosen: {q7.get('choice')}."]
+    q7c = _load("results_round2_practice_q7c.json")
+    if q7c:
+        for k, v in q7c["grid"].items():
+            out += ["", f"Q7c practice (hybrid search, {k}: {100 * v['settings']['hybrid']:.0f} % of random search's budget "
+                        f"given to perturbations of the clique poses; {v['usable']} usable complexes of Q7 and Q7b): QAOA "
+                        f"route {100 * v['success_qaoa']:.1f} %, classical cliques {100 * v['success_classical']:.1f} %, "
+                        f"random search alone {100 * v['success_random']:.1f} %."]
+        if q7c.get("stopped"):
+            out += ["", q7c["stopped"]]
     return "\n".join(out) if out else "_Round 2 practice: not run._"
 
 
@@ -1136,6 +1160,18 @@ def round2() -> str:
         out += ["", f"Q6c: **{'pass' if q['pass'] else 'fail'}**: ADAPT-VQE within chemical accuracy of the lowest singlet in "
                     f"{q['within']} of {q['cases']} (worst {q['max_abs_error_mEh']:.3f} mHa); fixed-order UCCSD in "
                     f"{q['uccsd_within']} of {q['cases']}; the sector's lowest state was a triplet in {q['triplet_ground']}.", ""]
+    if "q6d" in r:
+        q = r["q6d"]
+        out += [f"Q6d (escape + multi-start ADAPT-VQE; {q['cases']} cases never run; settings {q['rule']['settings']}):", "",
+                "| Molecule | Bond × eq. | Active space | Qubits | Lowest singlet | ADAPT-VQE | Error vs singlet (mHa) | S(S+1) | Operators | Escapes | Starts: errors (mHa) |",
+                "|---|---|---|---|---|---|---|---|---|---|---|"]
+        for x in q["rows"]:
+            starts = ", ".join(f"{e:.2f}" for e in x.get("start_errors_mEh", []))
+            out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['active'][0]}e, {x['active'][1]}o | {x['qubits']} | "
+                       f"{x['lowest_singlet']:.5f} | {x['adapt_energy']:.5f} | {x['error_vs_singlet_mEh']:+.3f} | "
+                       f"{x.get('spin') or 0:.2f} | {x['operators']} | {x['escapes']} | {starts} |")
+        out += ["", f"Q6d: **{'pass' if q['pass'] else 'fail'}**: within chemical accuracy of the lowest singlet in "
+                    f"{q['within']} of {q['cases']} (worst {q['max_abs_error_mEh']:.3f} mHa).", ""]
     if "q4b" in r:
         q = r["q4b"]
         ci = q["ci95"]
@@ -1191,6 +1227,11 @@ def _r2_rows() -> list[str]:
         q = r["q6b"]
         rows.append(f"| Gate Q6b: ADAPT-VQE on {q['cases']} new stretched molecules | worst error {q['max_abs_error_mEh']:.2f} mHa "
                     f"(needed ≤ 1.6); {q['within']} of {q['cases']} within | {'pass' if q['pass'] else 'fail'} |")
+    if "q6d" in r:
+        q = r["q6d"]
+        rows.append(f"| Gate Q6d: ADAPT-VQE with escape and multi-start on {q['cases']} new stretched molecules | worst error "
+                    f"{q['max_abs_error_mEh']:.2f} mHa (needed ≤ 1.6); {q['within']} of {q['cases']} within | "
+                    f"{'pass' if q['pass'] else 'fail'} |")
     if "q6c" in r:
         q = r["q6c"]
         rows.append(f"| Gate Q6c: ADAPT-VQE on {q['cases']} new stretched molecules, against the lowest singlet | worst error "

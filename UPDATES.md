@@ -919,3 +919,16 @@ run once, failures kept.
   model was within the margin of the classical model on the same inputs for 16 (17 needed), ahead on several (P-gp,
   CYP3A4 substrate, intestinal absorption); it fell clearly behind on the two clearance endpoints and just past the
   margin on three more. The tab stays, with this standing shown.
+- **Docking, once more (practice only).** Splitting random search's budget between random placements and the QAOA
+  route's clique poses docked more than the clique route alone but still fewer than random search alone, so no new
+  docking test was run: with a reasonable score, the quantum step does not help this docking task.
+- **New in the app.** The Guide has a "New" section with a button to the Scoreboard; the Scoreboard downloads the whole
+  record as a web page (*Download the evidence report*).
+- **ADMET, once more (practice only).** A "projected" quantum kernel (each qubit's own state as the features) did worse
+  than the plain quantum kernel on 4 of the 6 drug properties tried, so no new ADMET test was run; Gate Q8's fail
+  stands.
+- **Gate Q6d pre-registered (molecules, once more).** Round 2 had closed the molecule tests after Q6c; this session's
+  request for new methods reopened them, with a new method on new cases. The circuit-growing method (ADAPT-VQE) now
+  steps off a flat spot instead of stopping there, and starts from four arrangements of the electrons, keeping the
+  best run that ends with the right spin. On all 38 molecule cases used so far it was within chemical accuracy every
+  time, including Q6c's three misses (CO stretched 2.8x: 0.14 mHa, was 168). Test: fourteen new cases, all must pass.
