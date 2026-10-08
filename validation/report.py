@@ -1227,14 +1227,14 @@ def _r2_rows() -> list[str]:
         q = r["q6b"]
         rows.append(f"| Gate Q6b: ADAPT-VQE on {q['cases']} new stretched molecules | worst error {q['max_abs_error_mEh']:.2f} mHa "
                     f"(needed ≤ 1.6); {q['within']} of {q['cases']} within | {'pass' if q['pass'] else 'fail'} |")
-    if "q6d" in r:
-        q = r["q6d"]
-        rows.append(f"| Gate Q6d: ADAPT-VQE with escape and multi-start on {q['cases']} new stretched molecules | worst error "
-                    f"{q['max_abs_error_mEh']:.2f} mHa (needed ≤ 1.6); {q['within']} of {q['cases']} within | "
-                    f"{'pass' if q['pass'] else 'fail'} |")
     if "q6c" in r:
         q = r["q6c"]
         rows.append(f"| Gate Q6c: ADAPT-VQE on {q['cases']} new stretched molecules, against the lowest singlet | worst error "
+                    f"{q['max_abs_error_mEh']:.2f} mHa (needed ≤ 1.6); {q['within']} of {q['cases']} within | "
+                    f"{'pass' if q['pass'] else 'fail'} |")
+    if "q6d" in r:
+        q = r["q6d"]
+        rows.append(f"| Gate Q6d: ADAPT-VQE with escape and multi-start on {q['cases']} new stretched molecules | worst error "
                     f"{q['max_abs_error_mEh']:.2f} mHa (needed ≤ 1.6); {q['within']} of {q['cases']} within | "
                     f"{'pass' if q['pass'] else 'fail'} |")
     if "q7b" in r:

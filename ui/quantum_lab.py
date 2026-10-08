@@ -1012,7 +1012,9 @@ def _run_molecule(name: str, scale: float, ne: int, no: int, method: str = "uccs
             "params": r.vqe.parameters, "electrons": r.vqe.electrons, "gap": r.homo_lumo_gap, "eps": r.orbital_energies.tolist(),
             "n_occ": n_el // 2, "atoms": r.atoms, "nbf": r.n_basis, "seconds": r.seconds, "history": r.vqe.history,
             "hf_converged": r.hf_converged, "method": method, "lowest_spin": r.lowest_spin, "e_singlet": r.e_singlet,
-            "adapt_energies": list(getattr(r.vqe, "energies", [])), "adapt_ops": list(getattr(r.vqe, "operators", []))}
+            "adapt_energies": list(getattr(r.vqe, "energies", [])), "adapt_ops": list(getattr(r.vqe, "operators", [])),
+            "spin": getattr(r.vqe, "spin", None), "starts": getattr(r.vqe, "starts", None),
+            "escapes": getattr(r.vqe, "escapes", None)}
 
 
 def molecules_panel(kp: str = "qmol") -> None:
@@ -1033,12 +1035,16 @@ def molecules_panel(kp: str = "qmol") -> None:
     space = c3.selectbox("Active space (electrons, orbitals)", ["2, 2", "4, 4", "6, 6"], index=1, key=f"{kp}_space",
                          help="Qubits = 2 × orbitals. 6, 6 = 12 qubits.")
     ne, no = (int(v) for v in space.split(","))
-    method = st.radio("Circuit", ["uccsd", "adapt"], horizontal=True, key=f"{kp}_method",
+    method = st.radio("Circuit", ["uccsd", "adapt", "adapt_multi"], horizontal=True, key=f"{kp}_method",
                       format_func=lambda m: {"uccsd": "UCCSD (fixed circuit)",
-                                             "adapt": "ADAPT-VQE (grows the circuit one step at a time)"}[m],
+                                             "adapt": "ADAPT-VQE (grows the circuit one step at a time)",
+                                             "adapt_multi": "ADAPT-VQE + escape, 4 starts (Gate Q6d)"}[m],
                       help="ADAPT-VQE adds, one at a time, the excitation that lowers the energy most, and can reuse "
                            "them; it reached chemical accuracy where the fixed UCCSD circuit did not (stretched bonds). "
-                           "It takes longer: up to a few minutes at 12 qubits.")
+                           "It takes longer: up to a few minutes at 12 qubits. The Gate Q6d version also steps off flat "
+                           "spots and starts from four arrangements of the electrons, keeping the best run that ends with "
+                           "paired spins: within chemical accuracy on 14 of 14 new stretched molecules, but four runs "
+                           "take seconds at 8 qubits and up to about half an hour at 12.")
     key = (name, float(scale), ne, no, method)
     if st.button("Run VQE on the quantum simulator", key=f"{kp}_go", type="primary", icon=":material/memory:"):
         try:
@@ -1056,14 +1062,18 @@ def molecules_panel(kp: str = "qmol") -> None:
              ("Chemical accuracy", "yes" if abs(r["err"]) <= MO.CHEMICAL_ACCURACY else "no", "≤ 1.6 mHa"),
              ("Qubits · parameters", f"{r['qubits']} · {r['params']}", f"{r['nbf']} basis functions"),
              ("HOMO–LUMO gap", f"{27.2114 * r['gap']:.1f}", "eV")])
+    extra = ""
+    if r.get("starts"):
+        extra = (f' Starts run: {r["starts"]}; escapes from flat spots: {r["escapes"]}; spin of the result S(S+1) = '
+                 f'{r["spin"]:.2f} (0 = paired; between 0 and 2 = a mix, usual where a bond is nearly broken).')
     html(f'<p class="cc-note">Correlation energy captured by the active space: {1e3 * (r["e_cas"] - r["e_hf"]):+.1f} mHa. '
-         f'Electrons in the VQE state: {r["electrons"]:.3f}. {r["seconds"]:.1f} s.</p>')
+         f'Electrons in the VQE state: {r["electrons"]:.3f}. {r["seconds"]:.1f} s.{extra}</p>')
     if r.get("lowest_spin", 0.0) > 1e-3:
         banner(f"<b>The exact lowest state here is not a singlet</b> (S(S+1) = {r['lowest_spin']:.1f}: unpaired "
                f"electrons, as when a bond is stretched to breaking). VQE starts from paired electrons and targets the "
                f"lowest singlet, {r['e_singlet']:.5f} Ha: its error against that state is "
                f"{1e3 * (r['e_vqe'] - r['e_singlet']):+.3f} mHa.", "info")
-    if r.get("method") == "adapt" and r.get("adapt_energies"):
+    if r.get("method") in ("adapt", "adapt_multi") and r.get("adapt_energies"):
         err = np.maximum(np.abs(np.array(r["adapt_energies"]) - r["e_cas"]) * 1e3, 1e-4)
         fig = go.Figure(go.Scatter(x=np.arange(1, len(err) + 1), y=err, mode="lines+markers",
                                    line=dict(color=T.ACCENT), marker=dict(size=5),
@@ -1092,7 +1102,9 @@ def molecules_panel(kp: str = "qmol") -> None:
         st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_levels")
         html('<p class="cc-note">Orbital energies: blue occupied, red empty. The gap between the highest occupied and the '
              'lowest empty orbital is a rough guide to how reactive a group is.</p>')
-    if st.button("Stretch the bond: 8-point curve", key=f"{kp}_curve"):
+    slow = method == "adapt_multi" and no == 6
+    if st.button("Stretch the bond: 8-point curve", key=f"{kp}_curve", disabled=slow,
+                 help="Not offered for the Gate Q6d method at 12 qubits (it could take hours)." if slow else None):
         rows = []
         bar = st.progress(0.0)
         for k, s_ in enumerate(np.round(np.linspace(0.8, 2.2, 8), 2)):

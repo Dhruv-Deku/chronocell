@@ -1563,6 +1563,27 @@ Q6c (reference corrected to the lowest singlet; 12 cases never run; settings {'p
 
 Q6c: **fail**: ADAPT-VQE within chemical accuracy of the lowest singlet in 9 of 12 (worst 167.990 mHa); fixed-order UCCSD in 7 of 12; the sector's lowest state was a triplet in 2.
 
+Q6d (escape + multi-start ADAPT-VQE; 14 cases never run; settings {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 200, 'escape': 1e-05, 'references': 3}):
+
+| Molecule | Bond × eq. | Active space | Qubits | Lowest singlet | ADAPT-VQE | Error vs singlet (mHa) | S(S+1) | Operators | Escapes | Starts: errors (mHa) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| N2 | 2.2 | 6e, 6o | 12 | -107.43990 | -107.43895 | +0.947 | 0.99 | 24 | 0 | 0.99, 0.95, 130.95, 130.95 |
+| N2 | 3.5 | 6e, 6o | 12 | -107.43802 | -107.43802 | +0.001 | 1.20 | 18 | 0 | 6.85, 0.00, 85.78, 85.78 |
+| CO | 1.9 | 6e, 6o | 12 | -111.03332 | -111.03332 | +0.006 | 0.00 | 170 | 1 | 0.02, 0.01, 33.93, 33.93 |
+| CO | 2.5 | 6e, 6o | 12 | -111.00582 | -111.00580 | +0.021 | 0.00 | 105 | 1 | 0.11, 0.02, 0.12, 2.14 |
+| CO | 3.2 | 6e, 6o | 12 | -111.00294 | -111.00292 | +0.014 | 2.00 | 11 | 3 | 0.02, 0.02, 0.02, 0.01 |
+| HCN | 1.9 | 6e, 6o | 12 | -91.24746 | -91.24741 | +0.048 | 0.00 | 68 | 0 | 0.05, 50.46, 50.46, 49.81 |
+| HCN | 2.6 | 6e, 6o | 12 | -91.22149 | -91.22148 | +0.008 | 0.00 | 57 | 1 | 0.01, 2.79, 0.14, 0.07 |
+| CH2O | 1.9 | 6e, 6o | 12 | -112.24271 | -112.24270 | +0.014 | 0.00 | 51 | 0 | 0.01, 1.95, 0.02, 20.32 |
+| CH2O | 2.6 | 6e, 6o | 12 | -112.23022 | -112.22998 | +0.245 | 1.99 | 11 | 0 | 0.66, 0.66, 0.25, 0.27 |
+| H2O | 2.6 | 8e, 6o | 12 | -74.74074 | -74.74058 | +0.166 | 0.15 | 46 | 0 | 0.17, 3.62, 2.28, 0.18 |
+| NH3 | 2.1 | 6e, 6o | 12 | -55.13152 | -55.13036 | +1.155 | 0.11 | 200 | 0 | 1.16, 2.59, 20.68, 47.18 |
+| HF | 3.0 | 6e, 4o | 8 | -98.45351 | -98.45351 | +0.000 | 0.00 | 4 | 0 | 0.00, 0.72, 0.87, 0.72 |
+| LiH | 3.5 | 2e, 4o | 8 | -7.77813 | -7.77813 | -0.000 | 0.00 | 4 | 0 | -0.00, -0.81, -0.00, 85.02 |
+| CH4 | 1.7 | 4e, 4o | 8 | -39.04626 | -39.04626 | +0.003 | 0.00 | 34 | 0 | 0.01, 113.42, 0.00, 0.01 |
+
+Q6d: **pass**: within chemical accuracy of the lowest singlet in 14 of 14 (worst 1.155 mHa).
+
 Q4b (trained on 867 genes of GM12878, K562 and IMR-90; tested on 489 HMEC genes, 45 % active):
 
 | Classifier | Test AUC (95 % interval) |
@@ -1614,8 +1635,17 @@ Summary:
 | Gate Q4b: quantum-kernel gene classifier vs RBF-SVM, three cell lines → HMEC | AUC 0.586 vs 0.575 | pass |
 | Gate Q6b: ADAPT-VQE on 11 new stretched molecules | worst error 2.46 mHa (needed ≤ 1.6); 10 of 11 within | fail |
 | Gate Q6c: ADAPT-VQE on 12 new stretched molecules, against the lowest singlet | worst error 167.99 mHa (needed ≤ 1.6); 9 of 12 within | fail |
+| Gate Q6d: ADAPT-VQE with escape and multi-start on 14 new stretched molecules | worst error 1.16 mHa (needed ≤ 1.6); 14 of 14 within | pass |
 | Gate Q7b: QAOA docking with Vina-like score and refinement (Astex Diverse) | docked 35 % vs random search 58 % | fail |
 <!-- END generated:summary_r2 -->
+
+**Reading Q6d (pass).** Both changes were needed on the test: N2 at 3.5x was 6.85 mHa off from the Hartree-Fock start
+and exact from another start; CO at 3.2x needed three escapes. Two cases were closer to the line than any practice
+case: NH3 at 2.1x (1.16 mHa; it used all 200 operators without meeting the gradient stop) and N2 at 2.2x (0.95 mHa).
+Four of the most stretched cases (N2 2.2x and 3.5x, CO 3.2x, CH2O 2.6x) ended in a mix of singlet and triplet
+(S(S+1) 1.0-2.0) whose energy matches the lowest singlet within the margin: near bond breaking these spin states have
+almost the same energy, and the energy is what the rule scores. Four runs per molecule make it slow: up to 26 minutes
+per molecule at 12 qubits on this laptop. Q6b and Q6c stay fails.
 
 ## Gate Q8 — a quantum-kernel ADMET profile (21 drug properties, pre-registered)
 

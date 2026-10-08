@@ -932,3 +932,9 @@ run once, failures kept.
   steps off a flat spot instead of stopping there, and starts from four arrangements of the electrons, keeping the
   best run that ends with the right spin. On all 38 molecule cases used so far it was within chemical accuracy every
   time, including Q6c's three misses (CO stretched 2.8x: 0.14 mHa, was 168). Test: fourteen new cases, all must pass.
+- **Gate Q6d (molecules), pass.** On the fourteen new cases the energy was within chemical accuracy every time (worst
+  1.16 mHa, ammonia stretched to 2.1x). Plainly: both changes mattered (one stretched N2 was 6.9 mHa off from the usual
+  start and exact from another; stretched CO needed three escapes); two cases came closer to the line than in
+  practice; four nearly broken bonds ended in a mix of spin states whose energy is right (near breaking those states
+  have almost the same energy); and it is slow, up to about 26 minutes per molecule at 12 qubits. Q6b and Q6c stay
+  fails. The Quantum lab offers the method as a third circuit choice (*ADAPT-VQE + escape, 4 starts*).
