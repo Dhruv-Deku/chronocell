@@ -1259,7 +1259,7 @@ def mitigation() -> str:
         return "_results_mitigation.json: not run (python validation/mitigation_gate.py --test)._"
     k = r["method_key"]
     out = [f"Test ({r['cases']} new cases; {k}; noise {r['rule']['noise']}):", "",
-           "| Molecule | Bond × eq. | Noise-free circuit (Ha) | Noisy error (mHa) | Mitigated error (mHa) |", "|---|---|---|---|---|"]
+           "| Molecule | Bond × eq. | Noise-free circuit (Ha) | Noisy error, symmetry-verified (mHa) | Mitigated error (mHa) |", "|---|---|---|---|---|"]
     for x in r["rows"]:
         m = x["methods"][k]
         out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['ideal']:.5f} | {m['noisy_mEh']:+.2f} | {m['mitigated_mEh']:+.3f} |")

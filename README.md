@@ -207,7 +207,8 @@ original results above stand):**
 <!-- BEGIN generated:summary_new -->
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
-| Gates Q8, Q9 | not run | — |
+| Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | 16 of 21 endpoints met the rule; quantum − classical median -0.006 | fail |
+| Gate Q9: error mitigation on a simulated noisy chip, 16 new molecules | 16 of 16 within chemical accuracy after mitigation (median 0.41 mHa, noisy 11.5) | pass |
 <!-- END generated:summary_new -->
 
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
