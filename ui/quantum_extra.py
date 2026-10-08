@@ -95,6 +95,8 @@ def admet_panel(kp: str = "qadmet") -> None:
             return
     r = ss.get(f"{kp}_res")
     if not r:
+        with st.expander("All the Drug lab's drugs side by side", expanded=False):
+            admet_drugs_panel(kp)
         return
     models = _admet_models()
     html(f'<p class="cc-note"><b>{esc(r["name"])}</b> · <code>{esc(r["smiles"][:120])}</code></p>')
@@ -126,6 +128,55 @@ def admet_panel(kp: str = "qadmet") -> None:
     html('<p class="cc-note">Blue: the property is present / above the training median; red: absent / below. For yes/no '
          'properties the bar is the SVM\'s decision value (further from zero = more confident). "Agree" compares the '
          'quantum model with the classical model on all 17 descriptors.</p>')
+    with st.expander("All the Drug lab's drugs side by side", expanded=False):
+        admet_drugs_panel(kp)
+
+
+def admet_drugs_panel(kp: str = "qadmet") -> None:
+    """Every Drug lab class's example compounds side by side: a drugs x properties heat map (quantum model)."""
+    from chronocell import drug_info as DI
+    from chronocell.quantum import admet as A, molfeat as MF
+    html('<p class="cc-note">The Drug lab\'s classes side by side: up to two example compounds per class (names from the '
+         'Drug guide, structures from PubChem), each scored on all 21 properties by the quantum-kernel model.</p>')
+    if st.button("Profile the Drug lab's drugs", key=f"{kp}_all_go", icon=":material/grid_on:"):
+        models = _admet_models()
+        rows, skipped = [], []
+        bar = st.progress(0.0)
+        names = [(k, n) for k, c in DI.CLASSES.items() for n in c.lookup[:2]]
+        for i, (cls, name) in enumerate(names):
+            try:
+                p = DI.properties(name)
+                smi = p.get("IsomericSMILES") or p.get("SMILES") or p.get("ConnectivitySMILES")
+                d = MF.descriptors(smi)
+                X = np.array([[d[f] for f in MF.FEATURES]], float)
+                row = {"drug": f"{name} ({cls})"}
+                for n, m in models.items():
+                    v = float(m.predict(X)["quantum"][0])
+                    row[n] = (1.0 if v > 0 else -1.0) * min(1.0, abs(v)) if m.task == "cls" else \
+                        float((m.ytr <= v).mean() * 2 - 1)
+                rows.append(row)
+            except Exception as exc:                  # a compound PubChem or the SMILES reader cannot handle is skipped
+                skipped.append(f"{name}: {exc}")
+            bar.progress((i + 1) / len(names))
+        bar.empty()
+        ss[f"{kp}_all"] = {"rows": rows, "skipped": skipped}
+    res = ss.get(f"{kp}_all")
+    if not res or not res["rows"]:
+        return
+    df = pd.DataFrame(res["rows"]).set_index("drug")
+    order = [n for g in A.GROUPS.values() for n in g]
+    Z = df[order].to_numpy()
+    fig = go.Figure(go.Heatmap(z=Z, x=[A.ENDPOINTS[n][1] for n in order], y=list(df.index), zmid=0, zmin=-1, zmax=1,
+                               colorscale=[[0, T.TERRACOTTA], [0.5, "#F8F8F6"], [1, T.ACCENT]],
+                               colorbar=dict(title="", tickvals=[-1, 0, 1], ticktext=["no / low", "", "yes / high"]),
+                               hovertemplate="%{y}<br>%{x}: %{z:+.2f}<extra></extra>"))
+    fig.update_layout(**T.plot_layout(120 + 26 * len(df), margin=dict(l=230, r=10, t=10, b=150), xaxis=dict(tickangle=-40)))
+    st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key=f"{kp}_heat")
+    html('<p class="cc-note">Blue: the property is predicted present (yes/no properties) or above the training median '
+         '(measured values); red: absent or below. Paler = less confident. Remember the Gate Q8 standing: a screen, not a '
+         'safety assessment.</p>')
+    if res["skipped"]:
+        warning_card("Some compounds were skipped", "", res["skipped"], kind="info")
 
 
 # ======================================================================================

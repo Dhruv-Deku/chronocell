@@ -21,6 +21,14 @@ Q6b Molecules: ADAPT-VQE (chronocell/quantum/molecules.adapt_vqe; Grimsley et al
     python validation/quantum_round2.py --practice q4b
     python validation/quantum_round2.py --practice q6b
     python validation/quantum_round2.py --test q6b         # run once (rules in frozen.QUANTUM_ROUND2)
+
+Q6d Molecules: ADAPT-VQE with an escape from stationary points (one-angle energy scans of the pool) and four starts
+    (Hartree-Fock and the three lowest other determinants; the lowest-energy run ending in a singlet is kept), after
+    Q6c missed three nearly broken bonds. Practice: every case run so far (38). Test: fourteen new cases. Both resume
+    after a stop (finished cases are saved).
+
+    python validation/quantum_round2.py --practice q6d
+    python validation/quantum_round2.py --test q6d
 """
 
 from __future__ import annotations
@@ -683,7 +691,8 @@ def test_q6c(R: dict) -> dict:
 # Q6d: ADAPT-VQE with an energy-scan escape from stationary points
 # ======================================================================================
 # first practice (escape alone, 1e-4) fixed CO at 2.8x but not HCN at 2.2x, whose ground state shares nothing with
-# Hartree-Fock; adding starts from the lowest other determinants fixed it; the grid below is the combined method
+# Hartree-Fock; adding starts from the lowest other determinants fixed it; a second practice run showed that such
+# starts can end on a lower-lying triplet (stretched LiH), so only runs that end in a singlet are kept
 Q6D_GRID = [{"pool": "gsd", "grad_tol": 1e-3, "max_operators": 200, "escape": 1e-5, "references": 3}]
 
 
@@ -698,6 +707,7 @@ def q6d_case(args) -> dict:
            "e_hf": a.hf, "adapt_energy": a.energy, "error_vs_singlet_mEh": 1e3 * (a.energy - e_s),
            "operators": a.parameters, "escapes": a.escapes, "converged": a.converged, "electrons": a.electrons,
            "start_errors_mEh": [1e3 * (e - e_s) for e in getattr(a, "start_energies", [a.energy])],
+           "start_spins": list(getattr(a, "start_spins", [getattr(a, "spin", float("nan"))])), "spin": getattr(a, "spin", None),
            "seconds": time.perf_counter() - t0}
     print({k: (round(v, 4) if isinstance(v, float) else v) for k, v in row.items()}, flush=True)
     return row
@@ -711,13 +721,25 @@ def q6d_seen_cases() -> list:
 
 
 def practice_q6d() -> dict:
-    from concurrent.futures import ProcessPoolExecutor
+    """Resumable: every finished case is saved (results_round2_practice_q6d_cases.json) and skipped on the next call."""
+    from concurrent.futures import ProcessPoolExecutor, as_completed
     cases = q6d_seen_cases()
     out = {"made": _now(), "cases": cases, "grid": {}}
+    cache_path = ROOT / "results_round2_practice_q6d_cases.json"
+    cache = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
     for st in Q6D_GRID:
-        with ProcessPoolExecutor(max_workers=6) as ex:
-            rows = list(ex.map(q6d_case, [(n, s_, a, st) for n, s_, a in cases]))
         key = f"escape{st['escape']:g}_refs{st.get('references', 0)}"
+        done = {(r["molecule"], r["bond_scale"], tuple(r["active"])): r for r in cache.get(key, {}).get("rows", [])
+                if cache[key]["settings"] == st}
+        todo = [(n, s_, a, st) for n, s_, a in cases if (n, s_, tuple(a)) not in done]
+        print(st, len(done), "cases cached,", len(todo), "to run", flush=True)
+        with ProcessPoolExecutor(max_workers=6) as ex:
+            for fut in as_completed([ex.submit(q6d_case, c) for c in todo]):
+                r = fut.result()
+                done[(r["molecule"], r["bond_scale"], tuple(r["active"]))] = r
+                cache[key] = {"settings": st, "rows": list(done.values())}
+                _json(cache_path, cache)
+        rows = [done[(n, s_, tuple(a))] for n, s_, a in cases]
         out["grid"][key] = {"settings": st, "rows": rows,
                             "within": int(sum(abs(r["error_vs_singlet_mEh"]) <= 1.6 for r in rows)),
                             "max_abs_error_mEh": max(abs(r["error_vs_singlet_mEh"]) for r in rows)}
@@ -730,9 +752,20 @@ def practice_q6d() -> dict:
 
 
 def test_q6d(R: dict) -> dict:
-    from concurrent.futures import ProcessPoolExecutor
+    """Each case once; finished cases are saved (results_round2_q6d_cases.json) so a job stopped at the 2-hour limit
+    continues with the remaining cases only."""
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    cache_path = ROOT / "results_round2_q6d_cases.json"
+    done = {(r["molecule"], r["bond_scale"], tuple(r["active"])): r
+            for r in (json.loads(cache_path.read_text(encoding="utf-8"))["rows"] if cache_path.exists() else [])}
+    todo = [(n, s_, a, R["settings"]) for n, s_, a in R["cases"] if (n, s_, tuple(a)) not in done]
+    print(len(done), "cases already run,", len(todo), "to run", flush=True)
     with ProcessPoolExecutor(max_workers=6) as ex:
-        rows = list(ex.map(q6d_case, [(n, s_, a, R["settings"]) for n, s_, a in R["cases"]]))
+        for fut in as_completed([ex.submit(q6d_case, c) for c in todo]):
+            r = fut.result()
+            done[(r["molecule"], r["bond_scale"], tuple(r["active"]))] = r
+            _json(cache_path, {"note": "Gate Q6d test rows, saved as each case finished", "rows": list(done.values())})
+    rows = [done[(n, s_, tuple(a))] for n, s_, a in R["cases"]]
     ok = [abs(r["error_vs_singlet_mEh"]) <= R["tolerance_mEh"] for r in rows]
     return {"rows": rows, "within": int(sum(ok)), "cases": len(rows),
             "max_abs_error_mEh": float(max(abs(r["error_vs_singlet_mEh"]) for r in rows)), "pass": bool(all(ok))}

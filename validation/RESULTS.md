@@ -1461,6 +1461,49 @@ Q6b practice (error vs active-space FCI, mHa; chemical accuracy 1.6):
 
 Chosen: {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 100} (the operator cap was raised to 150 in the frozen rule).
 
+Q6d practice (38 cases: every molecule case run so far; {'pool': 'gsd', 'grad_tol': 0.001, 'max_operators': 200, 'escape': 1e-05, 'references': 3}): within chemical accuracy of the lowest singlet in 38 of 38 (worst 0.294 mHa). Hartree-Fock start alone (with the escape) per case vs the start kept (lowest energy among runs ending in a singlet, else among all); S(S+1) of the kept state (0 singlet, 2 triplet; values between: a mix, where the bond is nearly broken):
+
+| Molecule | Bond × eq. | Active space | Hartree-Fock start (mHa) | Kept start (mHa) | S(S+1) |
+|---|---|---|---|---|---|
+| H2O | 1.5 | 4e, 4o | +0.003 | +0.003 | 0.00 |
+| NH3 | 1.5 | 6e, 5o | +0.013 | +0.003 | 0.00 |
+| N2 | 1.5 | 6e, 6o | +0.044 | +0.044 | 0.00 |
+| HF | 2.0 | 2e, 2o | +0.005 | +0.005 | 0.00 |
+| CH2O | 1.3 | 4e, 4o | +0.021 | +0.021 | 0.00 |
+| HCN | 1.3 | 4e, 4o | +0.000 | +0.000 | 0.00 |
+| N2 | 1.0 | 6e, 6o | +0.189 | +0.189 | 0.00 |
+| CO | 1.0 | 6e, 6o | +0.041 | +0.041 | 0.00 |
+| H2O | 1.0 | 8e, 6o | +0.020 | +0.013 | 0.00 |
+| NH3 | 1.0 | 6e, 6o | +0.031 | +0.022 | 0.00 |
+| HCN | 1.0 | 6e, 6o | +0.046 | +0.046 | 0.00 |
+| CH2O | 1.0 | 6e, 6o | +0.081 | +0.079 | 0.00 |
+| N2 | 2.0 | 6e, 6o | +0.037 | +0.010 | 0.00 |
+| LiH | 2.0 | 2e, 4o | -0.000 | -0.000 | 0.00 |
+| CH4 | 1.0 | 4e, 4o | +0.001 | +0.000 | 0.00 |
+| N2 | 1.8 | 6e, 6o | +0.024 | +0.016 | 0.00 |
+| N2 | 2.5 | 6e, 6o | +0.294 | +0.294 | 1.18 |
+| CO | 1.6 | 6e, 6o | +0.010 | +0.010 | 0.00 |
+| CO | 2.2 | 6e, 6o | +0.024 | +0.016 | 0.00 |
+| HCN | 1.7 | 6e, 6o | +0.130 | +0.032 | 0.00 |
+| H2O | 2.2 | 8e, 6o | +0.007 | +0.007 | 0.00 |
+| NH3 | 1.8 | 6e, 6o | +0.171 | +0.171 | 0.00 |
+| CH2O | 1.7 | 6e, 6o | +0.018 | +0.018 | 0.00 |
+| HF | 2.6 | 6e, 4o | +0.000 | +0.000 | 0.00 |
+| LiH | 3.0 | 2e, 4o | -0.000 | -0.000 | 0.00 |
+| CH4 | 1.4 | 4e, 4o | +0.014 | +0.001 | 0.00 |
+| N2 | 1.3 | 6e, 6o | +0.027 | +0.006 | 0.00 |
+| N2 | 3.0 | 6e, 6o | +0.023 | +0.023 | 1.20 |
+| CO | 1.3 | 6e, 6o | +0.035 | +0.031 | 0.00 |
+| CO | 2.8 | 6e, 6o | +0.136 | +0.136 | 1.99 |
+| HCN | 2.2 | 6e, 6o | +16.501 | +0.061 | 0.03 |
+| H2O | 1.8 | 8e, 6o | +0.043 | +0.043 | 0.00 |
+| NH3 | 2.5 | 6e, 6o | +0.022 | +0.017 | 0.00 |
+| CH2O | 2.2 | 6e, 6o | +0.004 | +0.004 | 0.00 |
+| HF | 3.5 | 6e, 4o | -0.015 | -0.015 | 1.00 |
+| LiH | 2.5 | 2e, 4o | -0.005 | -0.005 | 0.00 |
+| LiH | 4.0 | 2e, 4o | +0.000 | -0.000 | 0.00 |
+| CH4 | 2.0 | 4e, 4o | +0.010 | +0.001 | 0.00 |
+
 Q7b practice (256 PoseBusters complexes of Q7, all practice now; QAOA {'p': 5, 'objective': 'cvar'}):
 
 | Setting | Usable | Docked: QAOA route | Classical cliques | Random search (same score, same refinement) | QAOA unrefined |
@@ -1472,6 +1515,10 @@ Q7b practice (256 PoseBusters complexes of Q7, all practice now; QAOA {'p': 5, '
 The chosen setting with the structures' hydrogens removed and virtual polar hydrogens added (as the test structures need), on the 39 usable Q7-practice complexes: QAOA route 30.8 %, classical cliques 30.8 %, random search 51.3 % (with the structures' own hydrogens: 30.8 %, 28.2 %, 48.7 %).
 
 Chosen: {'score': 'vina', 'refine_top': 10, 'maxfev': 300, 'hydrogens': 'given'}.
+
+Q7c practice (hybrid search, hybrid0.25: 25 % of random search's budget given to perturbations of the clique poses; 324 usable complexes of Q7 and Q7b): QAOA route 52.5 %, classical cliques 51.9 %, random search alone 55.6 %.
+
+Stopped after the first setting (25 % of random search's budget given to clique seeds): the QAOA route docked 52.5 % against 55.6 % for random search alone on all 324 usable practice complexes, so no Q7c test was pre-registered (practice predicts a fail on the comparison with random search).
 <!-- END generated:round2_practice -->
 
 Test (each part run once):

@@ -141,6 +141,23 @@ def qkernel(SA: np.ndarray, SB: np.ndarray) -> np.ndarray:
     return np.abs(SA.conj() @ SB.T) ** 2
 
 
+def projected_features(S: np.ndarray) -> np.ndarray:
+    """Projected quantum kernel features (Huang et al., Nat Commun 2021): each qubit's reduced state, i.e. the single-
+    qubit expectations <X_k>, <Y_k>, <Z_k> of the feature-map state (3 x qubits numbers, measurable on a device)."""
+    S = np.asarray(S)
+    n = int(round(math.log2(S.shape[1])))
+    idx = np.arange(S.shape[1])
+    out = []
+    for k in range(n):
+        b = (idx >> k) & 1
+        p = np.abs(S) ** 2
+        z = (p * (1 - 2 * b)[None, :]).sum(1)
+        lo = idx[b == 0]
+        c = (S[:, lo].conj() * S[:, lo | (1 << k)]).sum(1)
+        out += [2 * c.real, 2 * c.imag, z]
+    return np.stack(out, axis=1)
+
+
 def make(task: str, reg: float):
     if task == "cls":
         from sklearn.svm import SVC

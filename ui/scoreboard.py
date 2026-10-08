@@ -21,6 +21,7 @@ from ui.common import banner, esc, html, readout
 
 VALIDATION = Path(__file__).resolve().parent.parent / "validation"
 PASS, FAIL, OTHER = "#2E7D4F", T.TERRACOTTA, T.MUTED
+FIGS: list = []                     # charts drawn on this run, for the downloadable evidence report
 AREAS = {"Structure & imaging": ("v3.3", "Gate 1", "Gate 2", "Gate 3", "Gate 5"),
          "Analysis & perturbations": ("Gate 4", "Gate 6", "Gate 7"),
          "Drug lab": ("Gate 8",),
@@ -58,7 +59,7 @@ PLAIN = {   # what each test asks, in plain words (the measured numbers come fro
     "Gate Q6:": "Quantum chemistry on stretched molecules.",
     "Gate Q6b": "Stretched molecules with a smarter circuit (ADAPT-VQE).",
     "Gate Q6c": "Same, scored against the right spin state.",
-    "Gate Q6d": "ADAPT-VQE with an escape from flat spots.",
+    "Gate Q6d": "Same, with an escape from flat spots and several starting points.",
     "Gate Q7:": "Can quantum matching dock a drug into its protein?",
     "Gate Q7b": "Docking with a better score, on a new set.",
     "Gate Q7c": "Docking with a quantum-seeded hybrid search, on new complexes.",
@@ -162,6 +163,77 @@ def table(df: pd.DataFrame) -> None:
 
 
 # ------------------------------------------------------------------------------------------- charts
+def retest_pairs() -> list[dict]:
+    """Each original test and its retests as points 'distance from the pass line' (right of 0 = passed), read from the
+    result files. Units differ by row (F1, AUC, share of molecules, share of ligands); only the side of 0 compares."""
+    out = []
+    g = _load("results_gateq.json") or {}
+    r2 = _load("results_round2.json") or {}
+
+    def q2_margin(rows):
+        vals = []
+        for rr in rows.values():
+            rr = rr.get("rows", rr)
+            best = max(rr["insulation (classical)"]["f1"], rr["topdom (classical)"]["f1"])
+            vals.append(rr["QAOA (simulated quantum)"]["f1"] - (best - 0.05))
+        return min(vals)
+    if "q2" in g:
+        pts = [("Q2", q2_margin(g["q2"]["rows"]))] + ([("Q2b", q2_margin(r2["q2b"]["per_cell"]))] if "q2b" in r2 else [])
+        out.append({"family": "Domains: F1 vs best classical − 0.05", "points": pts})
+    if "q4" in g:
+        pts = [("Q4", g["q4"]["auc"]["qsvm"] - g["q4"]["auc"]["rbf"] + 0.03)]
+        if "q4b" in r2:
+            pts.append(("Q4b", r2["q4b"]["auc"]["qsvm"] - r2["q4b"]["auc"]["rbf"] + 0.03))
+        out.append({"family": "Genes: AUC vs RBF − 0.03", "points": pts})
+    g6, g6b = _load("results_gate6.json"), _load("results_gate6b.json")
+    if g6:
+        m = lambda r: min(v["chronocell"]["f1"] - max(v["chromosight"].get("f1", 0), v["mustache"].get("f1", 0))   # noqa: E731
+                          for v in r["sets"].values())
+        out.append({"family": "Loops: F1 vs best tool", "points": [("6", m(g6))] + ([("6b", m(g6b))] if g6b else [])})
+    qd = _load("results_qdrug.json") or {}
+    if "q6" in qd:
+        share = lambda errs: float(np.mean([abs(e) <= 1.6 for e in errs])) - 1.0                      # noqa: E731
+        pts = [("Q6", share([x["error_mEh"] for x in qd["q6"]["vqe"]]))]
+        for k, f in (("q6b", "adapt_error_mEh"), ("q6c", "adapt_error_vs_singlet_mEh"), ("q6d", "error_vs_singlet_mEh")):
+            if k in r2:
+                pts.append((k[:2].upper() + k[2:], share([x[f] for x in r2[k]["rows"]])))
+        out.append({"family": "Molecules: share within chemical accuracy − 1", "points": pts})
+    if "q7" in qd:
+        pts = [("Q7", qd["q7"]["success_qaoa"] - qd["q7"]["success_random_search"])]
+        if "q7b" in r2:
+            pts.append(("Q7b", r2["q7b"]["success_qaoa"] - r2["q7b"]["success_random"]))
+        out.append({"family": "Docking: share docked vs random search", "points": pts})
+    return out
+
+
+def chart_retests() -> None:
+    rows_ = retest_pairs()
+    if not rows_:
+        return
+    fig = go.Figure()
+    n = len(rows_)
+    for k, r in enumerate(rows_):
+        y = n - k
+        xs = [v for _, v in r["points"]]
+        fig.add_trace(go.Scatter(x=xs, y=[y] * len(xs), mode="lines", line=dict(color=T.RULE_STRONG, width=3),
+                                 showlegend=False, hoverinfo="skip"))
+        for i, (lab, x) in enumerate(r["points"]):
+            fig.add_trace(go.Scatter(x=[x], y=[y], mode="markers+text", text=[lab],
+                                     textposition="top center" if i % 2 == 0 else "bottom center",
+                                     marker=dict(size=14, color=PASS if x >= 0 else FAIL, line=dict(color=T.INK, width=0.6)),
+                                     showlegend=False, hovertemplate=f"{lab}: %{{x:+.3f}}<extra></extra>"))
+    fig.add_vline(x=0, line=dict(color=T.INK, dash="dot"), annotation_text="pass line")
+    fig.update_layout(**T.plot_layout(110 + 80 * n, margin=dict(l=290, r=20, t=30, b=40),
+                                      yaxis=dict(tickvals=[n - k for k in range(n)], ticktext=[r["family"] for r in rows_],
+                                                 range=[0.4, n + 0.6]),
+                                      xaxis=dict(title="distance from the pass line (right of 0 = passed)")))
+    FIGS.append(fig)
+    st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_retests")
+    html('<p class="cc-note">Each row: the original test and its retests (each with a new method on new data), in '
+         'order; green passed, red failed. Units differ between rows: only which side of the line counts. Original '
+         'verdicts always stay on the record.</p>')
+
+
 def chart_molecules() -> None:
     sets = []
     q = _load("results_qdrug.json")
@@ -183,6 +255,7 @@ def chart_molecules() -> None:
                              line=dict(color=T.ACCENT if k else T.MUTED)))
     fig.add_hline(y=1.6, line=dict(color=T.TERRACOTTA, dash="dot"), annotation_text="chemical accuracy 1.6 mHa")
     fig.update_layout(**T.plot_layout(330, showlegend=False, yaxis=dict(type="log", title="error vs exact (mHa)")))
+    FIGS.append(fig)
     st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_mol")
     html('<p class="cc-note">Each dot is one held-out molecule / bond length. Below the dotted line = chemically '
          'accurate. Each round used new molecules.</p>')
@@ -205,6 +278,7 @@ def chart_loops() -> None:
         fig.add_trace(go.Bar(x=s["test"], y=s["f1"], name=tool, marker_color=col))
     fig.update_layout(**T.plot_layout(300, barmode="group", showlegend=True, legend=dict(orientation="h", y=1.15),
                                       yaxis=dict(title="F1 vs ENCODE reference loops", range=[0, 1])))
+    FIGS.append(fig)
     st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_loops")
 
 
@@ -224,6 +298,7 @@ def chart_admet() -> None:
     fig.update_layout(**T.plot_layout(380, barmode="group", showlegend=True, legend=dict(orientation="h", y=1.12),
                                       margin=dict(l=50, r=10, t=30, b=140), xaxis=dict(tickangle=-40),
                                       yaxis=dict(title="test AUC (yes/no) or Spearman ρ (values)")))
+    FIGS.append(fig)
     st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_admet")
     html(f'<p class="cc-note">Official held-out scaffold splits of the TDC ADMET benchmark: {r["passed"]} of {r["of"]} '
          'endpoints met the rule (the quantum model within 0.03 of the classical model on the same inputs, its interval '
@@ -244,6 +319,7 @@ def chart_mitigation() -> None:
     fig.add_hline(y=1.6, line=dict(color=T.INK, dash="dot"), annotation_text="chemical accuracy")
     fig.update_layout(**T.plot_layout(340, barmode="group", showlegend=True, legend=dict(orientation="h", y=1.12),
                                       yaxis=dict(type="log", title="energy error (mHa)"), xaxis=dict(tickangle=-40)))
+    FIGS.append(fig)
     st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_mit")
 
 
@@ -263,7 +339,33 @@ def chart_docking() -> None:
                             marker_color=T.MUTED)])
     fig.update_layout(**T.plot_layout(300, barmode="group", showlegend=True, legend=dict(orientation="h", y=1.15),
                                       yaxis=dict(title="ligands docked within 2 Å (%)")))
+    FIGS.append(fig)
     st.plotly_chart(fig, theme=None, width="stretch", config=T.PLOT_CONFIG, key="sb_dock")
+
+
+def evidence_html(df: pd.DataFrame, figures: list) -> str:
+    """A self-contained summary page (tables inline; charts load plotly.js from its CDN) for sharing the record."""
+    import datetime as dt
+    import html as H
+    n = len(df)
+    p, f, o = (int((df["status"] == s).sum()) for s in ("pass", "fail", "other"))
+    css = ("body{font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:24px auto;padding:0 16px;"
+           "color:#1c1e1b}h1{font-size:22px}h2{font-size:16px;border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:28px}"
+           "table{border-collapse:collapse;width:100%;font-size:12.5px}td,th{border:1px solid #ddd;padding:4px 6px;"
+           "vertical-align:top;text-align:left}th{background:#f4f4f1}.pass{color:#2e7d4f;font-weight:700}"
+           ".fail{color:#c24a1e;font-weight:700}.other{color:#62645f;font-weight:700}")
+    rows = "".join(f"<tr><td>{H.escape(r['area'])}</td><td><b>{H.escape(r['test'])}</b><br><i>{H.escape(r['question'])}</i></td>"
+                   f"<td>{H.escape(r['measured'])}</td><td class='{r['status']}'>{r['status'].upper()}</td>"
+                   f"<td>{H.escape(r['verdict'])}</td></tr>" for _, r in df.iterrows())
+    figs = "".join(fig.to_html(full_html=False, include_plotlyjs="cdn" if i == 0 else False) for i, fig in enumerate(figures))
+    return (f"<!doctype html><html><head><meta charset='utf-8'><title>ChronoCell-5D evidence</title><style>{css}</style>"
+            f"</head><body><h1>ChronoCell-5D: accuracy on held-out real data</h1><p>Generated "
+            f"{dt.datetime.now().strftime('%Y-%m-%d %H:%M')} from validation/results_*.json. Every test was written down "
+            f"before its data were read and run once; failures stay on the record.</p>"
+            f"<p><b>{n}</b> tests · <span class='pass'>{p} passed</span> · <span class='fail'>{f} failed</span> · "
+            f"<span class='other'>{o} blocked / baseline / mixed</span></p><h2>All tests</h2><table><tr><th>Area</th>"
+            f"<th>Test</th><th>Measured</th><th>Verdict</th><th>Verdict text</th></tr>{rows}</table>"
+            f"<h2>Charts</h2>{figs}</body></html>")
 
 
 def render() -> None:
@@ -277,8 +379,11 @@ def render() -> None:
         banner(f"The result files could not be read: {esc(exc)}", "warn")
         return
     overview(df)
-    t1, t2, t3, t4, t5, t6 = st.tabs(["All tests", "Molecules (quantum chemistry)", "DNA loops", "Drug safety (ADMET)",
-                                      "Error mitigation", "Docking"])
+    FIGS.clear()
+    t0, t1, t2, t3, t4, t5, t6 = st.tabs(["Before → after", "All tests", "Molecules (quantum chemistry)", "DNA loops",
+                                          "Drug safety (ADMET)", "Error mitigation", "Docking"])
+    with t0:
+        chart_retests()
     with t1:
         table(df)
     with t2:
@@ -291,3 +396,7 @@ def render() -> None:
         chart_mitigation()
     with t6:
         chart_docking()
+    st.download_button("Download the evidence report (HTML)", evidence_html(df, list(FIGS)),
+                       file_name="chronocell_evidence.html", mime="text/html", key="sb_report",
+                       icon=":material/download:",
+                       help="Every test with its question, measurement and verdict, and the charts above, in one page.")

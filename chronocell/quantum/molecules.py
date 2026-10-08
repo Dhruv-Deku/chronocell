@@ -713,6 +713,7 @@ def adapt_vqe(qm: QubitModel, pool: str = "sd", max_operators: int = 60, grad_to
     e = float(psi @ (qm.H @ psi))
     res = AdaptResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)),
                       names, gnorms, energies, converged, escapes)
+    res.spin = float(psi @ (spin_squared(qm) @ psi))       # S(S+1) of the final state (0: singlet)
     res.thetas = np.asarray(th, float)
     res.generators = [gens[k] for k in chosen]
     return res
@@ -736,16 +737,20 @@ def lowest_determinants(qm: QubitModel, k: int = 3) -> list[int]:
     return out
 
 
-def adapt_multistart(qm: QubitModel, references: int = 3, **settings) -> AdaptResult:
+def adapt_multistart(qm: QubitModel, references: int = 3, singlet: bool = True, **settings) -> AdaptResult:
     """Round 2 (Gate Q6d): ADAPT-VQE from Hartree-Fock and from the `references` lowest-energy other determinants;
-    the lowest final energy is kept (variational: a lower energy is always closer to the true ground state, so no
-    reference energy is needed). Helps where the ground state shares little with Hartree-Fock (bonds near breaking)."""
+    the lowest final energy is kept (variational: a lower energy is closer to the targeted state, so no reference
+    energy is needed). With singlet=True only runs that ended in a singlet (S(S+1) < 0.1, measured on the state) are
+    candidates: a start from an open-shell determinant can otherwise land on a lower-lying triplet. Helps where the
+    ground state shares little with Hartree-Fock (bonds near breaking)."""
     runs = [adapt_vqe(qm, **settings)]
     for det in lowest_determinants(qm, references):
         runs.append(adapt_vqe(qm, reference=det, **settings))
-    best = min(runs, key=lambda r: r.energy)
+    pool = [r for r in runs if r.spin < 0.1] if singlet else runs
+    best = min(pool or runs, key=lambda r: r.energy)
     best.starts = len(runs)
     best.start_energies = [r.energy for r in runs]
+    best.start_spins = [r.spin for r in runs]
     return best
 
 
