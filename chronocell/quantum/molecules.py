@@ -774,6 +774,8 @@ class MoleculeResult:
 
 
 ADAPT_SETTINGS = {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 150}   # as frozen for Gate Q6b (validation/frozen.py)
+ADAPT_MULTI_SETTINGS = {"pool": "gsd", "grad_tol": 1e-3, "max_operators": 200, "escape": 1e-5}   # Gate Q6d (pass)
+ADAPT_MULTI_REFERENCES = 3                                                # Gate Q6d: three starts besides Hartree-Fock
 
 
 def run(name: str, atoms: list | None = None, charge: int = 0, active: tuple = (2, 2), do_vqe: bool = True,
@@ -788,7 +790,14 @@ def run(name: str, atoms: list | None = None, charge: int = 0, active: tuple = (
     ne_act, no_act = active
     asp = active_space(ints, hf, no_act, ne_act)
     qm = qubit_hamiltonian(asp)
-    v = (adapt_vqe(qm, **ADAPT_SETTINGS) if method == "adapt" else vqe_uccsd(qm)) if do_vqe else None
+    if not do_vqe:
+        v = None
+    elif method == "adapt":
+        v = adapt_vqe(qm, **ADAPT_SETTINGS)
+    elif method == "adapt_multi":
+        v = adapt_multistart(qm, references=ADAPT_MULTI_REFERENCES, **ADAPT_MULTI_SETTINGS)
+    else:
+        v = vqe_uccsd(qm)
     e_cas = v.fci if v is not None else fci(qm)
     gap = float(hf.eps[hf.n_occ] - hf.eps[hf.n_occ - 1]) if hf.n_occ < len(hf.eps) else float("nan")
     states = fci_states(qm, 1)
