@@ -5,6 +5,9 @@ data formats, how to use your own AI key, and what is real versus simulated.
 
 from __future__ import annotations
 
+import base64
+from pathlib import Path
+
 import streamlit as st
 
 from chronocell import accuracy as ACC
@@ -12,6 +15,80 @@ from ui import predict_view
 from ui.common import html
 
 ss = st.session_state
+ROOT = Path(__file__).resolve().parent.parent
+IMAGES = ROOT / "docs" / "images"
+FILM = ROOT / "motion" / "out" / "ChronoCell-5D_film.mp4"
+FILM_SHARE = FILM.with_name("ChronoCell-5D_film_share.mp4")     # the compact copy, preferred in the app
+RESEARCH_ONLY = ("Drug lab", "Quantum lab")
+# the eight workspaces in pictures (docs/images/tour, made by motion/make_ui_images.py from real screenshots)
+TOUR = [("ws01", "3D structure", "Rotate one chromosome's fold and measure it."),
+        ("ws02", "4D dynamics", "Watch the fold change after a DNA rearrangement."),
+        ("ws03", "Compare", "Two states side by side; turn one, the other follows."),
+        ("ws04", "Drug lab", "A virtual drug and how far it moves the fold back."),
+        ("ws05", "Genes", "Which genes sit open, and which are buried."),
+        ("ws06", "Guide", "Everything in plain words (this page)."),
+        ("ws07", "Quantum lab", "The same problems on a simulated quantum computer."),
+        ("ws08", "Scoreboard", "Every accuracy test: passed, failed, by how much.")]
+
+
+@st.cache_data(show_spinner=False)
+def _b64(path: str, mtime: float) -> str:
+    return base64.b64encode(Path(path).read_bytes()).decode()
+
+
+def _hero(version: str) -> None:
+    """Title over the film's render of the chr22 model (docs/images/hero.jpg); plain title if the picture is missing."""
+    pic = IMAGES / "hero.jpg"
+    text = ('<p class="cc-eyebrow" style="color:#aab2ff">Guide · ChronoCell-5D ' + version + '</p>'
+            '<h1 class="cc-title" style="color:#fff;max-width:620px">The genome, folded — in plain words</h1>'
+            '<p style="font:400 17px/1.55 var(--sans);color:#d6d8ea;max-width:560px;margin:10px 0 0">Every human cell '
+            'holds about two metres of DNA, packed into a nucleus a hundred times thinner than a hair. <b style="color:#fff">'
+            'How</b> it is folded decides which genes can be read. ChronoCell-5D rebuilds that fold in 3D, watches it '
+            'change over time (the 4th dimension), and explains what the changes mean (the 5th: interpretation).</p>')
+    if not pic.exists():
+        html(text.replace("color:#fff", "color:var(--ink)").replace("#d6d8ea", "var(--ink-2)").replace("#aab2ff", "var(--muted)"))
+        return
+    data = _b64(str(pic), pic.stat().st_mtime)
+    html(f'<div style="position:relative;border-radius:10px;overflow:hidden;margin:14px 0 18px;min-height:300px;'
+         f'background:#04050b url(data:image/jpeg;base64,{data}) right center / cover no-repeat">'
+         f'<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,5,11,.92) 0%,rgba(4,5,11,.75) 38%,'
+         f'rgba(4,5,11,0) 70%)"></div><div style="position:relative;padding:34px 38px 36px">{text}</div>'
+         f'<div style="position:absolute;right:16px;bottom:10px;font:400 11px/1 var(--mono);color:rgba(255,255,255,.6);text-shadow:0 0 6px #000,0 0 3px #000">'
+         f'chr22 · the app’s reference model, 5,082 beads</div></div>')
+
+
+def _film() -> None:
+    """The 92-second film (motion/), if it has been rendered on this computer."""
+    html('<h2 class="cc-h2">Watch the film (92 seconds)</h2>')
+    film = FILM_SHARE if FILM_SHARE.exists() else FILM
+    if film.exists():
+        st.video(str(film))
+        html('<p class="cc-note">Made from the app itself: real screenshots, the reference model’s own coordinates, '
+             'the 4D workspace’s 22q11.2 deletion, and every number read from the Scoreboard’s result files '
+             '(<code>motion/</code>).</p>')
+    else:
+        poster = IMAGES / "film_poster.jpg"
+        if poster.exists():
+            st.image(str(poster), width="stretch")
+        html('<p class="cc-note">The film is rendered on your computer from <code>motion/</code>: '
+             '<code>python motion/render.py</code> (about 12 minutes; Chrome and ffmpeg are used). It then plays here.</p>')
+
+
+def _gallery() -> None:
+    """The eight workspaces as pictures, each with a button to open it."""
+    html('<h2 class="cc-h2">The tour in pictures</h2>')
+    research = st.session_state.get("research_mode", True)
+    for row in (TOUR[:4], TOUR[4:]):
+        cols = st.columns(4, gap="medium")
+        for col, (key, label, line) in zip(cols, row):
+            pic = IMAGES / "tour" / f"{key}.jpg"
+            with col:
+                if pic.exists():
+                    st.image(str(pic), width="stretch")
+                html(f'<p style="margin:2px 0 0;font:600 14px/1.3 var(--sans)">{key[2:]} · {label}</p>'
+                     f'<p class="cc-note" style="margin:2px 0 6px">{line}</p>')
+                if label != "Guide" and (research or label not in RESEARCH_ONLY):
+                    st.button(f"Open {label}", key=f"guide_pic_{key}", on_click=_go, args=(label,), width="stretch")
 
 
 def _go(page: str, **extra) -> None:
@@ -21,12 +98,7 @@ def _go(page: str, **extra) -> None:
 
 
 def render(version: str) -> None:
-    html('<p class="cc-eyebrow" style="margin-top:14px">Guide · ChronoCell-5D ' + version + '</p>'
-         '<h1 class="cc-title">The genome, folded — in plain words</h1>'
-         '<p class="cc-lead">Every human cell holds about two metres of DNA, packed into a nucleus a hundred times '
-         'thinner than a hair. <b>How</b> it is folded decides which genes can be read. In cancer, ageing and some brain '
-         'diseases the folding goes wrong. ChronoCell-5D rebuilds that fold in 3D, watches it change over time (the 4th '
-         'dimension), and explains what the changes mean (the 5th: interpretation).</p>')
+    _hero(version)
     html('<div class="cc-analogy"><b>The big analogy.</b> Think of a chromosome as a very long necklace stuffed into a '
          'small box. Beads that sit near the lid are easy to reach (genes that are <b>switched on</b>); beads crushed at '
          'the bottom are hard to reach (genes that are <b>silenced</b>). Disease can repack the box.</div>')
@@ -50,6 +122,9 @@ def render(version: str) -> None:
                                          ("Open Drug lab", "Drug lab"), ("Open Genes", "Genes"),
                                          ("Open 4D dynamics", "4D dynamics")]):
         col.button(label, key=f"guide_go_{page}", on_click=_go, args=(page,), width="stretch")
+
+    _gallery()
+    _film()
 
     html('<h2 class="cc-h2">What each page does</h2>')
     left, right = st.columns(2, gap="large")

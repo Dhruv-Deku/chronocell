@@ -16,6 +16,19 @@ perturbation data, and the failures are reported next to the successes.
   <sub>The long arm of chromosome 22 (18–51 Mb) as a 3D fold, coloured from one end of the DNA to the other. Rendered from the app's built-in synthetic reference model.</sub>
 </p>
 
+<p align="center">
+  <img src="docs/images/film_poster.jpg" alt="Title frame of the ChronoCell-5D film" width="760">
+  <br>
+  <sub><b>The film (92 s, 1080p60, with sound).</b> A motion-graphics tour made from the app itself: real screenshots,
+  the reference model's own coordinates, and every number read from the test results. Build it with
+  <code>python motion/render.py</code> (see <a href="motion/README.md">motion/README.md</a>); it also plays in the app's Guide.</sub>
+</p>
+
+| | | | |
+|---|---|---|---|
+| ![3D structure](docs/images/tour/ws01.jpg) **01 3D structure** | ![4D dynamics](docs/images/tour/ws02.jpg) **02 4D dynamics** | ![Compare](docs/images/tour/ws03.jpg) **03 Compare** | ![Drug lab](docs/images/tour/ws04.jpg) **04 Drug lab** |
+| ![Genes](docs/images/tour/ws05.jpg) **05 Genes** | ![Guide](docs/images/tour/ws06.jpg) **06 Guide** | ![Quantum lab](docs/images/tour/ws07.jpg) **07 Quantum lab** | ![Scoreboard](docs/images/tour/ws08.jpg) **08 Scoreboard** |
+
 ---
 
 ## Contents
