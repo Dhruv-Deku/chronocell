@@ -297,6 +297,7 @@ WORKSPACES = {   # key: (number, label, one-line plain-language purpose)
     "Genes": ("05", "Genes", "Find which genes sit in open, active chromatin and which are buried and likely silenced."),
     "Guide": ("06", "Guide", "What everything means, in plain words, with a 2-minute tour."),
     "Quantum lab": ("07", "Quantum lab", "Try ChronoCell's problems on a simulated quantum computer, next to the classical answer."),
+    "Scoreboard": ("08", "Scoreboard", "Every accuracy test on held-out real data: what passed, what failed, and by how much."),
 }
 RESEARCH_ONLY = ("Drug lab", "Quantum lab")   # hidden when Research mode is off (Phase B8; quantum lab: experimental)
 with st.sidebar:
@@ -389,6 +390,10 @@ with st.sidebar:                    # Phase B7, below the existing sidebar secti
 
 if workspace == "Guide":            # plain-language guide: needs no data
     guide.render(VERSION)
+    st.stop()
+if workspace == "Scoreboard":       # every pre-registered test, read from the result files: needs no data
+    from ui import scoreboard
+    scoreboard.render()
     st.stop()
 
 # ======================================================================================

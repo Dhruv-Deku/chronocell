@@ -1570,6 +1570,87 @@ Summary:
 | Gate Q7b: QAOA docking with Vina-like score and refinement (Astex Diverse) | docked 35 % vs random search 58 % | fail |
 <!-- END generated:summary_r2 -->
 
+## Gate Q8 — a quantum-kernel ADMET profile (21 drug properties, pre-registered)
+
+`chronocell/quantum/admet.py`, `validation/admet_gate.py`; rule `QUANTUM_ADMET` in `validation/frozen.py`. The 21
+absorption, distribution, metabolism, excretion and toxicity endpoints of the Therapeutics Data Commons ADMET
+benchmark group (hERG left out: it trained Gate Q5), each with its official scaffold split. A quantum-kernel model
+(ZZ feature map on the 8 principal components of 17 SMILES descriptors; SVM or kernel ridge) against the same model
+with a classical RBF kernel on the same 8 inputs, and an RBF model on all 17 descriptors as the stronger classical
+reference.
+
+<!-- BEGIN generated:admet_practice -->
+Practice (train_val sets only; training capped at 2500 compounds; 5-fold cross-validation):
+
+| Endpoint | Task | Compounds | Quantum kernel (CV) | RBF, same 8 inputs | RBF, all 17 descriptors |
+|---|---|---|---|---|---|
+| caco2_wang | value (Spearman) | 728 | 0.768 | 0.767 | 0.790 |
+| hia_hou | yes/no (AUC) | 461 | 0.978 | 0.976 | 0.977 |
+| pgp_broccatelli | yes/no (AUC) | 973 | 0.934 | 0.932 | 0.939 |
+| bioavailability_ma | yes/no (AUC) | 512 | 0.710 | 0.697 | 0.695 |
+| lipophilicity_astrazeneca | value (Spearman) | 2500 | 0.632 | 0.631 | 0.711 |
+| solubility_aqsoldb | value (Spearman) | 2500 | 0.811 | 0.810 | 0.834 |
+| bbb_martins | yes/no (AUC) | 1624 | 0.874 | 0.884 | 0.888 |
+| ppbr_az | value (Spearman) | 2231 | 0.682 | 0.654 | 0.713 |
+| vdss_lombardo | value (Spearman) | 904 | 0.706 | 0.709 | 0.724 |
+| cyp2c9_veith | yes/no (AUC) | 2500 | 0.828 | 0.827 | 0.833 |
+| cyp2d6_veith | yes/no (AUC) | 2500 | 0.766 | 0.768 | 0.795 |
+| cyp3a4_veith | yes/no (AUC) | 2500 | 0.821 | 0.821 | 0.827 |
+| cyp2c9_substrate_carbonmangels | yes/no (AUC) | 534 | 0.660 | 0.683 | 0.685 |
+| cyp2d6_substrate_carbonmangels | yes/no (AUC) | 532 | 0.792 | 0.782 | 0.790 |
+| cyp3a4_substrate_carbonmangels | yes/no (AUC) | 535 | 0.683 | 0.670 | 0.673 |
+| half_life_obach | value (Spearman) | 532 | 0.419 | 0.435 | 0.465 |
+| clearance_hepatocyte_az | value (Spearman) | 970 | 0.387 | 0.409 | 0.452 |
+| clearance_microsome_az | value (Spearman) | 881 | 0.453 | 0.481 | 0.534 |
+| ld50_zhu | value (Spearman) | 2500 | 0.606 | 0.627 | 0.654 |
+| ames | yes/no (AUC) | 2500 | 0.799 | 0.800 | 0.832 |
+| dili | yes/no (AUC) | 379 | 0.872 | 0.872 | 0.880 |
+<!-- END generated:admet_practice -->
+
+<!-- BEGIN generated:admet -->
+_results_admet.json: not run (python validation/admet_gate.py --test)._
+<!-- END generated:admet -->
+
+## Gate Q9 — error mitigation on a simulated noisy quantum computer (pre-registered)
+
+`chronocell/quantum/noisy.py`, `validation/mitigation_gate.py`; rule `QUANTUM_MITIGATION` in `validation/frozen.py`.
+A molecule's 4-qubit UCCSD-VQE circuit compiled to gates runs on a density-matrix simulator with local depolarizing
+noise after every gate; zero-noise extrapolation (unitary folding) and symmetry verification try to recover the
+noise-free energy. The test asks whether that reaches chemical accuracy on molecules no test used before.
+
+<!-- BEGIN generated:mitigation_practice -->
+Practice (15 cases). Cases within chemical accuracy of the noise-free circuit, and median absolute error (mHa), per method:
+
+| Method | Device-level noise (3e-3) | Pessimistic noise (1e-2) |
+|---|---|---|
+| richardson135 | 0 of 15 (median 7.43) | 0 of 15 (median 111.57) |
+| richardson13 | 0 of 15 (median 26.52) | 0 of 15 (median 168.57) |
+| richardson+sv135 | 15 of 15 (median 0.43) | 0 of 15 (median 23.35) |
+| richardson+sv13 | 4 of 15 (median 2.11) | 1 of 15 (median 12.07) |
+| linear135 | 0 of 15 (median 47.73) | 0 of 15 (median 229.33) |
+| linear13 | 0 of 15 (median 26.52) | 0 of 15 (median 168.57) |
+| linear+sv135 | 1 of 15 (median 4.02) | 7 of 15 (median 1.65) |
+| linear+sv13 | 4 of 15 (median 2.11) | 1 of 15 (median 12.07) |
+| exp135 | 5 of 15 (median 2.68) | 0 of 15 (median 70.98) |
+| exp13 | 9 of 15 (median 1.14) | 0 of 15 (median 19.49) |
+| exp+sv135 | 0 of 15 (median 7.16) | 0 of 15 (median 69.69) |
+| exp+sv13 | 2 of 15 (median 3.25) | 0 of 15 (median 39.73) |
+
+Chosen: richardson+sv135 ('+sv': symmetry verification; digits: noise scales).
+<!-- END generated:mitigation_practice -->
+
+<!-- BEGIN generated:mitigation -->
+_results_mitigation.json: not run (python validation/mitigation_gate.py --test)._
+<!-- END generated:mitigation -->
+
+Summary of the new tests:
+
+<!-- BEGIN generated:summary_new -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gates Q8, Q9 | not run | — |
+<!-- END generated:summary_new -->
+
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
 `python validation/scale_benchmark.py`: each run in its own process. Input: windows of the

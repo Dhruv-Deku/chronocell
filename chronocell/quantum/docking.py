@@ -598,6 +598,31 @@ def seeded_search(seeds: list[np.ndarray], lt: Typed, pt: Typed, n: int, refine_
     return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
 
 
+def hybrid_search(seeds: list[np.ndarray], L: np.ndarray, centre: np.ndarray, lt: Typed, pt: Typed, n: int,
+                  refine_top: int, rng: np.random.Generator, seeded_fraction: float = 0.5, max_angle: float = 0.6,
+                  shift: float = 1.0, random_shift: float = 2.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Round 2 (Gate Q7c): random search's budget split between random placements around the site centre and
+    perturbations of seed poses (from cliques); all candidates scored together, the best `refine_top` refined."""
+    n_seed = int(round(seeded_fraction * n)) if seeds else 0
+    cand = [(vina_score(s, lt, pt), s) for s in seeds]
+    per = max(1, (n_seed - len(seeds)) // max(1, len(seeds))) if seeds else 0
+    for s in seeds:
+        c = s.mean(0)
+        for _ in range(per):
+            ax = rng.normal(size=3)
+            ax /= np.linalg.norm(ax)
+            pose = (s - c) @ _rotvec(ax * rng.uniform(0, max_angle)).T + c + rng.normal(0, shift, 3)
+            cand.append((vina_score(pose, lt, pt), pose))
+    c0 = L.mean(0)
+    for _ in range(n - len(cand)):
+        pose = (L - c0) @ random_rotation(rng).T + centre + rng.normal(0, random_shift, 3)
+        cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
 def core_subgraph(g: Graph, k: int = 20) -> tuple[Graph, list[int]]:
     """The k vertices most connected to the rest (weighted degree): where large cliques live. Used to fit the
     interaction graph into a qubit budget."""
