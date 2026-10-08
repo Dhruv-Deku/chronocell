@@ -142,3 +142,32 @@ def test_scoreboard_page_and_new_quantum_tools_render(app):
     at.segmented_control(key="qlab_problem").set_value("noise").run()
     at.button(key="qlab_noise_go").click().run()
     assert not at.exception, [e.value for e in at.exception]
+
+
+# ---------------------------------------------------------------- the film and the Guide's pictures
+def test_guide_pictures_and_film_section_render(app):
+    at = app
+    at.segmented_control(key="workspace").set_value("Guide").run()
+    assert not at.exception, [e.value for e in at.exception]
+    txt = " ".join(str(m.value) for m in at.markdown)
+    assert "The tour in pictures" in txt and "Watch the film" in txt
+    keys = {b.key for b in at.button}
+    assert {"guide_pic_ws01", "guide_pic_ws08"} <= keys and "guide_pic_ws06" not in keys      # no button to the page itself
+
+
+def test_film_numbers_come_from_the_result_files():
+    import importlib.util
+    from pathlib import Path
+    from ui import scoreboard as SB
+    spec = importlib.util.spec_from_file_location("film_data", Path(__file__).resolve().parent.parent / "motion" / "build_data.py")
+    BD = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(BD)
+    t = BD.tests()
+    df = SB.rows()
+    assert t["n"] == len(df) and t["pass"] + t["fail"] + t["other"] == t["n"]
+    assert t["pass"] == int((df["status"] == "pass").sum())
+    hi = BD.highlights()
+    assert hi["q6d"]["within"] == len(hi["q6d"]["rows"]) == hi["q6d"]["cases"]
+    assert all(r["err"] <= hi["chem_accuracy"] for r in hi["q6d"]["rows"])
+    assert hi["q9"]["within"] == hi["q9"]["cases"] and hi["q7b"]["qaoa"] < hi["q7b"]["random"]
+    assert all(v["chronocell"] > max(v["chromosight"], v["mustache"]) for v in hi["loops"].values())

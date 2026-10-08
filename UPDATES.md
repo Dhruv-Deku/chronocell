@@ -938,3 +938,22 @@ run once, failures kept.
   practice; four nearly broken bonds ended in a mix of spin states whose energy is right (near breaking those states
   have almost the same energy); and it is slow, up to about 26 minutes per molecule at 12 qubits. Q6b and Q6c stay
   fails. The Quantum lab offers the method as a third circuit choice (*ADAPT-VQE + escape, 4 starts*).
+
+## 9 October 2026 — The film, and pictures in the app
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for a vivid motion-graphics film of the app with many images, and for images in the UI. Local commits on
+`feat/v4-evidence` only; nothing pushed.
+
+- **The film** (`motion/`, 92 s, 1920 × 1080, 60 fps, motion blur, synthesised soundtrack). DNA particles form a
+  double helix, unwind, and fold bead by bead into the app's own chr22 model; a title; a tour of all eight workspaces
+  as 3D app windows with floating close-ups (real screenshots); the 22q11.2 deletion from the 4D workspace, playing;
+  a mosaic of every page; "Every claim is a test"; the Scoreboard as 37 dots that sort themselves into 14 passed, 16
+  failed and 7 mixed; three passes (DNA loops, quantum chemistry, error mitigation) and one honest fail (docking) as
+  animated charts; a feature burst; the outro. Every number on screen is read from the app and the result files
+  (`motion/build_data.py`), nothing typed in. `python motion/render.py` renders it frame by frame in Chrome (about
+  20 minutes); the video file itself is not committed.
+- **The Guide got pictures.** A banner of the chr22 model rendered by the film, "The tour in pictures" (all eight
+  workspaces, each with an Open button), and "Watch the film", which plays the video once it has been rendered.
+- **README** shows the film's title frame and the eight workspaces.
+

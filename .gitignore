@@ -12,3 +12,6 @@ validation/data/
 
 # pip install -e . metadata
 *.egg-info/
+
+# the rendered film and its previews (rebuilt by python motion/render.py)
+motion/out/
