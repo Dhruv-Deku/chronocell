@@ -979,6 +979,11 @@
   "bytes": 200285524,
   "url": "https://zenodo.org/records/3928890/files/genomic-scale.tsv?download=1"
  },
+ "data/tdc/admet_group.zip": {
+  "sha256": "bd0005246cb6f1672333c28ad202112a8bf071ab65d847848715030308faf1f1",
+  "bytes": 1472501,
+  "url": "https://dataverse.harvard.edu/api/access/datafile/4426004"
+ },
  "data/tdc/herg.tab": {
   "sha256": "f2b00c05f12763c9da91d46246800e30925a626d5038e15eec366d633bdffe54",
   "bytes": 47590,

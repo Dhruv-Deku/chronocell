@@ -389,7 +389,11 @@ def dock_q7b(cid: str, loader, settings: dict, qcfg: dict, seed: int, tag: str) 
                 return {"rmsd": float("nan"), "score": float("nan"), "rmsd_unrefined": float("nan"), "poses": 0}
             poses.sort(key=lambda z: z[0])
             out = {"rmsd_unrefined": DK.rmsd(poses[0][1], L), "poses": len(poses)}
-            if settings.get("seeded"):              # local search around the best clique poses, random search's budget
+            if settings.get("hybrid"):              # random search's budget split: random placements + clique seeds
+                best = DK.hybrid_search([p for _, p in poses[:10]], L, centre, lt, pt, cfg["random_poses"], k,
+                                        np.random.default_rng(seed), seeded_fraction=settings["hybrid"],
+                                        maxfev=settings["maxfev"])
+            elif settings.get("seeded"):            # local search around the best clique poses, random search's budget
                 best = DK.seeded_search([p for _, p in poses[:settings["seeded"]]], lt, pt, cfg["random_poses"], k,
                                         np.random.default_rng(seed), maxfev=settings["maxfev"])
             elif k:
@@ -466,6 +470,81 @@ def test_q7b(R: dict) -> dict:
     s["vs_random_pass"] = bool(s["success_qaoa"] >= s["success_random"])
     s["improvement_pass"] = bool(s["success_qaoa"] >= R["min_success"])
     s["pass"] = bool(s["solver_pass"] and s["vs_random_pass"] and s["improvement_pass"])
+    s["per_complex"] = recs
+    return s
+
+
+def _complex_pbbench(cid: str):
+    """PoseBusters benchmark set (Buttenschoen et al. 2024; 428 complexes, the 172 not in the 256 used before are the
+    Q7c test), protein deposited without hydrogens: virtual polar hydrogens are added."""
+    from chronocell.quantum import docking as DK
+    z = _astex_zip()
+    lig = DK.read_sdf(z.read(f"posebusters_benchmark_set/{cid}/{cid}_ligand.sdf").decode(), cid)
+    prot = DK.read_pdb(z.read(f"posebusters_benchmark_set/{cid}/{cid}_protein.pdb").decode(errors="replace"))
+    return lig, DK.add_virtual_hydrogens(prot)
+
+
+def pbbench_new_ids() -> list[str]:
+    import quantum_drug_gates as QD
+    seen = set(QD.complexes("practice") + QD.complexes("test"))
+    ids = sorted({n.split("/")[1] for n in _astex_zip().namelist()
+                  if n.startswith("posebusters_benchmark_set/") and n.endswith("_protein.pdb")})
+    return [i for i in ids if i not in seen]
+
+
+Q7C_GRID = [{"score": "vina", "refine_top": 10, "maxfev": 300, "hydrogens": "given", "hybrid": f} for f in (0.25, 0.5)]
+
+
+def _q7c_job(args):
+    cid, src, st, qcfg, i = args
+    loader = _complex_pb if src == "pb" else _complex_astex
+    return dock_q7b(cid, loader, st, qcfg, i, src)
+
+
+def practice_q7c() -> dict:
+    """All complexes docked so far (the 256 PoseBusters of Q7 and the 85 Astex of Q7b): the hybrid search at two
+    splits of random search's budget. Resumable in chunks (every complex is cached)."""
+    from concurrent.futures import ProcessPoolExecutor
+    import quantum_drug_gates as QD
+    import frozen as F
+    qcfg = F.QUANTUM_DRUG_GATES["q7"]["qaoa"]
+    jobs_ids = [(c, "pb") for c in QD.complexes("practice") + QD.complexes("test")] + [(c, "astex") for c in astex_ids()]
+    out = {"made": _now(), "complexes": len(jobs_ids), "qaoa": qcfg, "grid": {}}
+    t0 = time.perf_counter()
+    for st in Q7C_GRID:
+        recs = []
+        with ProcessPoolExecutor(max_workers=4) as ex:
+            futs = [ex.submit(_q7c_job, (c, src, st, qcfg, i)) for i, (c, src) in enumerate(jobs_ids)]
+            for f in futs:
+                if time.perf_counter() - t0 > BUDGET_S:
+                    for g in futs:
+                        g.cancel()
+                    print("time budget reached; run again to continue (every complex is cached)", flush=True)
+                    return out
+                recs.append(f.result())
+        name = f"hybrid{st['hybrid']}"
+        out["grid"][name] = {"settings": st, **summarise_q7b(recs),
+                             "pb": summarise_q7b([r for r, (_, s_) in zip(recs, jobs_ids) if s_ == "pb"]),
+                             "astex": summarise_q7b([r for r, (_, s_) in zip(recs, jobs_ids) if s_ == "astex"])}
+        print(name, {k: v for k, v in out["grid"][name].items() if k not in ("pb", "astex", "settings")}, flush=True)
+        _json(ROOT / "results_round2_practice_q7c.json", out)
+    best = max(out["grid"].values(), key=lambda g: g["success_qaoa"] - g["success_random"])
+    out["choice"] = best["settings"]
+    _json(ROOT / "results_round2_practice_q7c.json", out)
+    return out
+
+
+def test_q7c(R: dict) -> dict:
+    ids = pbbench_new_ids()
+    recs = []
+    for i, cid in enumerate(ids):
+        recs.append(dock_q7b(cid, _complex_pbbench, R["settings"], R["qaoa"], i, "pbbench"))
+        if i % 10 == 0:
+            print(i, cid, flush=True)
+    s = summarise_q7b(recs)
+    s["solver_pass"] = bool(s["qaoa_hit_rate"] >= R["min_hit_rate"])
+    s["vs_random_pass"] = bool(s["success_qaoa"] >= s["success_random"])
+    s["pass"] = bool(s["solver_pass"] and s["vs_random_pass"])
     s["per_complex"] = recs
     return s
 
@@ -600,6 +679,65 @@ def test_q6c(R: dict) -> dict:
             "triplet_ground": int(sum(r["sector_ground_S2"] > 1e-3 for r in rows)), "pass": bool(all(ok))}
 
 
+# ======================================================================================
+# Q6d: ADAPT-VQE with an energy-scan escape from stationary points
+# ======================================================================================
+# first practice (escape alone, 1e-4) fixed CO at 2.8x but not HCN at 2.2x, whose ground state shares nothing with
+# Hartree-Fock; adding starts from the lowest other determinants fixed it; the grid below is the combined method
+Q6D_GRID = [{"pool": "gsd", "grad_tol": 1e-3, "max_operators": 200, "escape": 1e-5, "references": 3}]
+
+
+def q6d_case(args) -> dict:
+    name, scale, act, st = args
+    qm, _ = _model(name, scale, act)
+    e_s = M.fci_singlet(qm)
+    t0 = time.perf_counter()
+    kw = {k: v for k, v in st.items() if k != "references"}
+    a = M.adapt_multistart(qm, references=st["references"], **kw) if st.get("references") else M.adapt_vqe(qm, **kw)
+    row = {"molecule": name, "bond_scale": scale, "active": list(act), "qubits": qm.n_qubits, "lowest_singlet": e_s,
+           "e_hf": a.hf, "adapt_energy": a.energy, "error_vs_singlet_mEh": 1e3 * (a.energy - e_s),
+           "operators": a.parameters, "escapes": a.escapes, "converged": a.converged, "electrons": a.electrons,
+           "start_errors_mEh": [1e3 * (e - e_s) for e in getattr(a, "start_energies", [a.energy])],
+           "seconds": time.perf_counter() - t0}
+    print({k: (round(v, 4) if isinstance(v, float) else v) for k, v in row.items()}, flush=True)
+    return row
+
+
+def q6d_seen_cases() -> list:
+    """Every case run so far: Q6b practice, the Q6b and Q6c tests (all practice for Q6d)."""
+    import frozen as F
+    cases = [tuple(c) for c in Q6B_PRACTICE] + [tuple(c) for c in F.QUANTUM_ROUND2["q6b"]["cases"]] +         [tuple(c) for c in F.QUANTUM_ROUND2["q6c"]["cases"]]
+    return cases
+
+
+def practice_q6d() -> dict:
+    from concurrent.futures import ProcessPoolExecutor
+    cases = q6d_seen_cases()
+    out = {"made": _now(), "cases": cases, "grid": {}}
+    for st in Q6D_GRID:
+        with ProcessPoolExecutor(max_workers=6) as ex:
+            rows = list(ex.map(q6d_case, [(n, s_, a, st) for n, s_, a in cases]))
+        key = f"escape{st['escape']:g}_refs{st.get('references', 0)}"
+        out["grid"][key] = {"settings": st, "rows": rows,
+                            "within": int(sum(abs(r["error_vs_singlet_mEh"]) <= 1.6 for r in rows)),
+                            "max_abs_error_mEh": max(abs(r["error_vs_singlet_mEh"]) for r in rows)}
+        print(st, out["grid"][key]["within"], "of", len(rows), flush=True)
+        _json(ROOT / "results_round2_practice_q6d.json", out)
+    best = max(out["grid"].values(), key=lambda g: (g["within"], -g["max_abs_error_mEh"]))
+    out["choice"] = best["settings"]
+    _json(ROOT / "results_round2_practice_q6d.json", out)
+    return out
+
+
+def test_q6d(R: dict) -> dict:
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(max_workers=6) as ex:
+        rows = list(ex.map(q6d_case, [(n, s_, a, R["settings"]) for n, s_, a in R["cases"]]))
+    ok = [abs(r["error_vs_singlet_mEh"]) <= R["tolerance_mEh"] for r in rows]
+    return {"rows": rows, "within": int(sum(ok)), "cases": len(rows),
+            "max_abs_error_mEh": float(max(abs(r["error_vs_singlet_mEh"]) for r in rows)), "pass": bool(all(ok))}
+
+
 def posthoc_q6b() -> dict:
     """After the Q6b test (not part of its verdict): the spin of each test case's sector ground state and ADAPT-VQE's
     error against the lowest singlet, from the recorded energies."""
@@ -623,8 +761,10 @@ def posthoc_q6b() -> dict:
 # ======================================================================================
 # Test driver (each part once)
 # ======================================================================================
-TESTS = {"q2b": test_q2b, "q4b": test_q4b, "q6b": test_q6b, "q6c": test_q6c, "q7b": test_q7b}
-PRACTICE = {"q2b": practice_q2b, "q4b": practice_q4b, "q6b": practice_q6b, "q7b": practice_q7b}
+TESTS = {"q2b": test_q2b, "q4b": test_q4b, "q6b": test_q6b, "q6c": test_q6c, "q6d": test_q6d, "q7b": test_q7b,
+         "q7c": test_q7c}
+PRACTICE = {"q2b": practice_q2b, "q4b": practice_q4b, "q6b": practice_q6b, "q6d": practice_q6d, "q7b": practice_q7b,
+            "q7c": practice_q7c}
 
 
 def run_test(part: str) -> dict:

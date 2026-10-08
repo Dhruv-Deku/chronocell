@@ -823,3 +823,17 @@ listed in `chronocell/data/validation_sources.json`.
 
 Validation: `validation/quantum_round2.py` (Q2b, Q4b, Q6b, Q7b; new cell lines HMEC and HAP-1, ENCODE RNA-seq labels,
 the Astex Diverse set) and `validation/loops_gate6b.py` (Gate 6 on the new cell lines).
+
+## 16. Scoreboard, ADMET profile, noise and error mitigation (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/noisy.py` | Density-matrix simulation (up to 10 qubits) with local depolarizing noise after every gate and readout errors; unitary folding; Richardson / linear / exponential zero-noise extrapolation; symmetry verification; gate-level UCCSD circuits for the active-space molecules (Pauli exponentials of the Jordan-Wigner excitations) | exact statevector; fully mixed limit; Gate Q9 |
+| `quantum/admet.py` | 21 TDC ADMET endpoints (official scaffold splits) on demand; 8-component descriptors; quantum-kernel SVM / kernel ridge, RBF on the same inputs and on all 17 descriptors | Gate Q8 |
+| `quantum/molecules.py` (extended) | `energy_scan` and the `escape` option of `adapt_vqe`; `reference` start; `lowest_determinants`, `adapt_multistart` | Gate Q6d |
+| `quantum/docking.py` (extended) | `hybrid_search` (random search's budget split between random placements and clique seeds) | Gate Q7c |
+| `ui/scoreboard.py` | 08 Scoreboard: every test from `validation/report.py`, charts | AppTest |
+| `ui/quantum_extra.py` | ADMET profile and noise & mitigation panels | AppTest |
+
+Validation: `validation/admet_gate.py` (Gate Q8), `validation/mitigation_gate.py` (Gate Q9), Q6d and Q7c in
+`validation/quantum_round2.py`.

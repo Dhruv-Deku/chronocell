@@ -36,6 +36,8 @@ PROBLEMS = {
     "mol": ("Drug molecules (VQE)", "Energies of drug-like chemical groups from an active-space VQE."),
     "safety": ("Heart safety", "A quantum-kernel classifier screens molecules for hERG blocking."),
     "dock": ("Docking", "QAOA matches a drug's groups to its protein pocket (max clique)."),
+    "admet": ("ADMET profile", "21 absorption, metabolism and toxicity properties of a drug from a quantum-kernel model."),
+    "noise": ("Noise & mitigation", "Run a molecule on a simulated noisy chip and repair the answer (zero-noise extrapolation)."),
 }
 KIND_COLOUR = {"exact": T.INK, "classical": T.TERRACOTTA, "quantum-inspired": T.OCHRE, "simulated quantum": T.ACCENT}
 
@@ -883,6 +885,12 @@ def render(ds: Dataset, options: list[tuple[str, Dataset]], baseline: Dataset | 
         molecules_panel("qlab_mol")
     elif prob == "safety":
         safety_panel("qlab_safe")
+    elif prob == "admet":
+        from ui import quantum_extra as QX
+        QX.admet_panel("qlab_admet")
+    elif prob == "noise":
+        from ui import quantum_extra as QX
+        QX.mitigation_panel("qlab_noise")
     else:
         docking_panel("qlab_dock")
     with st.expander("How big can these problems get?", expanded=False):
@@ -928,9 +936,11 @@ def genes_hooks(ds: Dataset, tab: pd.DataFrame, frame: int, b0: float, offset: i
 
 
 def drug_hooks(ds: Dataset, baseline: Dataset | None, b0: float, frame: int) -> None:
-    """04 Drug lab → Quantum: two original tabs, then three drug-focused ones (molecules, heart safety, docking)."""
-    t1, t2, t3, t4, t5 = st.tabs(["Drug combination (QAOA)", "Molecule energy (VQE)", "Drug molecules (active-space VQE)",
-                                  "Heart safety (quantum kernel)", "Docking (QAOA max clique)"])
+    """04 Drug lab → Quantum: two original tabs, then four drug-focused ones (molecules, heart safety, docking,
+    ADMET profile)."""
+    t1, t2, t3, t4, t5, t6 = st.tabs(["Drug combination (QAOA)", "Molecule energy (VQE)", "Drug molecules (active-space VQE)",
+                                      "Heart safety (quantum kernel)", "Docking (QAOA max clique)",
+                                      "ADMET profile (quantum kernel)"])
     with t1:
         drug_panel(ds, baseline, b0, frame, "qd_drug")
     with t2:
@@ -941,6 +951,9 @@ def drug_hooks(ds: Dataset, baseline: Dataset | None, b0: float, frame: int) -> 
         safety_panel("qd_safe")
     with t5:
         docking_panel("qd_dock")
+    with t6:
+        from ui import quantum_extra as QX
+        QX.admet_panel("qd_admet")
 
 
 # ======================================================================================

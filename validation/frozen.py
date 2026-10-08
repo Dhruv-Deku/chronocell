@@ -464,3 +464,91 @@ QUANTUM_ROUND2["q2b"] = {"tad": {"res": 60_000, "min_size": 3, "gamma": 5.0, "bo
 QUANTUM_ROUND2["q7b"] = {"settings": {"score": "vina", "refine_top": 10, "maxfev": 300, "hydrogens": "given"},
                          "qaoa": {"p": 5, "objective": "cvar"}, "min_hit_rate": 0.8, "min_success": 0.2,
                          "test_set": "Astex Diverse (PoseBusters paper data, Zenodo 8278563)"}
+
+# Gate Q9 (error mitigation; validation/mitigation_gate.py; chronocell/quantum/noisy.py). Pre-registered after
+# results_mitigation_practice.json, before any test case was run. The 2-electron, 2-orbital UCCSD-VQE circuit of a
+# molecule (4 qubits, about 200 gates, 64 CNOT-equivalents) on a density-matrix simulator with local depolarizing noise
+# after every gate. Practice (15 cases): at today's best device level (two-qubit error 3e-3, one-qubit 3e-4) symmetry
+# verification + Richardson extrapolation from noise scales 1, 3, 5 put 15 of 15 within chemical accuracy of the
+# noise-free circuit (median 0.43 mHa; median 29x smaller than the symmetry-verified noisy error); without symmetry
+# verification no method reached more than 9 of 15. At the lab's pessimistic level (1e-2) no method reached more than
+# 7 of 15 (reported, not gated). Test: sixteen molecule / bond-length cases run by no test before. Pass: mitigated
+# energy within chemical accuracy (1.6 mHa) of the noise-free circuit's energy in >= 80 % of cases.
+QUANTUM_MITIGATION = {"noise": {"p1": 3e-4, "p2": 3e-3}, "method": "richardson", "symmetry_verification": True,
+                      "scales": [1, 3, 5], "tolerance_mEh": 1.6, "min_fraction": 0.8,
+                      "cases": [["LiH", 1.2], ["LiH", 1.6], ["HF", 1.2], ["HF", 1.6], ["H2O", 1.25], ["H2O", 1.6],
+                                ["NH3", 1.25], ["NH3", 1.6], ["CH4", 1.2], ["CH4", 1.6], ["N2", 1.15], ["N2", 1.6],
+                                ["CO", 1.15], ["CO", 1.4], ["HCN", 1.15], ["CH2O", 1.15]]}
+
+# Gate Q8 (ADMET profile; validation/admet_gate.py; chronocell/quantum/admet.py). Pre-registered after
+# results_admet_practice.json (train_val sets only, 5-fold cross-validation; the grids of all three models were
+# widened once together when first-run best values sat at their edges), before any test split was read. On practice
+# the quantum kernel was within 0.03 of the RBF model on the same 8 inputs on 21 of 21 endpoints (worst
+# -0.028). Test: the official scaffold test split of each endpoint, training on its train_val (capped at 2,500
+# compounds). Per endpoint pass: quantum AUC (yes/no) or Spearman rho (values) >= the RBF model's on the same 8 inputs
+# - 0.03, and its 95 % interval (1,000 resamples) above 0.5 (AUC) or 0 (rho). Gate pass: >= 17 of the 21 endpoints.
+# Reported, not gated: the RBF model on all 17 descriptors (the stronger classical reference).
+QUANTUM_ADMET = {"margin": 0.03, "min_endpoints": 17, "cap": 2500, "endpoints": ["caco2_wang", "hia_hou", "pgp_broccatelli", "bioavailability_ma", "lipophilicity_astrazeneca", "solubility_aqsoldb", "bbb_martins", "ppbr_az", "vdss_lombardo", "cyp2c9_veith", "cyp2d6_veith", "cyp3a4_veith", "cyp2c9_substrate_carbonmangels", "cyp2d6_substrate_carbonmangels", "cyp3a4_substrate_carbonmangels", "half_life_obach", "clearance_hepatocyte_az", "clearance_microsome_az", "ld50_zhu", "ames", "dili"],
+                 "settings": {'caco2_wang': {'qk': {'bandwidth': 0.2, 'reps': 1, 'reg': 1.0},
+                'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                'rbf17': {'gamma': 0.03, 'reg': 0.1}},
+ 'hia_hou': {'qk': {'bandwidth': 0.01, 'reps': 1, 'reg': 10.0},
+             'rbf8': {'gamma': 0.003, 'reg': 1.0},
+             'rbf17': {'gamma': 0.003, 'reg': 1.0}},
+ 'pgp_broccatelli': {'qk': {'bandwidth': 0.2, 'reps': 1, 'reg': 1.0},
+                     'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                     'rbf17': {'gamma': 0.3, 'reg': 1.0}},
+ 'bioavailability_ma': {'qk': {'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+                        'rbf8': {'gamma': 0.03, 'reg': 0.01},
+                        'rbf17': {'gamma': 0.03, 'reg': 0.01}},
+ 'lipophilicity_astrazeneca': {'qk': {'bandwidth': 1.0, 'reps': 1, 'reg': 1.0},
+                               'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                               'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'solubility_aqsoldb': {'qk': {'bandwidth': 0.5, 'reps': 1, 'reg': 0.1},
+                        'rbf8': {'gamma': 0.1, 'reg': 0.1},
+                        'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'bbb_martins': {'qk': {'bandwidth': 0.5, 'reps': 1, 'reg': 1.0},
+                 'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                 'rbf17': {'gamma': 0.3, 'reg': 1.0}},
+ 'ppbr_az': {'qk': {'bandwidth': 2.0, 'reps': 1, 'reg': 0.1},
+             'rbf8': {'gamma': 1.0, 'reg': 0.1},
+             'rbf17': {'gamma': 0.3, 'reg': 0.1}},
+ 'vdss_lombardo': {'qk': {'bandwidth': 0.05, 'reps': 1, 'reg': 0.1},
+                   'rbf8': {'gamma': 0.1, 'reg': 0.1},
+                   'rbf17': {'gamma': 0.03, 'reg': 0.1}},
+ 'cyp2c9_veith': {'qk': {'bandwidth': 0.1, 'reps': 2, 'reg': 1.0},
+                  'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                  'rbf17': {'gamma': 0.01, 'reg': 10.0}},
+ 'cyp2d6_veith': {'qk': {'bandwidth': 0.05, 'reps': 1, 'reg': 10.0},
+                  'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                  'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'cyp3a4_veith': {'qk': {'bandwidth': 0.1, 'reps': 1, 'reg': 10.0},
+                  'rbf8': {'gamma': 0.01, 'reg': 10.0},
+                  'rbf17': {'gamma': 0.003, 'reg': 100.0}},
+ 'cyp2c9_substrate_carbonmangels': {'qk': {'bandwidth': 0.1, 'reps': 2, 'reg': 1.0},
+                                    'rbf8': {'gamma': 0.1, 'reg': 1.0},
+                                    'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'cyp2d6_substrate_carbonmangels': {'qk': {'bandwidth': 0.01, 'reps': 2, 'reg': 100.0},
+                                    'rbf8': {'gamma': 0.003, 'reg': 10.0},
+                                    'rbf17': {'gamma': 0.003, 'reg': 1000.0}},
+ 'cyp3a4_substrate_carbonmangels': {'qk': {'bandwidth': 0.2, 'reps': 1, 'reg': 0.01},
+                                    'rbf8': {'gamma': 0.01, 'reg': 1.0},
+                                    'rbf17': {'gamma': 0.003, 'reg': 10.0}},
+ 'half_life_obach': {'qk': {'bandwidth': 0.5, 'reps': 1, 'reg': 1.0},
+                     'rbf8': {'gamma': 0.3, 'reg': 0.1},
+                     'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'clearance_hepatocyte_az': {'qk': {'bandwidth': 0.2, 'reps': 1, 'reg': 1.0},
+                             'rbf8': {'gamma': 0.1, 'reg': 1.0},
+                             'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'clearance_microsome_az': {'qk': {'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+                            'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                            'rbf17': {'gamma': 0.3, 'reg': 1.0}},
+ 'ld50_zhu': {'qk': {'bandwidth': 0.2, 'reps': 2, 'reg': 1.0},
+              'rbf8': {'gamma': 0.3, 'reg': 1.0},
+              'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'ames': {'qk': {'bandwidth': 1.0, 'reps': 1, 'reg': 1.0},
+          'rbf8': {'gamma': 1.0, 'reg': 1.0},
+          'rbf17': {'gamma': 0.3, 'reg': 1.0}},
+ 'dili': {'qk': {'bandwidth': 0.02, 'reps': 1, 'reg': 100.0},
+          'rbf8': {'gamma': 0.003, 'reg': 100.0},
+          'rbf17': {'gamma': 0.003, 'reg': 100.0}}}}

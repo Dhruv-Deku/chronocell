@@ -898,3 +898,17 @@ the data its test had used (now practice), a rule committed before new test data
 Q6c (molecules: 10 of 11 and 9 of 12; ADAPT-VQE stalls on nearly broken bonds), Q7b (docking: the quantum route loses
 to random search). Not retested: Gate 8, Gates 1c / 2d / 2e / 5b, Gate 4d (reasons above). Every original verdict
 stands.
+
+## 8 October 2026 — New tabs and new methods (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for new tabs and new methods to make the labs pass, over about eight hours, without questions. Local commits on
+`feat/v4-evidence` only; nothing pushed. Same rules as round 2: every test pre-registered before its data are read,
+run once, failures kept.
+
+- **New tabs.** *08 Scoreboard*: every test in one place with charts. *ADMET profile* (07 Quantum lab and Drug lab →
+  Quantum): 21 drug properties from a quantum-kernel model next to classical ones. *Noise & mitigation* (07 Quantum
+  lab): a molecule's circuit on a simulated noisy chip, repaired by zero-noise extrapolation and symmetry
+  verification.
+- **New tests pre-registered.** Gate Q8 (ADMET, 21 official TDC scaffold test splits) and Gate Q9 (error mitigation,
+  16 new molecules).

@@ -13,6 +13,8 @@ from __future__ import annotations
 import json
 import re
 import sys
+
+import numpy as np
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -1205,6 +1207,85 @@ def summary_r2() -> str:
     return "\n".join(["| Test (held-out, real data; simulated quantum) | Measured | Verdict |", "|---|---|---|"] + _r2_rows())
 
 
+# --------------------------------------------------------------------------------------------- new tools (Q8, Q9)
+def admet_practice() -> str:
+    r = _load("results_admet_practice.json")
+    if not r:
+        return "_results_admet_practice.json: not run (python validation/admet_gate.py --practice)._"
+    out = [f"Practice (train_val sets only; training capped at {r['cap']} compounds; 5-fold cross-validation):", "",
+           "| Endpoint | Task | Compounds | Quantum kernel (CV) | RBF, same 8 inputs | RBF, all 17 descriptors |",
+           "|---|---|---|---|---|---|"]
+    for n, e in r["endpoints"].items():
+        out.append(f"| {n} | {'yes/no (AUC)' if e['task'] == 'cls' else 'value (Spearman)'} | {e['n']} | "
+                   f"{e['qk_best']['cv']:.3f} | {e['rbf8_best']['cv']:.3f} | {e['rbf17_best']['cv']:.3f} |")
+    return "\n".join(out)
+
+
+def admet() -> str:
+    r = _load("results_admet.json")
+    if not r:
+        return "_results_admet.json: not run (python validation/admet_gate.py --test)._"
+    out = ["Test (official held-out scaffold splits; run once):", "",
+           "| Endpoint | Train / test | Quantum kernel (95 % interval) | RBF, same 8 inputs | RBF, all 17 | Quantum − RBF (95 %) | Verdict |",
+           "|---|---|---|---|---|---|---|"]
+    for n, e in r["endpoints"].items():
+        m, ci = e["metric"], e["ci95"]
+        out.append(f"| {n} | {e['train']} / {e['test']} | {m['quantum']:.3f}{_ci(ci['quantum'], 3)} | {m['rbf8']:.3f} | "
+                   f"{m['rbf17']:.3f} | {m['quantum'] - m['rbf8']:+.3f}{_ci(ci['quantum_minus_rbf8'], 3)} | "
+                   f"{'pass' if e['pass'] else 'fail'} |")
+    out += ["", f"Gate Q8: **{'pass' if r['pass'] else 'fail'}**: {r['passed']} of {r['of']} endpoints met the rule "
+                f"(needed {r['rule']['min_endpoints']})."]
+    return "\n".join(out)
+
+
+def mitigation_practice() -> str:
+    r = _load("results_mitigation_practice.json")
+    if not r:
+        return "_results_mitigation_practice.json: not run (python validation/mitigation_gate.py --practice)._"
+    out = [f"Practice ({len(r['cases'])} cases). Cases within chemical accuracy of the noise-free circuit, and median "
+           "absolute error (mHa), per method:", "", "| Method | Device-level noise (3e-3) | Pessimistic noise (1e-2) |",
+           "|---|---|---|"]
+    d, pz = r["levels"]["device"]["summary"], r["levels"]["pessimistic"]["summary"]
+    for k in d:
+        out.append(f"| {k} | {d[k]['within_chemical_accuracy']} of {d[k]['cases']} (median {d[k]['median_abs_mEh']:.2f}) | "
+                   f"{pz[k]['within_chemical_accuracy']} of {pz[k]['cases']} (median {pz[k]['median_abs_mEh']:.2f}) |")
+    out += ["", f"Chosen: {r['choice']} ('+sv': symmetry verification; digits: noise scales)."]
+    return "\n".join(out)
+
+
+def mitigation() -> str:
+    r = _load("results_mitigation.json")
+    if not r:
+        return "_results_mitigation.json: not run (python validation/mitigation_gate.py --test)._"
+    k = r["method_key"]
+    out = [f"Test ({r['cases']} new cases; {k}; noise {r['rule']['noise']}):", "",
+           "| Molecule | Bond × eq. | Noise-free circuit (Ha) | Noisy error (mHa) | Mitigated error (mHa) |", "|---|---|---|---|---|"]
+    for x in r["rows"]:
+        m = x["methods"][k]
+        out.append(f"| {x['molecule']} | {x['bond_scale']} | {x['ideal']:.5f} | {m['noisy_mEh']:+.2f} | {m['mitigated_mEh']:+.3f} |")
+    out += ["", f"Gate Q9: **{'pass' if r['pass'] else 'fail'}**: {r['within']} of {r['cases']} within chemical accuracy "
+                f"(median {r['median_abs_mEh']:.2f} mHa; median {r['median_reduction']:.0f}x smaller than the noisy error)."]
+    return "\n".join(out)
+
+
+def summary_new() -> str:
+    rows = ["| Test (held-out, real data; simulated quantum) | Measured | Verdict |", "|---|---|---|"]
+    r = _load("results_admet.json")
+    if r:
+        q = [e["metric"]["quantum"] - e["metric"]["rbf8"] for e in r["endpoints"].values()]
+        rows.append(f"| Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | "
+                    f"{r['passed']} of {r['of']} endpoints met the rule; quantum − classical median {np.median(q):+.3f} | "
+                    f"{'pass' if r['pass'] else 'fail'} |")
+    r = _load("results_mitigation.json")
+    if r:
+        rows.append(f"| Gate Q9: error mitigation on a simulated noisy chip, {r['cases']} new molecules | {r['within']} of "
+                    f"{r['cases']} within chemical accuracy after mitigation (median {r['median_abs_mEh']:.2f} mHa, noisy "
+                    f"{r['median_noisy_mEh']:.1f}) | {'pass' if r['pass'] else 'fail'} |")
+    if len(rows) == 2:
+        rows.append("| Gates Q8, Q9 | not run | — |")
+    return "\n".join(rows)
+
+
 BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "gate3": gate3, "gate4": gate4,
           "gate5": gate5, "gate1c": gate1c, "gate2d": gate2d, "gate2e": gate2e, "gate3b": gate3b, "gate5b": gate5b,
           "gate4c": gate4c, "gate5m": gate5m, "gate6": gate6, "gate7": gate7, "b9tools": b9tools, "summary_ab": summary_ab, "scale": scale,
@@ -1212,7 +1293,8 @@ BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "g
           "gateq": gateq, "quantum_crosscheck": quantum_crosscheck, "summary_q": summary_q, "gate8": gate8,
           "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd,
           "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2, "gate6b": gate6b,
-          "gate8_marks": gate8_marks}
+          "gate8_marks": gate8_marks, "admet_practice": admet_practice, "admet": admet,
+          "mitigation_practice": mitigation_practice, "mitigation": mitigation, "summary_new": summary_new}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 
 

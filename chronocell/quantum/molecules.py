@@ -585,7 +585,10 @@ def vqe_uccsd(qm: QubitModel, maxiter: int = 300, gens: list | None = None) -> V
         th = x0
     psi = state(th)
     e = float(psi @ (qm.H @ psi))
-    return VQEResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)))
+    res = VQEResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)))
+    res.thetas = np.asarray(th, float)               # the optimised angles (gate-level circuits, noisy.vqe_circuit)
+    res.generators = gens
+    return res
 
 
 def generalized_generators(qm: QubitModel) -> list:
@@ -615,19 +618,36 @@ class AdaptResult(VQEResult):
     gradient_norms: list = field(default_factory=list)  # pool gradient norm before each addition
     energies: list = field(default_factory=list)        # energy after each re-optimisation
     converged: bool = False                              # stopped on the gradient threshold (not the operator cap)
+    escapes: int = 0                                     # operators added by the energy scan at a stationary point
+
+
+def energy_scan(qm: QubitModel, psi: np.ndarray, A, A2, n: int = 721) -> tuple[float, float]:
+    """Exact energy along one appended rotation exp(theta A) psi = psi + sin(theta) A psi + (1 - cos(theta)) A^2 psi:
+    E(theta) = c^T M c with c = (1, sin, 1 - cos) and M_ij = u_i . H u_j. Returns (best theta, energy there)."""
+    u = [psi, A @ psi, A2 @ psi]
+    Hu = [qm.H @ x for x in u]
+    M = np.array([[float(u[i] @ Hu[j]) for j in range(3)] for i in range(3)])
+    th = np.linspace(-math.pi, math.pi, n)
+    c = np.stack([np.ones_like(th), np.sin(th), 1 - np.cos(th)])
+    e = np.einsum("in,ij,jn->n", c, M, c)
+    k = int(np.argmin(e))
+    return float(th[k]), float(e[k])
 
 
 def adapt_vqe(qm: QubitModel, pool: str = "sd", max_operators: int = 60, grad_tol: float = 1e-3,
-              maxiter: int = 400) -> AdaptResult:
+              maxiter: int = 400, escape: float = 0.0, reference: int | None = None) -> AdaptResult:
     """ADAPT-VQE (Grimsley et al., Nat Commun 2019): grow the circuit one excitation at a time, each time the pool
     operator with the largest energy gradient |<psi|[H, A]|psi>| = |2 (H psi).(A psi)|, re-optimising every angle
     (BFGS, warm start, exact closed-form rotations and the adjoint gradient). Operators may be chosen again.
-    Stops when the pool gradient norm falls below grad_tol or at max_operators; FCI is only used for scoring."""
+    Stops when the pool gradient norm falls below grad_tol or at max_operators; FCI is only used for scoring.
+    escape > 0 (round 2, Gate Q6d): at such a stationary point, every pool operator's exact one-angle energy scan is
+    computed (energy_scan); if the best lowers the energy by more than `escape` hartree, that operator is appended at
+    its best angle and ADAPT continues (a saddle is left; no reference energy is used)."""
     from scipy.optimize import minimize
     gens = uccsd_generators(qm) if pool == "sd" else generalized_generators(qm)
     pool_A = [G for _, G in gens]
     psi0 = np.zeros(2 ** qm.n_qubits)
-    psi0[qm.hf_index] = 1.0
+    psi0[qm.hf_index if reference is None else int(reference)] = 1.0
     e_hf = float(psi0 @ (qm.H @ psi0))
     chosen: list[int] = []
     As: list = []
@@ -657,27 +677,76 @@ def adapt_vqe(qm: QubitModel, pool: str = "sd", max_operators: int = 60, grad_to
 
     psi = psi0
     converged = False
+    escapes = 0
+    pool_A2 = None
     while len(chosen) < max_operators:
         hp = qm.H @ psi
         grads = np.array([2.0 * float(hp @ (A @ psi)) for A in pool_A])
         gn = float(np.linalg.norm(grads))
         gnorms.append(gn)
+        theta0 = 0.0
         if gn < grad_tol:
-            converged = True
-            break
-        k = int(np.argmax(np.abs(grads)))
+            if escape <= 0:
+                converged = True
+                break
+            if pool_A2 is None:
+                pool_A2 = [(A @ A).tocsr() for A in pool_A]
+            e_now = float(psi @ hp)
+            scans = [energy_scan(qm, psi, A, A2) for A, A2 in zip(pool_A, pool_A2)]
+            k = int(np.argmin([e for _, e in scans]))
+            if e_now - scans[k][1] <= escape:
+                converged = True
+                break
+            theta0 = scans[k][0]
+            escapes += 1
+        else:
+            k = int(np.argmax(np.abs(grads)))
         chosen.append(k)
         names.append(gens[k][0])
         As.append(pool_A[k])
         A2s.append((pool_A[k] @ pool_A[k]).tocsr())
-        th = np.append(th, 0.0)
+        th = np.append(th, theta0)
         r = minimize(f_and_grad, th, jac=True, method="BFGS", options={"maxiter": maxiter, "gtol": 1e-8})
         th = r.x
         psi = state(th)
         energies.append(float(psi @ (qm.H @ psi)))
     e = float(psi @ (qm.H @ psi))
-    return AdaptResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)),
-                       names, gnorms, energies, converged)
+    res = AdaptResult(e, fci(qm), e_hf, len(As), len(hist), hist, float(psi @ (qm.N @ psi)),
+                      names, gnorms, energies, converged, escapes)
+    res.thetas = np.asarray(th, float)
+    res.generators = [gens[k] for k in chosen]
+    return res
+
+
+def lowest_determinants(qm: QubitModel, k: int = 3) -> list[int]:
+    """The k determinants of the electron-number / Sz = 0 sector with the lowest energies <D|H|D> other than
+    Hartree-Fock (spin partners of equal energy count once)."""
+    sec = sector(qm)
+    d = np.array([float(qm.H[i, i]) for i in sec])
+    out, seen = [], set()
+    for i in np.argsort(d, kind="stable"):
+        det = int(sec[i])
+        e = round(float(d[i]), 9)
+        if det == qm.hf_index or e in seen:
+            continue
+        seen.add(e)
+        out.append(det)
+        if len(out) >= k:
+            break
+    return out
+
+
+def adapt_multistart(qm: QubitModel, references: int = 3, **settings) -> AdaptResult:
+    """Round 2 (Gate Q6d): ADAPT-VQE from Hartree-Fock and from the `references` lowest-energy other determinants;
+    the lowest final energy is kept (variational: a lower energy is always closer to the true ground state, so no
+    reference energy is needed). Helps where the ground state shares little with Hartree-Fock (bonds near breaking)."""
+    runs = [adapt_vqe(qm, **settings)]
+    for det in lowest_determinants(qm, references):
+        runs.append(adapt_vqe(qm, reference=det, **settings))
+    best = min(runs, key=lambda r: r.energy)
+    best.starts = len(runs)
+    best.start_energies = [r.energy for r in runs]
+    return best
 
 
 @dataclass

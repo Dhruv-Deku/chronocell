@@ -425,3 +425,16 @@ cell line's margin over the better tool. **Frozen**: FDR 0.01, KR balancing, no 
   variant. Refining 30 was stopped part-way: random search had already overtaken the clique routes at 10. Virtual polar
   hydrogens (for structures deposited without them) were checked on the 43 Q7-practice complexes. **Frozen**: Vina-like
   score, best 10 refined, QAOA p 5 with CVaR.
+
+## 23. ADMET profile (Gate Q8) and error mitigation (Gate Q9): settings chosen on practice data
+
+- **Q8 (ADMET).** Train_val sets only. Per endpoint, 5-fold cross-validation (stratified for yes/no endpoints) over the
+  quantum kernel's bandwidth, repetitions (1, 2) and regularisation (SVM C or ridge alpha), and the same regularisation
+  with the RBF width for both classical models; training capped at 2,500 compounds (a fixed random subset, the same for
+  every model). All three grids were widened once together when first-run best values sat at their edges. **Frozen**:
+  the best setting of each model per endpoint (`QUANTUM_ADMET["settings"]`).
+- **Q9 (mitigation).** 15 practice cases (library molecules at equilibrium and the six Q6 geometries), 2 electrons in
+  2 orbitals (4 qubits). Methods: Richardson, linear or exponential extrapolation, from noise scales (1, 3) or
+  (1, 3, 5), with or without symmetry verification; noise at today's best device level (3e-3) and the lab's
+  pessimistic level (1e-2). **Frozen**: symmetry verification + Richardson from (1, 3, 5) at 3e-3 (the only method
+  that reached chemical accuracy in every practice case at that level).

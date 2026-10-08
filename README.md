@@ -201,6 +201,15 @@ original results above stand):**
 | Gate Q7b: QAOA docking with Vina-like score and refinement (Astex Diverse) | docked 35 % vs random search 58 % | fail |
 <!-- END generated:summary_r2 -->
 
+**New tools (October 2026): a quantum-kernel ADMET profile and error mitigation on a simulated noisy chip
+(pre-registered, run once):**
+
+<!-- BEGIN generated:summary_new -->
+| Test (held-out, real data; simulated quantum) | Measured | Verdict |
+|---|---|---|
+| Gates Q8, Q9 | not run | — |
+<!-- END generated:summary_new -->
+
 Full record, including every failure: [`validation/RESULTS.md`](validation/RESULTS.md). How each setting was chosen: [`validation/TUNING.md`](validation/TUNING.md). Benchmark tables: [`validation/benchmark/`](validation/benchmark/).
 
 ## Bring your own data
