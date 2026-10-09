@@ -13,6 +13,10 @@ python motion/render.py --preview       # stills every 2 s + a contact sheet in 
 open motion/index.html?play             # watch it live in a browser (?t=42.5 shows one frame)
 ```
 
+There is also a longer **explainer** (4 min 48 s): what the app is, real screen recordings of the app in use, the
+test suite running, and every accuracy score recomputed from its result file. See
+[`explainer/README.md`](explainer/README.md); render it with `python motion/render.py --page explainer`.
+
 ## What is on screen, and where it comes from
 
 | # | Scene | Time | Source |

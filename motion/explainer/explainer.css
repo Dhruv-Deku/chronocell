@@ -1,0 +1,55 @@
+/* ChronoCell-5D explainer: the reel's tokens (../film.css) plus captions, screen frames, terminals and step cards. */
+.cap { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); max-width: 1500px; padding: 18px 34px 20px;
+  border-radius: 20px; background: rgba(17,19,24,.92); color: #fff; font: 500 33px/1.32 var(--sans); text-align: center;
+  box-shadow: 0 16px 40px rgba(0,0,0,.28); }
+.cap b { color: #FFD27A; font-weight: 700; }
+.chap { position: absolute; left: 40px; top: 30px; display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 8px;
+  border-radius: 14px; background: rgba(17,19,24,.88); }
+.chap .n { width: 42px; height: 42px; border-radius: 10px; background: var(--cobalt); font: 700 18px/42px var(--mono); text-align: center; color: #fff; }
+.chap .t { font: 900 23px/1 var(--display); font-stretch: 80%; letter-spacing: .04em; text-transform: uppercase; color: #fff; }
+.mark { position: absolute; right: 40px; top: 36px; display: flex; align-items: center; gap: 10px; font: 800 24px/1 var(--display); color: #fff; }
+.prog { position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: rgba(128,128,140,.25); }
+.prog i { position: absolute; left: 0; top: 0; bottom: 0; width: 1920px; background: var(--cobalt); transform-origin: 0 50%; }
+.prog s { position: absolute; top: -3px; width: 3px; height: 13px; background: rgba(255,255,255,.7); }
+
+/* a browser window around a live screen recording */
+.screen { position: absolute; border-radius: 18px; overflow: hidden; background: var(--paper);
+  box-shadow: 0 40px 100px rgba(0,0,0,.30), 0 10px 26px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.08); }
+.screen .bar { height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 18px; background: #e6e6e1; border-bottom: 1px solid #d8d8d3; }
+.screen .bar i { width: 13px; height: 13px; border-radius: 50%; display: block; }
+.screen .bar i:nth-child(1) { background: #ff5f57; } .screen .bar i:nth-child(2) { background: #febc2e; } .screen .bar i:nth-child(3) { background: #28c840; }
+.screen .url { margin-left: 16px; flex: 1; height: 28px; border-radius: 8px; background: #f8f8f6; color: #62645f; font: 500 15px/28px var(--mono); padding: 0 14px; }
+.screen .vp { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; overflow: hidden; background: #f2f2ef; }
+.screen video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+.live { position: absolute; display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 10px; background: rgba(17,19,24,.85);
+  color: #fff; font: 600 16px/1 var(--mono); letter-spacing: .1em; }
+.live .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff3b30; }
+
+/* terminal */
+.term { position: absolute; border-radius: 18px; overflow: hidden; background: #0d0f14; box-shadow: 0 40px 100px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08); }
+.term .bar { height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 18px; background: #1b1e26; }
+.term .bar i { width: 13px; height: 13px; border-radius: 50%; display: block; }
+.term .bar i:nth-child(1) { background: #ff5f57; } .term .bar i:nth-child(2) { background: #febc2e; } .term .bar i:nth-child(3) { background: #28c840; }
+.term .ttl { margin-left: 16px; color: #8b90a8; font: 500 15px/1 var(--mono); }
+.term .body { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; padding: 18px 24px; font: 500 17px/26px var(--mono);
+  color: #d6d9e6; white-space: pre; overflow: hidden; }
+.term .ln { height: 26px; }
+.term .ok { color: #3ddc84; } .term .bad { color: #ff6b4a; } .term .warn { color: #ffd166; } .term .hd { color: #8e98ff; font-weight: 700; }
+.term .pr { color: #3ddc84; } .term .hl { background: rgba(79,92,255,.28); border-radius: 4px; }
+.term .caret { display: inline-block; width: 10px; height: 20px; background: #d6d9e6; vertical-align: -4px; }
+
+/* step cards (how a test is run) and result cards */
+.step { position: absolute; width: 400px; height: 330px; border-radius: 26px; background: #fff; padding: 30px 30px; color: var(--ink);
+  box-shadow: 0 24px 60px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.05); }
+.step .num { font: 700 18px/1 var(--mono); letter-spacing: .14em; color: var(--muted); }
+.step .ic { margin-top: 18px; height: 70px; }
+.step .tt { margin-top: 16px; font: 900 44px/.95 var(--display); font-stretch: 75%; text-transform: uppercase; }
+.step .tx { margin-top: 12px; font: 500 22px/1.32 var(--sans); color: var(--ink-2, #474A45); }
+.side { position: absolute; width: 520px; border-radius: 20px; padding: 20px 24px; background: #fff; color: var(--ink);
+  box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.side .g { font: 700 15px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.side .v { margin-top: 10px; font: 900 46px/1 var(--display); font-stretch: 85%; }
+.side .s { margin-top: 8px; font: 500 19px/1.3 var(--sans); color: #474A45; }
+.side .vd { position: absolute; right: 20px; top: 18px; padding: 7px 12px; border-radius: 9px; font: 800 17px/1 var(--mono); color: #fff; }
+.cmd { font: 500 30px/1.7 var(--mono); color: #d6d9e6; }
+.cmd .p { color: #3ddc84; }

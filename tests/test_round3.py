@@ -173,3 +173,17 @@ def test_film_numbers_come_from_the_result_files():
     assert len(hi["q9"]["rows"]) == hi["q9"]["cases"] and all(r["fixed"] <= hi["chem_accuracy"] < r["noisy"] for r in hi["q9"]["rows"])
     assert len({r["id"] for r in t["rows"]}) == t["n"]                       # every test has its own label in the film
     assert all(v["chronocell"] > max(v["chromosight"], v["mustache"]) for v in hi["loops"].values())
+
+
+def test_recheck_recomputes_every_verdict_without_a_mismatch(capsys):
+    """motion/explainer/recheck.py (shown in the explainer): scores recomputed from the saved per-case numbers, frozen
+    rules re-applied, verdicts compared with the Scoreboard. No test is re-run."""
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("recheck", Path(__file__).resolve().parent.parent / "motion" / "explainer" / "recheck.py")
+    RC = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(RC)
+    RC.main()
+    out = capsys.readouterr().out
+    assert RC.mismatches == 0, out[-2000:]
+    assert "all match the saved results and the Scoreboard" in out and out.count(" ok") >= 10
