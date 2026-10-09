@@ -50,28 +50,28 @@ def _hero(version: str) -> None:
         return
     data = _b64(str(pic), pic.stat().st_mtime)
     html(f'<div style="position:relative;border-radius:10px;overflow:hidden;margin:14px 0 18px;min-height:300px;'
-         f'background:#04050b url(data:image/jpeg;base64,{data}) right center / cover no-repeat">'
-         f'<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,5,11,.92) 0%,rgba(4,5,11,.75) 38%,'
-         f'rgba(4,5,11,0) 70%)"></div><div style="position:relative;padding:34px 38px 36px">{text}</div>'
+         f'background:#111318 url(data:image/jpeg;base64,{data}) right center / cover no-repeat">'
+         f'<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,19,24,.94) 0%,rgba(17,19,24,.78) 38%,'
+         f'rgba(17,19,24,0) 70%)"></div><div style="position:relative;padding:34px 38px 36px">{text}</div>'
          f'<div style="position:absolute;right:16px;bottom:10px;font:400 11px/1 var(--mono);color:rgba(255,255,255,.6);text-shadow:0 0 6px #000,0 0 3px #000">'
          f'chr22 · the app’s reference model, 5,082 beads</div></div>')
 
 
 def _film() -> None:
-    """The 92-second film (motion/), if it has been rendered on this computer."""
-    html('<h2 class="cc-h2">Watch the film (92 seconds)</h2>')
+    """The 100-second film (motion/), if it has been rendered on this computer."""
+    html('<h2 class="cc-h2">Watch the film (100 seconds)</h2>')
     film = FILM_SHARE if FILM_SHARE.exists() else FILM
     if film.exists():
         st.video(str(film))
-        html('<p class="cc-note">Made from the app itself: real screenshots, the reference model’s own coordinates, '
-             'the 4D workspace’s 22q11.2 deletion, and every number read from the Scoreboard’s result files '
-             '(<code>motion/</code>).</p>')
+        html('<p class="cc-note">Made from the app itself: real screenshots, the reference model’s own coordinates and '
+             'contact list, the 4D workspace’s 22q11.2 deletion, and every number read from the Scoreboard’s result '
+             'files (<code>motion/</code>).</p>')
     else:
         poster = IMAGES / "film_poster.jpg"
         if poster.exists():
             st.image(str(poster), width="stretch")
         html('<p class="cc-note">The film is rendered on your computer from <code>motion/</code>: '
-             '<code>python motion/render.py</code> (about 12 minutes; Chrome and ffmpeg are used). It then plays here.</p>')
+             '<code>python motion/render.py</code> (about 30 minutes; Chrome and ffmpeg are used). It then plays here.</p>')
 
 
 def _gallery() -> None:

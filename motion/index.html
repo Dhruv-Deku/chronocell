@@ -6,20 +6,14 @@
 <title>ChronoCell-5D film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=block" rel="stylesheet">
 <link rel="stylesheet" href="film.css">
 </head>
 <body>
-<!-- ChronoCell-5D motion film (1920 x 1080, 92 s). Preview: index.html?t=12.5 (one frame) or ?play (real time).
+<!-- ChronoCell-5D motion reel (1920 x 1080, 100 s). Preview: index.html?t=12.5 (one frame) or ?play (real time).
      Render to MP4: python motion/render.py -->
-<div id="stage"><canvas id="gl" width="1920" height="1080"></canvas></div>
+<div id="stage"></div>
 <script src="vendor/three.min.js"></script>
-<script src="vendor/EffectComposer.js"></script>
-<script src="vendor/RenderPass.js"></script>
-<script src="vendor/ShaderPass.js"></script>
-<script src="vendor/CopyShader.js"></script>
-<script src="vendor/LuminosityHighPassShader.js"></script>
-<script src="vendor/UnrealBloomPass.js"></script>
 <script src="data/data.js"></script>
 <script src="gl.js"></script>
 <script src="film.js"></script>
