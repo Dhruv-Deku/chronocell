@@ -136,22 +136,32 @@ function head(parent, text, x, y, size, color, ext, cls = "dc") {
 
 // ================================================================================================= title
 scene({ t0: T.title, t1: T.prob + 0.55, outT: { type: "push-up", at: T.prob },
-  build(s) {
-    s.burst = bgBurst(s, C.cobalt);
+  build(s) {                                                  // calm and dark, like the section that follows
+    bgDark(s, C.cobalt, 50, 40);
     const u = s.ui;
-    s.logo = mk("div", "abs logo", u, logoSvg(170, "#fff", C.ochre, 2.2), { left: "875px", top: "150px" });
-    s.name = mk("div", "abs dn", u, "ChronoCell-5D", { left: "0", width: "1920px", top: "380px", textAlign: "center", fontSize: "180px", color: "#fff", textShadow: extrude(C.cobaltDk, 12) });
-    s.sub = mk("div", "abs", u, "What it is · the app, live · how it is tested", { left: "0", width: "1920px", top: "610px", textAlign: "center", font: "600 40px/1.2 var(--sans)", color: "#fff" });
-    s.pill = mk("div", "pill", u, "A five-minute tour", { left: "780px", top: "700px", background: C.ink, color: "#fff", fontSize: "26px" });
-    cue(0.35, "boom");
+    s.logo = mk("div", "abs logo", u, logoSvg(150, "#fff", "#8E98FF", 1.8), { left: "885px", top: "170px" });
+    s.paths = [...s.logo.querySelectorAll("path")];
+    s.paths.forEach((p) => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.dataset.len = L; });
+    s.name = mk("div", "abs dn", u, "ChronoCell-5D", { left: "0", width: "1920px", top: "385px", textAlign: "center", fontSize: "170px",
+      color: "#fff", textShadow: "0 24px 70px rgba(0,0,0,.55)" });
+    s.rule = mk("div", "abs", u, null, { left: "610px", top: "590px", width: "700px", height: "2px", background: "rgba(255,255,255,.35)", transformOrigin: "50% 50%" });
+    s.sub = mk("div", "abs", u, "What it is · the app, live · how it is tested", { left: "0", width: "1920px", top: "622px", textAlign: "center",
+      font: "500 38px/1.2 var(--sans)", color: "rgba(255,255,255,.85)" });
+    s.pill = mk("div", "pill", u, "A five-minute tour", { left: "780px", top: "712px", background: "transparent", color: "#fff", fontSize: "22px",
+      border: "2px solid rgba(255,255,255,.45)" });
+    cue(0.35, "rise", { d: 1.2 });
+    cue(1.5, "hit");
   },
   update(s, t) {
-    s.burst.style.transform = `rotate(${(t * 5).toFixed(2)}deg)`;
-    pop(s.logo, t, 0.3, { s: 0.2, y: 0, d: 0.6 });
-    pop(s.name, t, 0.6, { s: 0.8, y: 50, d: 0.6 });
-    rise(s.sub, t, 1.2);
+    s.paths.forEach((p, i) => { const q = E.io3(lin(t, 0.3 + i * 0.2, 1.5 + i * 0.2)); p.style.strokeDashoffset = ((1 - q) * p.dataset.len).toFixed(2); });
+    s.logo.style.opacity = lin(t, 0.25, 0.5).toFixed(3);
+    const n = E.o3(lin(t, 1.2, 2.1));
+    setT(s.name, `translate3d(0,${((1 - n) * 40).toFixed(1)}px,0)`, n);
+    s.name.style.letterSpacing = `${mix(0.06, -0.02, n).toFixed(4)}em`;
+    setT(s.rule, `scaleX(${E.io3(lin(t, 1.7, 2.5)).toFixed(4)})`, 1);
+    rise(s.sub, t, 2.1);
     s.pill.style.left = `${(960 - s.pill.offsetWidth / 2).toFixed(1)}px`;
-    pop(s.pill, t, 1.6, { s: 0.6 });
+    rise(s.pill, t, 2.5);
   } });
 
 // ================================================================================================= the problem
