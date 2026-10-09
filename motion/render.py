@@ -6,6 +6,7 @@ Render the film (motion/index.html) to MP4, frame by frame, in Chrome.
     python motion/render.py --share                 # a compact copy (..._share.mp4) for messaging apps
     python motion/render.py                         # motion/out/ChronoCell-5D_film.mp4 (1920x1080, 60 fps, sound,
                                                     #   motion blur: 120 drawn frames per second, averaged in pairs)
+    python motion/render.py --page explainer        # motion/out/ChronoCell-5D_explainer.mp4 (30 fps, motion blur)
 
 The page draws any time t on request (window.seek), so every frame is exact: no screen recording, no dropped
 frames. Frames are piped straight into ffmpeg (H.264, yuv420p, faststart). The soundtrack (motion/sound.py) is
@@ -23,6 +24,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
+PAGES = {"film": (HERE / "index.html", "ChronoCell-5D_film.mp4", 60),
+         "explainer": (HERE / "explainer" / "index.html", "ChronoCell-5D_explainer.mp4", 30)}
 
 
 def ffmpeg_exe() -> str:
@@ -34,14 +37,14 @@ def ffmpeg_exe() -> str:
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
-def open_film(p, scale: float = 1.0):
+def open_film(p, scale: float = 1.0, page: Path = PAGES["film"][0]):
     b = p.chromium.launch(channel="chrome", args=["--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl",
                                                   "--use-angle=d3d11", "--disable-gpu-vsync"])
     pg = b.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=scale)
     errors = []
     pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     pg.on("pageerror", lambda e: errors.append(str(e)))
-    pg.goto((HERE / "index.html").as_uri(), timeout=120_000)
+    pg.goto(page.as_uri(), timeout=120_000)
     pg.wait_for_function("window.READY !== undefined", timeout=60_000)
     pg.evaluate("async () => { await window.READY; }")
     if errors:
@@ -49,15 +52,22 @@ def open_film(p, scale: float = 1.0):
     return b, pg, errors
 
 
-def preview(times: list[float]) -> None:
+def cue_file(pg, stem: str) -> Path:
+    """The page's sound cues (and, if it sets them, its music sections) for sound.py."""
+    path = OUT / f"{stem}_cues.json"
+    path.write_text(json.dumps({"duration": pg.evaluate("window.DURATION"), "cues": pg.evaluate("window.CUES"),
+                                "sections": pg.evaluate("window.SECTIONS || null")}, indent=1), encoding="utf-8")
+    return path
+
+
+def preview(times: list[float], page: str = "film") -> None:
     from PIL import Image, ImageDraw
     from playwright.sync_api import sync_playwright
     d = OUT / "preview"
     d.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
-        b, pg, errors = open_film(p)
-        (OUT / "cues.json").write_text(json.dumps({"duration": pg.evaluate("window.DURATION"), "cues": pg.evaluate("window.CUES")},
-                                                  indent=1), encoding="utf-8")
+        b, pg, errors = open_film(p, page=PAGES[page][0])
+        cue_file(pg, Path(PAGES[page][1]).stem)
         paths = []
         for t in times:
             pg.evaluate("t => window.seek(t)", t)
@@ -80,15 +90,15 @@ def preview(times: list[float]) -> None:
     print("wrote", d / "sheet.jpg", f"({len(paths)} stills)")
 
 
-def render(fps: int, crf: int, out: Path, t_from: float, t_to: float | None, sound: bool, blur: bool = True) -> None:
+def render(fps: int, crf: int, out: Path, t_from: float, t_to: float | None, sound: bool, blur: bool = True,
+           page: str = "film") -> None:
     """blur: draw two frames per output frame and average them (motion blur over half the frame time)."""
     from playwright.sync_api import sync_playwright
     OUT.mkdir(exist_ok=True)
     with sync_playwright() as p:
-        b, pg, errors = open_film(p)
+        b, pg, errors = open_film(p, page=PAGES[page][0])
         dur = float(pg.evaluate("window.DURATION"))
-        cues = pg.evaluate("window.CUES")
-        (OUT / "cues.json").write_text(json.dumps({"duration": dur, "cues": cues}, indent=1), encoding="utf-8")
+        cues = cue_file(pg, out.stem)
         t_to = min(t_to or dur, dur)
         sub = 2 if blur else 1
         rate = fps * sub
@@ -119,8 +129,8 @@ def render(fps: int, crf: int, out: Path, t_from: float, t_to: float | None, sou
     if sound:
         sys.path.insert(0, str(HERE))
         import sound as S
-        wav = OUT / "soundtrack.wav"
-        S.synth(OUT / "cues.json", wav)
+        wav = OUT / f"{out.stem}_soundtrack.wav"
+        S.synth(cues, wav)
         cmd = [ffmpeg_exe(), "-y", "-loglevel", "error", "-i", str(video), "-ss", f"{t_from:.3f}", "-i", str(wav),
                "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", str(out)]
         subprocess.run(cmd, check=True)
@@ -142,15 +152,18 @@ def main() -> None:
     ap.add_argument("--preview", action="store_true")
     ap.add_argument("--at", default="", help="comma-separated times for --preview")
     ap.add_argument("--every", type=float, default=2.0)
-    ap.add_argument("--fps", type=int, default=60)
+    ap.add_argument("--page", choices=list(PAGES), default="film", help="film (the reel) or explainer")
+    ap.add_argument("--fps", type=int, default=None, help="default: 60 for the film, 30 for the explainer")
     ap.add_argument("--crf", type=int, default=18)
     ap.add_argument("--from", dest="t_from", type=float, default=0.0)
     ap.add_argument("--to", dest="t_to", type=float, default=None)
     ap.add_argument("--no-sound", action="store_true")
     ap.add_argument("--no-blur", action="store_true", help="one drawn frame per output frame (twice as fast)")
     ap.add_argument("--share", action="store_true", help="only make a compact copy of the rendered film")
-    ap.add_argument("--out", default=str(OUT / "ChronoCell-5D_film.mp4"))
+    ap.add_argument("--out", default=None)
     a = ap.parse_args()
+    a.out = a.out or str(OUT / PAGES[a.page][1])
+    a.fps = a.fps or PAGES[a.page][2]
     if a.share:
         share(Path(a.out))
         return
@@ -159,12 +172,12 @@ def main() -> None:
             times = [float(x) for x in a.at.split(",")]
         else:
             times, t = [], 0.3
-            while t < 100:
+            while t < (100 if a.page == "film" else 288):
                 times.append(round(t, 2))
                 t += a.every
-        preview(times)
+        preview(times, a.page)
     else:
-        render(a.fps, a.crf, Path(a.out), a.t_from, a.t_to, not a.no_sound, not a.no_blur)
+        render(a.fps, a.crf, Path(a.out), a.t_from, a.t_to, not a.no_sound, not a.no_blur, a.page)
 
 
 if __name__ == "__main__":

@@ -15,3 +15,7 @@ validation/data/
 
 # the rendered film and its previews (rebuilt by python motion/render.py)
 motion/out/
+# the explainer's screen recordings (about 190 MB; re-recorded by python motion/explainer/record_app.py)
+motion/explainer/clips/*.mp4
+# reference recordings dropped into motion/ by hand
+motion/Screen Recording*.mp4

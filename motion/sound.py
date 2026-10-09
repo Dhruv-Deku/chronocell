@@ -220,7 +220,10 @@ def section(t: float):
 
 
 def synth(cues_path: Path, out: Path) -> Path:
+    global SECTIONS
     cues = json.loads(Path(cues_path).read_text(encoding="utf-8"))
+    if cues.get("sections"):                       # a page can set its own music map (the explainer is calmer)
+        SECTIONS = [tuple(x) for x in cues["sections"]]
     dur = float(cues["duration"]) + 0.5
     N = int(dur * SR)
     tt = np.arange(N) / SR
@@ -316,5 +319,5 @@ def synth(cues_path: Path, out: Path) -> Path:
 
 if __name__ == "__main__":
     here = Path(__file__).resolve().parent
-    synth(Path(sys.argv[1]) if len(sys.argv) > 1 else here / "out" / "cues.json",
+    synth(Path(sys.argv[1]) if len(sys.argv) > 1 else here / "out" / "ChronoCell-5D_film_cues.json",
           Path(sys.argv[2]) if len(sys.argv) > 2 else here / "out" / "soundtrack.wav")

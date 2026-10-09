@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parent.parent
 IMAGES = ROOT / "docs" / "images"
 FILM = ROOT / "motion" / "out" / "ChronoCell-5D_film.mp4"
 FILM_SHARE = FILM.with_name("ChronoCell-5D_film_share.mp4")     # the compact copy, preferred in the app
+EXPLAINER = FILM.with_name("ChronoCell-5D_explainer.mp4")
+EXPLAINER_SHARE = FILM.with_name("ChronoCell-5D_explainer_share.mp4")
 RESEARCH_ONLY = ("Drug lab", "Quantum lab")
 # the eight workspaces in pictures (docs/images/tour, made by motion/make_ui_images.py from real screenshots)
 TOUR = [("ws01", "3D structure", "Rotate one chromosome's fold and measure it."),
@@ -72,6 +74,13 @@ def _film() -> None:
             st.image(str(poster), width="stretch")
         html('<p class="cc-note">The film is rendered on your computer from <code>motion/</code>: '
              '<code>python motion/render.py</code> (about 30 minutes; Chrome and ffmpeg are used). It then plays here.</p>')
+    explainer = next((p for p in (EXPLAINER_SHARE, EXPLAINER) if p.exists()), None)
+    if explainer:
+        html('<h2 class="cc-h2">Watch the explainer (4 min 48 s)</h2>')
+        st.video(str(explainer))
+        html('<p class="cc-note">What the app is, the app running live (real screen recordings), and how it is tested: the '
+             'test suite running and every accuracy score recomputed from its saved result file '
+             '(<code>motion/explainer/</code>).</p>')
 
 
 def _gallery() -> None:

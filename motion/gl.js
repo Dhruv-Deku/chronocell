@@ -90,10 +90,12 @@ const GL = (() => {
 
   /* mode "chapter": the fold draws itself (5.0-9.6 s) on the dark stage, then turns; flies into the camera at the end.
      mode "ws1": the finished model on paper, turning; the Turntable button (25.6 s) speeds it up. */
-  function drawFold(t, mode, host) {
+  function drawFold(t, mode, host, opts) {
     attach(fv, host);
     let prog = 1, r = 3.1, az = 0, el = 0.28, sx = 1250, sy = 520;
-    if (mode === "chapter") {
+    if (mode === "free") {                                   // the finished model, camera given by the caller
+      ({ r, az, el, sx, sy } = { r: 6.3, az: 0.15 * t, el: 0.25, sx: 960, sy: 520, ...opts });
+    } else if (mode === "chapter") {
       prog = io2(lin(t, 5.0, 9.6));
       az = -0.6 + 0.16 * (t - 4.5) + 0.5 * io3(lin(t, 9.4, 14.5));
       r = mix(3.9, 5.1, io3(lin(t, 4.5, 10.5))) * mix(1, 0.3, io3(lin(t, 14.1, 14.9)));

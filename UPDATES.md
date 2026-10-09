@@ -979,3 +979,24 @@ style; the first version's purple gradients, glow clouds, slogans and decorative
 - The Guide's film player and banner, the README and `motion/README.md` follow the new film. The unused bloom scripts
   and the old feature-burst still were removed. The user's reference recording stays out of git.
 
+## 9 October 2026 — The explainer video
+
+The user asked for a second, longer video (4–5 minutes) that explains the project with live screen recordings, tests
+being run and accuracy being calculated, with animations, in a more conventional "telling about the app" style.
+
+- **`motion/explainer/`**, rendered by `python motion/render.py --page explainer`: 4 min 48 s, 1080p30 with motion
+  blur, captions, chapter tags, a progress bar and a calmer synthesised soundtrack (clicks land on the real clicks).
+- **01 What it is**: the chr22 fold draws itself, the contact map builds itself, 3D / 4D / 5D in plain words.
+- **02 The app, live**: nine real screen recordings (`record_app.py` drives the running app in Chrome and records it
+  with Chrome's screencast; a drawn cursor follows the mouse). The Quantum lab take computes the HeH⁺ energy live, checks
+  it against the exact answer (error 0.000 mHa, within 1.6) and then shows the same circuit 763 mHa off with hardware
+  noise. A badge states the playback speed of each take.
+- **03 How it is tested**: the four steps of a pre-registered test; the real test-suite run (307 passed, 1 skipped,
+  17 min 18 s, shown about 60× faster); and **`recheck.py`**, new: it recomputes each score it can from the per-case
+  numbers in `validation/results_*.json` (F1 from loop counts, energy errors, mitigated errors, docking success from pose
+  RMSDs, the ADMET endpoint count, the Q1 hit rate), re-applies the frozen rule and compares the verdict with the
+  Scoreboard. All match. **No accuracy test was re-run**: each ran once, by design. A new test in
+  `tests/test_round3.py` runs `recheck.py` and requires zero mismatches.
+- **04 Where it stands** and the commands to run the app. The Guide plays the explainer under the film when it has been
+  rendered. The screen recordings (about 190 MB) and the video are not committed.
+
