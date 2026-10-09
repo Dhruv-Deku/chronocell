@@ -1,5 +1,5 @@
 """
-Two more quantum tools (October 2026), shown in 07 Quantum lab and in the Drug lab's Quantum section:
+Two more quantum tools (October 2026), shown in 06 Quantum lab and in the Drug lab's Quantum section:
 
 ADMET profile      21 absorption / distribution / metabolism / excretion / toxicity properties of a drug from a
                    quantum-kernel model next to classical models (chronocell/quantum/admet.py; Gate Q8).
@@ -35,7 +35,7 @@ def _standing(fname: str, label: str) -> None:
     extra = f" ({r['passed']} of {r['of']} endpoints)" if "passed" in r else f" ({r['within']} of {r['cases']} cases)" \
         if "within" in r else ""
     banner(f"<b>{esc(label)}</b> on held-out data: <b>{'pass' if r['pass'] else 'fail'}</b>{extra}. Details in "
-           "validation/RESULTS.md and on 08 Scoreboard.", "info" if r["pass"] else "warn")
+           "validation/RESULTS.md and on 07 Scoreboard.", "info" if r["pass"] else "warn")
 
 
 # ======================================================================================

@@ -295,9 +295,9 @@ WORKSPACES = {   # key: (number, label, one-line plain-language purpose)
     "Compare": ("03", "Compare", "Put two biological states side by side; rotating one rotates the other."),
     "Drug lab": ("04", "Drug lab", "Apply a virtual epigenetic drug and see how far it pushes the fold back toward healthy."),
     "Genes": ("05", "Genes", "Find which genes sit in open, active chromatin and which are buried and likely silenced."),
-    "Guide": ("06", "Guide", "What everything means, in plain words, with a 2-minute tour."),
-    "Quantum lab": ("07", "Quantum lab", "Try ChronoCell's problems on a simulated quantum computer, next to the classical answer."),
-    "Scoreboard": ("08", "Scoreboard", "Every accuracy test on held-out real data: what passed, what failed, and by how much."),
+    "Quantum lab": ("06", "Quantum lab", "Try ChronoCell's problems on a simulated quantum computer, next to the classical answer."),
+    "Scoreboard": ("07", "Scoreboard", "Every accuracy test on held-out real data: what passed, what failed, and by how much."),
+    "Guide": ("08", "Guide", "What everything means, in plain words, with a 2-minute tour."),
 }
 RESEARCH_ONLY = ("Drug lab", "Quantum lab")   # hidden when Research mode is off (Phase B8; quantum lab: experimental)
 with st.sidebar:

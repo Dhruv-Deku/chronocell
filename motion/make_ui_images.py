@@ -18,7 +18,7 @@ HERE = Path(__file__).resolve().parent
 DOCS = HERE.parent / "docs" / "images"
 APP = HERE / "assets" / "app"
 TOUR = {"ws01": "ws01_wide", "ws02": "ws02_fold", "ws03": "ws03_top", "ws04": "ws04_top", "ws05": "ws05_fold",
-        "ws06": "ws06_top", "ws07": "q_lattice_view", "ws08": "ws08_top"}
+        "ws06": "q_lattice_view", "ws07": "ws08_top", "ws08": "ws06_top"}     # app order: 06 Quantum lab, 07 Scoreboard, 08 Guide
 
 
 def stills() -> None:

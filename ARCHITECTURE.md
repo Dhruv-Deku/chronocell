@@ -781,7 +781,7 @@ and needs nothing beyond `requirements.txt` (NumPy, SciPy, scikit-learn; PyTorch
 | `quantum/chem.py` | STO-3G integrals over s Gaussians, RHF, MO transform, second quantisation, Jordan–Wigner (16 × 16), FCI in the two-electron sector, UCCSD (singles + double as commuting Pauli exponentials) and hardware-efficient VQE (BFGS; an electron-number penalty keeps the latter in the molecule's sector), shot-noise estimate | Szabo & Ostlund's integrals and energies; UCCSD circuit = `expm` |
 | `quantum/kernels.py` | ZZ feature map (statevector and gates), quantum kernel (exact or from shots), `QSVM` (scikit-learn, precomputed kernel), amplitude encoding with Möttönen state preparation (Gray-code RY/CX), swap test | map = circuit; prepared amplitudes = target; swap-test P(0) = ½ + ½ overlap² |
 | `quantum/walk.py` | Continuous-time quantum walk (normalised Laplacian) and classical random walk on a contact graph | `expm` |
-| `ui/quantum_lab.py` | 07 Quantum lab and the hooks used by 01–05 and 03's tab; circuit diagrams, QUBO heat maps, measurement histograms, scaling chart; Gate Q standing from `results_gateq.json` | AppTest |
+| `ui/quantum_lab.py` | 06 Quantum lab and the hooks used by 01–05 and 03's tab; circuit diagrams, QUBO heat maps, measurement histograms, scaling chart; Gate Q standing from `results_gateq.json` | AppTest |
 
 ### 13.2 Validation
 
@@ -832,7 +832,7 @@ the Astex Diverse set) and `validation/loops_gate6b.py` (Gate 6 on the new cell 
 | `quantum/admet.py` | 21 TDC ADMET endpoints (official scaffold splits) on demand; 8-component descriptors; quantum-kernel SVM / kernel ridge, RBF on the same inputs and on all 17 descriptors | Gate Q8 |
 | `quantum/molecules.py` (extended) | `energy_scan` and the `escape` option of `adapt_vqe`; `reference` start; `lowest_determinants`, `adapt_multistart` | Gate Q6d |
 | `quantum/docking.py` (extended) | `hybrid_search` (random search's budget split between random placements and clique seeds) | Gate Q7c |
-| `ui/scoreboard.py` | 08 Scoreboard: every test from `validation/report.py`, charts | AppTest |
+| `ui/scoreboard.py` | 07 Scoreboard: every test from `validation/report.py`, charts | AppTest |
 | `ui/quantum_extra.py` | ADMET profile and noise & mitigation panels | AppTest |
 
 Validation: `validation/admet_gate.py` (Gate Q8), `validation/mitigation_gate.py` (Gate Q9), Q6d and Q7c in
