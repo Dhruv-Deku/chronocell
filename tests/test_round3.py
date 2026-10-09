@@ -170,4 +170,6 @@ def test_film_numbers_come_from_the_result_files():
     assert hi["q6d"]["within"] == len(hi["q6d"]["rows"]) == hi["q6d"]["cases"]
     assert all(r["err"] <= hi["chem_accuracy"] for r in hi["q6d"]["rows"])
     assert hi["q9"]["within"] == hi["q9"]["cases"] and hi["q7b"]["qaoa"] < hi["q7b"]["random"]
+    assert len(hi["q9"]["rows"]) == hi["q9"]["cases"] and all(r["fixed"] <= hi["chem_accuracy"] < r["noisy"] for r in hi["q9"]["rows"])
+    assert len({r["id"] for r in t["rows"]}) == t["n"]                       # every test has its own label in the film
     assert all(v["chronocell"] > max(v["chromosight"], v["mustache"]) for v in hi["loops"].values())

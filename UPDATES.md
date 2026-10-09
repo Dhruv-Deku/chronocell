@@ -957,3 +957,25 @@ asked for a vivid motion-graphics film of the app with many images, and for imag
   workspaces, each with an Open button), and "Watch the film", which plays the video once it has been rendered.
 - **README** shows the film's title frame and the eight workspaces.
 
+## 9 October 2026 — The film, redone as a vivid reel
+
+The user found the first film looked like "AI slop" and supplied a screen recording of a reel they liked as the
+reference (bold brand colours, chunky 3D type, a cursor clicking the UI, rolling counters, confetti, a bar race, a bento
+grid, word slams, a sunburst ending), asking for the same at 100 seconds. The film was rewritten from scratch in that
+style; the first version's purple gradients, glow clouds, slogans and decorative waveform are gone.
+
+- **Colours and type.** Full-bleed scenes in the app's own palette (cobalt, terracotta, ochre, violet, paper, ink),
+  Archivo for display type with an extruded shadow, the app's Inter Tight and IBM Plex Mono for UI and numbers.
+- **3D.** chr22 is a lit tube (as the 3D workspace draws it) that draws itself bead by bead while a counter runs to
+  50.82 Mb and a ruler tracks the position; the 22q11.2 deletion plays as a moving tube coloured by displacement.
+- **New scenes from real data.** The contact map builds itself pixel by pixel from the model's own contact list; the 3D
+  workspace's measurements roll in as counters; the 37 Scoreboard tests burst out as a labelled network and sort into
+  14 / 16 / 7; Gate 6b becomes a bar race; Gate Q9 shows all 16 molecules falling from noisy to mitigated error.
+- **Accuracy kept.** Every number is still read by `motion/build_data.py` (new: the workspace's R<sub>g</sub>, ν, span and
+  contour length, the 128 × 128 contact map, per-molecule Q9 results, a short label per test); the honest fail and the
+  16 failed tests are on screen; the contact map and the fold are labelled as the app's synthetic reference model.
+- **Sound.** The synthesised soundtrack gained cursor clicks, pops, confetti sparkles, counter ticks and stamp hits on
+  the film's cue list; every scene change and word slam sits on the 120 bpm beat.
+- The Guide's film player and banner, the README and `motion/README.md` follow the new film. The unused bloom scripts
+  and the old feature-burst still were removed. The user's reference recording stays out of git.
+

@@ -6,7 +6,6 @@ Pictures for the app's Guide and the README, made from the film and the app's ow
 - docs/images/hero.jpg          the chr22 model from the film's 3D layer (no text), cropped to a banner
 - docs/images/film_poster.jpg   the film's title frame (poster for the video player)
 - docs/images/tour/wsNN.jpg     each workspace, from motion/assets/app (motion/capture_app.py), 1280 x 720
-- motion/assets/film/sv.jpg     the 22q11.2 deletion from the film's 3D layer (used in the film's feature burst)
 """
 
 from __future__ import annotations
@@ -26,8 +25,7 @@ def stills() -> None:
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(channel="chrome", args=["--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=d3d11"])
-        for name, query, crop in (("hero", "bare&t=15.2", (0, 190, 1920, 850)), ("film_poster", "t=18.6", None),
-                                  ("film_sv", "bare&t=27.3", (760, 140, 1920, 940))):
+        for name, query, crop in (("hero", "bare&t=12.6", (0, 140, 1920, 880)), ("film_poster", "t=22.6", None)):
             pg = b.new_page(viewport={"width": 1920, "height": 1080})
             pg.goto((HERE / "index.html").as_uri() + "?" + query, timeout=120_000)
             pg.wait_for_function("window.READY !== undefined")
@@ -38,8 +36,7 @@ def stills() -> None:
             im = Image.open(tmp).convert("RGB")
             if crop:
                 im = im.crop(crop)
-            dest = (HERE / "assets" / "film" / "sv.jpg") if name == "film_sv" else DOCS / f"{name}.jpg"
-            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest = DOCS / f"{name}.jpg"
             im.save(dest, quality=88, optimize=True, progressive=True)
             tmp.unlink()
             pg.close()

@@ -1,7 +1,8 @@
 """
 The film's soundtrack, synthesised from scratch (no samples, no licences): a 120 bpm A-minor bed whose beat grid
-lines up with the feature burst's 0.5 s cuts, plus sound effects on the film's own cue list (window.CUES:
-whooshes on transitions, hits and booms on reveals, risers before drops).
+lines up with the film's scene changes and word slams (all on 0.5 s steps), plus sound effects on the film's own cue
+list (window.CUES: whooshes on transitions, clicks for the cursor, pops for cards, sparkles for confetti, ticking for
+rolling counters, stamps, hits and booms on reveals, risers before drops).
 
     python motion/sound.py motion/out/cues.json motion/out/soundtrack.wav
 """
@@ -18,14 +19,15 @@ from scipy.io import wavfile
 
 SR = 48_000
 BEAT = 0.5                      # 120 bpm
-GRID0 = 0.3                     # beats fall on 0.3 + 0.5 k: the burst cuts (77.8 s + 0.5 k) land on beats
+GRID0 = 0.0                     # beats fall on 0.5 k: every scene change and every word slam lands on a beat
 RNG = np.random.default_rng(5)
 
 # sections: (start, end, intensity of the groove 0-1, drums on, arpeggio on)
-SECTIONS = [(0.0, 7.5, 0.15, False, False), (7.5, 16.0, 0.45, False, True), (16.0, 21.0, 0.55, False, False),
-            (21.0, 48.2, 0.9, True, True), (48.2, 52.2, 1.0, True, True), (52.2, 56.6, 0.3, False, False),
-            (56.6, 74.8, 0.7, True, True), (74.8, 77.8, 0.45, False, False), (77.8, 84.4, 1.0, True, True),
-            (84.4, 92.0, 0.35, False, True)]
+SECTIONS = [(0.0, 4.5, 0.45, False, True), (4.5, 9.6, 0.55, False, True), (9.6, 14.5, 0.85, True, True),
+            (14.5, 20.0, 0.75, True, True), (20.0, 24.5, 1.0, True, True), (24.5, 52.5, 0.85, True, True),
+            (52.5, 58.0, 1.0, True, True), (58.0, 67.0, 0.85, True, True), (67.0, 80.0, 0.9, True, True),
+            (80.0, 84.0, 0.4, False, False), (84.0, 90.0, 1.0, True, True), (90.0, 96.0, 0.85, True, True),
+            (96.0, 100.0, 0.35, False, True)]
 CHORDS = [("A", [57, 60, 64]), ("F", [53, 57, 60]), ("C", [48, 52, 55]), ("G", [55, 59, 62])]   # MIDI, 2 s each
 
 
@@ -138,6 +140,52 @@ def tick() -> np.ndarray:
     return np.sin(2 * np.pi * 2600 * t) * np.exp(-t * 90)
 
 
+def click() -> np.ndarray:      # a UI click (the cursor)
+    n = int(0.035 * SR)
+    t = np.arange(n) / SR
+    return 0.6 * np.sin(2 * np.pi * 3200 * t) * np.exp(-t * 420) + 0.5 * hp(RNG.standard_normal(n), 3000) * np.exp(-t * 650)
+
+
+def pop() -> np.ndarray:        # a bubbly pop (cards and tiles landing)
+    n = int(0.13 * SR)
+    t = np.arange(n) / SR
+    f = 380 + 1000 * (t / 0.13)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 32)
+
+
+def sparkle() -> np.ndarray:    # high bell cluster (confetti)
+    n = int(1.0 * SR)
+    out = np.zeros(n)
+    r = np.random.default_rng(7)
+    for _ in range(10):
+        i0 = int(r.uniform(0, 0.4) * SR)
+        f = r.choice([1760, 2093, 2349, 2637, 3136, 3520])
+        t = np.arange(n - i0) / SR
+        out[i0:] += np.sin(2 * np.pi * f * t) * np.exp(-t * 8) * 0.22
+    return out
+
+
+def roll(d: float) -> np.ndarray:   # a counter rolling: ticks that slow down
+    n = int(d * SR)
+    out = np.zeros(n)
+    tk, tt = tick(), 0.0
+    while tt < d:
+        i0 = int(tt * SR)
+        m = min(len(tk), n - i0)
+        out[i0:i0 + m] += 0.7 * tk[:m]
+        tt += 0.03 + 0.1 * (tt / d) ** 2
+    return out
+
+
+def stamp() -> np.ndarray:      # a rubber stamp slam
+    b = boom()[: int(0.9 * SR)] * 0.6
+    h = hit()
+    out = np.zeros(max(len(b), len(h)))
+    out[: len(b)] += b
+    out[: len(h)] += h
+    return out
+
+
 def sting() -> np.ndarray:      # a dark A-minor stab for the honest failure
     n = int(2.0 * SR)
     t = np.arange(n) / SR
@@ -238,6 +286,18 @@ def synth(cues_path: Path, out: Path) -> Path:
             add(fxbus, tick(), t0, 0.12, pan=0.4)
         elif k == "low":
             add(fxbus, sting(), t0, 1.0)
+        elif k == "click":
+            add(fxbus, click(), t0, 0.35, pan=0.3)
+        elif k == "pop":
+            add(fxbus, pop(), t0, 0.22, pan=float(RNG.uniform(-0.4, 0.4)))
+        elif k == "sparkle":
+            add(fxbus, sparkle(), t0, 0.3, pan=float(RNG.uniform(-0.3, 0.3)))
+        elif k == "roll":
+            add(fxbus, roll(float(c.get("d", 1.0))), t0, 0.14, pan=-0.3)
+        elif k == "stamp":
+            add(fxbus, stamp(), t0, 0.7)
+        elif k == "swish":
+            add(fxbus, whoosh(0.35), t0 - 0.15, 0.22, pan=0.2)
 
     wet = np.stack([reverb(fxbus[0] + 0.35 * music[0], seed=1), reverb(fxbus[1] + 0.35 * music[1], seed=2)])
     mixd = music + fxbus + 0.32 * wet

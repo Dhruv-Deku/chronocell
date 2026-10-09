@@ -159,7 +159,7 @@ def main() -> None:
             times = [float(x) for x in a.at.split(",")]
         else:
             times, t = [], 0.3
-            while t < 92:
+            while t < 100:
                 times.append(round(t, 2))
                 t += a.every
         preview(times)

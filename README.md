@@ -19,8 +19,8 @@ perturbation data, and the failures are reported next to the successes.
 <p align="center">
   <img src="docs/images/film_poster.jpg" alt="Title frame of the ChronoCell-5D film" width="760">
   <br>
-  <sub><b>The film (92 s, 1080p60, with sound).</b> A motion-graphics tour made from the app itself: real screenshots,
-  the reference model's own coordinates, and every number read from the test results. Build it with
+  <sub><b>The film (100 s, 1080p60, with sound).</b> A fast, colourful motion-graphics reel made from the app itself:
+  real screenshots, the reference model's own coordinates and contacts, and every number read from the test results. Build it with
   <code>python motion/render.py</code> (see <a href="motion/README.md">motion/README.md</a>); it also plays in the app's Guide.</sub>
 </p>
 
