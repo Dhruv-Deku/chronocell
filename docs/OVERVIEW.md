@@ -67,7 +67,7 @@ The heavy version of this runs on a free **Google Colab GPU**, and the results d
 
 ## 3. A tour of the website
 
-The website has **six pages** (top of the screen) and a **sidebar** (left). Under every data page sits the **ChronoAgent** panel.
+The website has **eight pages** (top of the screen) and a **sidebar** (left). Under every data page sits the **ChronoAgent** panel.
 
 ### The sidebar: choosing whose DNA you're looking at
 
@@ -184,9 +184,17 @@ Many modern cancer drugs are **epigenetic**: they don't attack the DNA sequence,
 - **Add RNA-seq** (measured gene activity) to check the prediction. The site reports how well "open in 3D" agrees with "actually active".
   - This is the honest test of the idea that shape controls activity.
 
-### Page 06: Guide
+### Page 06: Quantum lab (Research mode)
 
-A built-in plain-language manual, the 2-minute version of this document. Its buttons jump straight to each page.
+The same problems run as quantum algorithms on a simulated quantum computer on this computer, always next to the classical answer. Experimental.
+
+### Page 07: Scoreboard
+
+Every accuracy test on held-out real data in one list: what it asks, what was measured, and whether it passed or failed.
+
+### Page 08: Guide
+
+A built-in plain-language manual, the 2-minute version of this document. Its buttons jump straight to each page. It is the last tab.
 
 ### 🤖 ChronoAgent (the expert on call)
 

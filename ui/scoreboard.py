@@ -1,5 +1,5 @@
 """
-08 Scoreboard (October 2026): every pre-registered accuracy test on held-out real data in one place, what it asks in
+07 Scoreboard (October 2026): every pre-registered accuracy test on held-out real data in one place, what it asks in
 plain words, what was measured, and the verdict; then charts of the retests and of the newest tests. Everything is read
 from validation/results_*.json through validation/report.py (the same code that writes RESULTS.md), so nothing here is
 typed in.

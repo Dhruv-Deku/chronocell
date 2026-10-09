@@ -932,7 +932,7 @@ same question next to it. It is not quantum hardware and claims no speed-up; its
 `validation/RESULTS.md`, shown on every panel. Nothing runs until you press a panel's Run button. With Research mode
 off, the lab and every Quantum section are hidden.
 
-**Where.** *07 Quantum lab* collects everything (pick a problem at the top), plus *How big can these problems get?*
+**Where.** *06 Quantum lab* collects everything (pick a problem at the top), plus *How big can these problems get?*
 (qubits against problem size, and the simulator's memory wall) and *Run a circuit on a real quantum computer*.
 Each workspace also has a Quantum section that uses that workspace's data:
 01 → *07 Quantum (simulated)* (domain walls, lattice fold), 02 → *06 Quantum (simulated)* (quantum walk, variant
@@ -1028,7 +1028,7 @@ simulator against chromatin tracing of cells treated with real drugs), shown at 
   the quantum route, the classical clique route and a random search; the 3D view shows the pocket, the hot-spots and the
   docked drug. Standing: Gate Q7.
 
-The same three tools are in *07 Quantum lab* (problem picker: *Drug molecules (VQE)*, *Heart safety*, *Docking*).
+The same three tools are in *06 Quantum lab* (problem picker: *Drug molecules (VQE)*, *Heart safety*, *Docking*).
 
 ## 25. Round 2 of the quantum tools (October 2026)
 
@@ -1044,20 +1044,20 @@ The same three tools are in *07 Quantum lab* (problem picker: *Drug molecules (V
 - *Analysis* page: a **Loop calling** switch. *FDR 0.1*, the default, is unchanged; *FDR 0.01 (Gate 6b)* is the
   setting chosen on three cell lines that then beat chromosight and Mustache on two new cell lines (with *kr*
   balancing selected, as in that test). The page shows Gate 6b's standing under Gate 6's.
-- *07 Quantum lab → Domain walls*: a **Settings** switch. *Gate Q (original)*, the default, is unchanged; *Round 2
+- *06 Quantum lab → Domain walls*: a **Settings** switch. *Gate Q (original)*, the default, is unchanged; *Round 2
   (Q2b)* loads the settings chosen on three cell lines (60 kb bins, minimum 3 bins, gamma 5, boundary cost 0.25, log
   weights) that passed on two new cell lines.
 
 ## 26. Scoreboard, ADMET profile, noise and error mitigation (October 2026)
 
-**08 Scoreboard** (both modes; needs no data). Every pre-registered accuracy test on held-out real data in one list:
+**07 Scoreboard** (both modes; needs no data). Every pre-registered accuracy test on held-out real data in one list:
 what it asks in plain words, what was measured, and a PASS / FAIL / OTHER chip (other: blocked, a baseline, or a mixed
 verdict; the verdict text says which). Filters by area (structure and imaging, analysis and perturbations, Drug lab,
 quantum lab) and by passed / failed / retests. Tabs chart the molecule-energy errors of every quantum chemistry round
 against chemical accuracy, the loop callers' F1 against the ENCODE reference, the ADMET endpoints, error mitigation and
 docking. Everything is read from `validation/results_*.json` through `validation/report.py`, as `RESULTS.md` is.
 
-**ADMET profile** (07 Quantum lab → *ADMET profile*; Drug lab → Quantum → *ADMET profile*). Pick a drug (its SMILES is
+**ADMET profile** (06 Quantum lab → *ADMET profile*; Drug lab → Quantum → *ADMET profile*). Pick a drug (its SMILES is
 fetched from PubChem) or type a SMILES; *Build the ADMET profile* predicts 21 properties grouped as Absorption
 (gut-cell permeability, intestinal absorption, P-gp pump inhibition, oral bioavailability, lipophilicity, solubility),
 Distribution (blood-brain barrier, plasma protein binding, volume of distribution), Metabolism (inhibition of and
@@ -1067,7 +1067,7 @@ all 17 descriptors, with their agreement; for measured values, the percentile wi
 use downloads the TDC ADMET benchmark (1.5 MB, MD5-checked) and trains 21 models (about a minute). A screen for
 teaching and triage, not a safety assessment. Standing: Gate Q8.
 
-**Noise & mitigation** (07 Quantum lab → *Noise & mitigation*). Choose a molecule, a bond stretch and the chip's
+**Noise & mitigation** (06 Quantum lab → *Noise & mitigation*). Choose a molecule, a bond stretch and the chip's
 two-qubit error rate (0.003 is about today's best superconducting devices); *Run on the noisy simulated chip* runs the
 molecule's 4-qubit VQE circuit gate by gate on a density-matrix simulator with local noise, at the chip's noise and
 with the noise tripled and quintupled by folding, and shows the raw noisy energy, the symmetry-verified one (results

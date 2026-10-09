@@ -28,9 +28,9 @@ TOUR = [("ws01", "3D structure", "Rotate one chromosome's fold and measure it.")
         ("ws03", "Compare", "Two states side by side; turn one, the other follows."),
         ("ws04", "Drug lab", "A virtual drug and how far it moves the fold back."),
         ("ws05", "Genes", "Which genes sit open, and which are buried."),
-        ("ws06", "Guide", "Everything in plain words (this page)."),
-        ("ws07", "Quantum lab", "The same problems on a simulated quantum computer."),
-        ("ws08", "Scoreboard", "Every accuracy test: passed, failed, by how much.")]
+        ("ws06", "Quantum lab", "The same problems on a simulated quantum computer."),
+        ("ws07", "Scoreboard", "Every accuracy test: passed, failed, by how much."),
+        ("ws08", "Guide", "Everything in plain words (this page).")]
 
 
 @st.cache_data(show_spinner=False)
@@ -279,7 +279,7 @@ def _whats_new() -> None:
     html('<h2 class="cc-h2">New: the scoreboard and three quantum tools</h2>')
     left, right = st.columns(2, gap="large")
     with left:
-        html('<div class="cc-callout"><h4>08 Scoreboard</h4>Every accuracy test in one list: what it asks in plain words, '
+        html('<div class="cc-callout"><h4>07 Scoreboard</h4>Every accuracy test in one list: what it asks in plain words, '
              'what was measured, and whether it passed. Each test was written down before its data were read and run '
              'once; failures stay on the list. Charts compare the methods, and one button downloads the whole record '
              'as a web page.</div>')
@@ -292,7 +292,7 @@ def _whats_new() -> None:
         if st.session_state.get("research_mode", True):
             html('<div class="cc-callout"><h4>ADMET profile</h4>Will a drug be absorbed, reach the brain, clash with liver '
                  'enzymes or damage DNA? 21 such properties of any molecule, from a quantum-kernel model next to classical '
-                 'ones (07 Quantum lab, and the Quantum section of the Drug lab).</div>')
+                 'ones (06 Quantum lab, and the Quantum section of the Drug lab).</div>')
             html('<div class="cc-callout"><h4>Noise &amp; mitigation</h4>Real quantum chips make errors on every gate. '
                  'Run a molecule on a simulated noisy chip and watch two standard repairs (throwing away impossible '
                  'results, and extrapolating to zero noise) bring the energy back within chemical accuracy.</div>')
@@ -328,7 +328,7 @@ def _phase_b() -> None:
 
 
 def _quantum() -> None:
-    """07 Quantum lab in plain words, with Gate Q's standing (Research mode only)."""
+    """06 Quantum lab in plain words, with Gate Q's standing (Research mode only)."""
     if not st.session_state.get("research_mode", True):
         return
     from ui import quantum_lab as QL
@@ -345,7 +345,7 @@ def _quantum() -> None:
              'that tunes a circuit until measuring it gives low-cost answers. <b>VQE</b>: the same idea for the energy '
              'of a molecule. <b>Shots</b>: how many times the circuit is run and measured. <b>Noise</b>: today’s '
              'machines make errors on every gate; the noise switch shows what that does.</div>')
-        html('<div class="cc-callout"><h4>Where to find it</h4><b>07 Quantum lab</b> has everything in one place, plus '
+        html('<div class="cc-callout"><h4>Where to find it</h4><b>06 Quantum lab</b> has everything in one place, plus '
              'a sizes chart and how to run a circuit on a real quantum computer (download it as OpenQASM). Each '
              'workspace also has a Quantum section: 01 → 07 domain walls and lattice fold; 02 → 06 quantum walk and '
              'variant set; 03 → Quantum similarity; 04 → drug combination, molecule energy, drug molecules (active-space '

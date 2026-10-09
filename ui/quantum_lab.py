@@ -1,5 +1,5 @@
 """
-07 Quantum lab (Research mode) and the quantum panels shown inside the other workspaces.
+06 Quantum lab (Research mode) and the quantum panels shown inside the other workspaces.
 
 Every panel turns a ChronoCell problem into the form a quantum computer takes (a QUBO, a qubit Hamiltonian, a
 feature map, a walk), solves it on the statevector SIMULATOR of chronocell/quantum, and shows the classical answer

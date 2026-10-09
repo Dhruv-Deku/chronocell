@@ -30,7 +30,7 @@ perturbation data, and the failures are reported next to the successes.
 | | | | |
 |---|---|---|---|
 | ![3D structure](docs/images/tour/ws01.jpg) **01 3D structure** | ![4D dynamics](docs/images/tour/ws02.jpg) **02 4D dynamics** | ![Compare](docs/images/tour/ws03.jpg) **03 Compare** | ![Drug lab](docs/images/tour/ws04.jpg) **04 Drug lab** |
-| ![Genes](docs/images/tour/ws05.jpg) **05 Genes** | ![Guide](docs/images/tour/ws06.jpg) **06 Guide** | ![Quantum lab](docs/images/tour/ws07.jpg) **07 Quantum lab** | ![Scoreboard](docs/images/tour/ws08.jpg) **08 Scoreboard** |
+| ![Genes](docs/images/tour/ws05.jpg) **05 Genes** | ![Quantum lab](docs/images/tour/ws06.jpg) **06 Quantum lab** | ![Scoreboard](docs/images/tour/ws07.jpg) **07 Scoreboard** | ![Guide](docs/images/tour/ws08.jpg) **08 Guide** |
 
 ---
 
@@ -67,8 +67,9 @@ The fold can't be photographed directly across a whole chromosome. Experiments s
 | **03 · Compare** | Two states side by side, with linked cameras and per-bead displacement. **Self-Math PDB State Evaluator** (new sub-tab): R_g, packing density, distance-decay exponent, gyration-tensor shape. It classifies a structure as Normal / Diseased / Senescent / Indeterminate by explicit, documented rules on a computed descriptor. It is not a diagnosis. **Differential analysis** (third sub-tab): two conditions with replicate maps (.hic, .mcool, .cool, .pairs, read by region): differential contacts with a replicate-aware test and false-discovery control, loop gain / loss, boundary changes, compartment switches (Gate 7). |
 | **04 · Drug lab** | Apply an epigenetic drug mechanism (EZH2/EED, HDAC or BET inhibitor, or a loop stabiliser), drag the dose slider, and measure how far the fold moves back toward healthy. A mechanism simulator. **Drug set → Extended** adds eight more classes (DNMT, LSD1, DOT1L, menin, p300/CBP, BET degrader, demethylase blocker, transcription inhibitor). **Drug guide**: what each class is (target, status, examples, safety themes), where each acts on the fold, all twelve at full dose, pair synergy, and PubChem molecule cards (2D, 3D, drug-likeness). Tested against chromatin tracing after real drug treatment (Gate 8). |
 | **05 · Genes** | All 19,386 human genes (hg38) or 20,995 mouse genes (mm39) placed on the fold, labelled predicted active or silenced from 3D accessibility. Shows which genes touch in 3D, and checks predictions against RNA-seq. Click a row to pick a gene; it is then marked in the 3D view. |
-| **06 · Guide** | A plain-language guide to every page and number. |
-| **07 · Quantum lab** | *Experimental, Research mode.* ChronoCell problems run as quantum algorithms on a **simulator on this computer** (GPU when present), always next to the classical answer: QAOA for domain walls, lattice folding, drug combinations, gene groups and variant sets; VQE for small-molecule energies; a quantum-kernel gene classifier; a quantum walk on the contact network; the swap test. Circuit diagrams, an optional hardware-noise model, OpenQASM export for real quantum computers, and a qubit-scaling chart. Each workspace also has a Quantum section. No speed-up is claimed; measured standing: Gate Q. |
+| **06 · Quantum lab** | *Experimental, Research mode.* ChronoCell problems run as quantum algorithms on a **simulator on this computer** (GPU when present), always next to the classical answer: QAOA for domain walls, lattice folding, drug combinations, gene groups and variant sets; VQE for small-molecule energies; a quantum-kernel gene classifier; a quantum walk on the contact network; the swap test. Circuit diagrams, an optional hardware-noise model, OpenQASM export for real quantum computers, and a qubit-scaling chart. Each workspace also has a Quantum section. No speed-up is claimed; measured standing: Gate Q. |
+| **07 · Scoreboard** | Every pre-registered accuracy test on held-out real data in one list: what it asks, what was measured, pass or fail, with charts. Needs no data. |
+| **08 · Guide** | A plain-language guide to every page and number. |
 | **Sidebar** | **Research mode** (on by default; off hides the mechanism simulators and the rule-based state labels), **Projects** (save and reopen a session), **Jobs** (a local queue: one GPU job at a time). |
 | **🤖 ChronoAgent** | Reads the measurements on screen and writes an interpretation. Exports a Markdown report, a PDB structure and a PDF dossier. |
 
@@ -357,7 +358,7 @@ ChronoCell-5D/
 │   ├── drug_info.py        drug-class facts and on-demand PubChem molecule data
 │   └── data/               annotations (hg38, mm39), frozen calibration and perturbation parameters
 ├── ui/                     the six pages, sidebar and shared helpers (predict_view.py: prediction input)
-│                           quantum_lab.py: 07 Quantum lab and the Quantum sections (Research mode)
+│                           quantum_lab.py: 06 Quantum lab and the Quantum sections (Research mode)
 │                           drug_guide.py: the Drug lab's Drug guide
 ├── tests/                  unit and end-to-end tests of every page
 ├── validation/             held-out tests, benchmark harness, tuning record, results

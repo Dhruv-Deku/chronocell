@@ -152,7 +152,8 @@ def test_guide_pictures_and_film_section_render(app):
     txt = " ".join(str(m.value) for m in at.markdown)
     assert "The tour in pictures" in txt and "Watch the film" in txt
     keys = {b.key for b in at.button}
-    assert {"guide_pic_ws01", "guide_pic_ws08"} <= keys and "guide_pic_ws06" not in keys      # no button to the page itself
+    assert {"guide_pic_ws01", "guide_pic_ws07"} <= keys and "guide_pic_ws08" not in keys      # no button to the page itself
+    assert "Guide" in at.segmented_control(key="workspace").options[-1]                     # the Guide is the last tab
 
 
 def test_film_numbers_come_from_the_result_files():
