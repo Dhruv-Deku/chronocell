@@ -1056,3 +1056,10 @@ version.
   plays both videos in the Guide without rendering. The full-size renders, soundtracks and previews stay local.
 - **Published to `main`.** The work on `feat/v4-evidence` was pushed and merged into `main` (pull request #1), the
   branch GitHub's "Download ZIP" uses.
+- **GitHub's test runs fixed.** The automated tests on GitHub (`.github/workflows/ci.yml`) had been failing since
+  9 October for two reasons, neither a wrong result: scikit-learn, which the Quantum lab's classifiers use, was missing
+  from `requirements.txt`, `requirements.lock` and `pyproject.toml` (so a fresh install could not load them, and three
+  tests failed); and the test helper `_population` in `tests/test_v33.py` built every pair distance at once, about
+  17 GB for the 420-bead test, so GitHub's 16 GB machine was shut down near the end of the suite. scikit-learn 1.7.2
+  (the version the suite ran with) is now listed, and the helper works in chunks of 250 cells, giving byte-identical
+  distances.

@@ -6,6 +6,7 @@ torch>=2.2          # reconstruction + equivariance check; the viewer, physics a
 fpdf2>=2.7          # PDF research dossier
 h5py>=3.9           # patient .cool / .mcool contact maps
 scipy>=1.10         # convex-hull volume in the Self-Math PDB State Evaluator (03 Compare)
+scikit-learn>=1.3   # Quantum lab classifiers (quantum kernel SVM, drug-safety and drug-property models)
 pytest>=8           # tests only
 # Raw-input graph building only (python -m chronocell.build_graph):
 # pyfaidx, pyBigWig, cooler

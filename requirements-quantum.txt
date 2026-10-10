@@ -1,4 +1,4 @@
-# OPTIONAL. The quantum lab (chronocell/quantum, 07 Quantum lab) needs nothing beyond requirements.txt: its
+# OPTIONAL. The quantum lab (chronocell/quantum, 06 Quantum lab) needs nothing beyond requirements.txt: its
 # statevector simulator, QUBO solvers, chemistry and kernels are written with NumPy / SciPy / scikit-learn and use
 # the GPU through PyTorch when one is present.
 #
