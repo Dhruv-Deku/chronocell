@@ -248,6 +248,28 @@ def train(z: zipfile.ZipFile, name: str, cfg: dict | None = None) -> EndpointMod
     return EndpointModel(name, task, Prep.fit(X), X, y, cfg or DEFAULT, [smi[ok[i]] for i in idx]).fit()
 
 
+def app_settings() -> tuple[dict, str]:
+    """The settings the app trains with, and which encoding they use. Q8's frozen settings ("minmax") until Gate Q8b
+    has passed; then the global encoding, with the quantum settings that Q8b's post-hoc run chose for each of these
+    21 endpoints by cross-validation on its training set (validation/results_admet_q8b_posthoc.json), the RBF models
+    unchanged."""
+    import json
+    val = Path(__file__).resolve().parent.parent.parent / "validation"
+    base = settings()
+    try:
+        q8b = json.loads((val / "results_admet_q8b.json").read_text(encoding="utf-8"))
+        post = json.loads((val / "results_admet_q8b_posthoc.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return base, "minmax"
+    if not q8b.get("pass"):
+        return base, "minmax"
+    out = {}
+    for n, cfg in base.items():
+        qk = (post.get("endpoints", {}).get(n) or {}).get("qk")
+        out[n] = {**cfg, "qk": qk} if qk else cfg
+    return out, "global"
+
+
 def settings() -> dict:
     """Per-endpoint settings frozen for Gate Q8 (validation/frozen.py), else the defaults."""
     try:

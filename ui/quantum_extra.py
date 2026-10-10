@@ -45,7 +45,7 @@ def _standing(fname: str, label: str) -> None:
 def _admet_models():
     from chronocell.quantum import admet as A
     z = A.archive()
-    cfg = A.settings()
+    cfg, _ = A.app_settings()
     return {n: A.train(z, n, cfg.get(n)) for n in A.ENDPOINTS}
 
 
@@ -70,6 +70,12 @@ def admet_panel(kp: str = "qadmet") -> None:
     banner("<b>A screen for teaching and triage, not a safety assessment.</b> The models learn from a few hundred to a few "
            "thousand measured compounds each; real decisions need laboratory and clinical data.", "warn")
     _standing("results_admet.json", "Quantum ADMET profile (Gate Q8)")
+    if (VALIDATION / "results_admet_q8b.json").exists():
+        _standing("results_admet_q8b.json", "Retest with the input scaling fixed, 19 new properties (Gate Q8b)")
+        if A.app_settings()[1] == "global":
+            html('<p class="cc-note">The quantum model now uses the fixed input scaling that passed Gate Q8b. Its scores on '
+                 'these 21 properties’ own test sets were measured after Q8 (post-hoc, in validation/RESULTS.md); Q8 stays a '
+                 'fail on the record.</p>')
     c1, c2 = st.columns([1, 1.4])
     pick = c1.selectbox("Drug", ["(type a SMILES)"] + sorted({n for c in DI.CLASSES.values() for n in c.lookup}),
                         index=0, key=f"{kp}_pick")

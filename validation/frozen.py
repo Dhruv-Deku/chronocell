@@ -574,3 +574,83 @@ QUANTUM_ADMET = {"margin": 0.03, "min_endpoints": 17, "cap": 2500, "endpoints": 
  'dili': {'qk': {'bandwidth': 0.02, 'reps': 1, 'reg': 100.0},
           'rbf8': {'gamma': 0.003, 'reg': 100.0},
           'rbf17': {'gamma': 0.003, 'reg': 100.0}}}}
+
+# Gate Q8b (drug properties again; validation/admet_q8b.py). Pre-registered after results_admet_q8b_practice.json (train
+# parts only) and before any test part was read by a model. Q8 (fail, unchanged) lost on 5 of 21 endpoints because its
+# quantum model stretched each of the 8 principal components to [0, pi] by its own training range, so the minor
+# components weighed as much as the main ones, unlike the RBF model it is compared with. Found after Q8's test, on its
+# (now seen) test splits (results_admet_q8b_posthoc.json): with the "global" encoding (every component divided by the
+# first component's training SD; chronocell.quantum.admet.Prep.angles) and settings chosen by the same 5-fold CV, the
+# quantum model meets Q8's per-endpoint rule on 19 of 21 (clipping of out-of-range molecules was checked
+# and is not the cause). Test data: 19 TDC endpoints no ChronoCell test has used (CYP1A2, CYP2C19, PAMPA, FreeSolv,
+# skin reaction, carcinogens, ClinTox, twelve Tox21 assays; hERG sets left out: Q5 used them), files checked against
+# Dataverse's MD5, one Bemis-Murcko scaffold split each (80 / 20, seed 42, SMILES only; validation/admet_q8b_split.json,
+# SHA-256 below). Practice: per endpoint, 5-fold CV on the train part chose the quantum model's bandwidth, repetitions
+# and regularisation (global encoding) and both RBF models' settings; the grids were widened once, all models alike,
+# when first-run best values sat at their edges (after widening one reported-only setting, RBF on 17 descriptors for
+# Tox21 SR-HSE, still sits at an edge; no gated one does). On practice the quantum model was within 0.03 of RBF on the same 8
+# inputs on 19 of 19 endpoints (worst -0.023). Test (run once): train on the train part (capped at 2,500
+# compounds), score the test part. Per endpoint pass (Q8's rule): quantum AUC (yes/no) or Spearman rho (values) >=
+# the RBF model's on the same 8 inputs - 0.03, and its 95 % interval (1,000 resamples) above 0.5 (AUC) or 0 (rho).
+# Gate pass: >= 16 of the 19 endpoints (Q8's share, 17 of 21 = 81 %, rounded up). Reported, not gated: RBF on all 17
+# descriptors. A pass lets the app use the global encoding for its quantum ADMET model, labelled with this result.
+QUANTUM_ADMET_Q8B = {"margin": 0.03, "min_endpoints": 16, "cap": 2500, "encoding": "global",
+                     "split_file": "validation/admet_q8b_split.json", "split_sha256": "96945e21e6d7a2eae0039ac037fc2ff7c4fa916d97b35cb4af8ead093c05c5bb",
+                     "endpoints": ['cyp1a2_veith', 'cyp2c19_veith', 'pampa_ncats', 'freesolv', 'skin_reaction', 'carcinogens_lagunin', 'clintox', 'tox21_NR-AR', 'tox21_NR-AR-LBD', 'tox21_NR-AhR', 'tox21_NR-Aromatase', 'tox21_NR-ER', 'tox21_NR-ER-LBD', 'tox21_NR-PPAR-gamma', 'tox21_SR-ARE', 'tox21_SR-ATAD5', 'tox21_SR-HSE', 'tox21_SR-MMP', 'tox21_SR-p53'],
+                     "settings": {'cyp1a2_veith': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 1, 'reg': 1.0},
+                  'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                  'rbf17': {'gamma': 0.01, 'reg': 10.0}},
+ 'cyp2c19_veith': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 1, 'reg': 1.0},
+                   'rbf8': {'gamma': 0.1, 'reg': 1.0},
+                   'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'pampa_ncats': {'qk': {'encoding': 'global', 'bandwidth': 0.01, 'reps': 1, 'reg': 100.0},
+                 'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                 'rbf17': {'gamma': 0.03, 'reg': 1.0}},
+ 'freesolv': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+              'rbf8': {'gamma': 0.03, 'reg': 0.01},
+              'rbf17': {'gamma': 0.03, 'reg': 0.01}},
+ 'skin_reaction': {'qk': {'encoding': 'global', 'bandwidth': 0.2, 'reps': 1, 'reg': 1.0},
+                   'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                   'rbf17': {'gamma': 0.1, 'reg': 10.0}},
+ 'carcinogens_lagunin': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 1, 'reg': 1.0},
+                         'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                         'rbf17': {'gamma': 0.03, 'reg': 1.0}},
+ 'clintox': {'qk': {'encoding': 'global', 'bandwidth': 0.02, 'reps': 1, 'reg': 1000.0},
+             'rbf8': {'gamma': 0.01, 'reg': 100.0},
+             'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'tox21_NR-AR': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+                 'rbf8': {'gamma': 0.1, 'reg': 0.1},
+                 'rbf17': {'gamma': 0.03, 'reg': 0.1}},
+ 'tox21_NR-AR-LBD': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+                     'rbf8': {'gamma': 0.1, 'reg': 0.1},
+                     'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'tox21_NR-AhR': {'qk': {'encoding': 'global', 'bandwidth': 0.3, 'reps': 1, 'reg': 0.1},
+                  'rbf8': {'gamma': 0.3, 'reg': 0.1},
+                  'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'tox21_NR-Aromatase': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 2, 'reg': 1.0},
+                        'rbf8': {'gamma': 0.1, 'reg': 0.1},
+                        'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'tox21_NR-ER': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 1, 'reg': 1.0},
+                 'rbf8': {'gamma': 0.03, 'reg': 1.0},
+                 'rbf17': {'gamma': 0.1, 'reg': 0.1}},
+ 'tox21_NR-ER-LBD': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 2, 'reg': 0.1},
+                     'rbf8': {'gamma': 1.0, 'reg': 0.1},
+                     'rbf17': {'gamma': 3.0, 'reg': 0.1}},
+ 'tox21_NR-PPAR-gamma': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 1, 'reg': 0.1},
+                         'rbf8': {'gamma': 1.0, 'reg': 10.0},
+                         'rbf17': {'gamma': 1.0, 'reg': 10.0}},
+ 'tox21_SR-ARE': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 1.0},
+                  'rbf8': {'gamma': 0.3, 'reg': 1.0},
+                  'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'tox21_SR-ATAD5': {'qk': {'encoding': 'global', 'bandwidth': 0.5, 'reps': 1, 'reg': 0.1},
+                    'rbf8': {'gamma': 1.0, 'reg': 0.1},
+                    'rbf17': {'gamma': 1.0, 'reg': 0.01}},
+ 'tox21_SR-HSE': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 0.1},
+                  'rbf8': {'gamma': 0.3, 'reg': 0.1},
+                  'rbf17': {'gamma': 0.001, 'reg': 100.0}},
+ 'tox21_SR-MMP': {'qk': {'encoding': 'global', 'bandwidth': 0.1, 'reps': 1, 'reg': 1.0},
+                  'rbf8': {'gamma': 0.1, 'reg': 1.0},
+                  'rbf17': {'gamma': 0.1, 'reg': 1.0}},
+ 'tox21_SR-p53': {'qk': {'encoding': 'global', 'bandwidth': 0.05, 'reps': 2, 'reg': 1.0},
+                  'rbf8': {'gamma': 0.3, 'reg': 0.1},
+                  'rbf17': {'gamma': 0.03, 'reg': 1.0}}}}
