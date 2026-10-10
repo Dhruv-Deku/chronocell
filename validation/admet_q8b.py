@@ -156,7 +156,7 @@ def _posthoc_one(name: str) -> dict:
     cfg = {**F.QUANTUM_ADMET["settings"][name], "qk": cv["choice"]["qk"]}
     Xte, yte = G.data(name, "test")
     r = score_test(name, task, X, y, Xte, yte, cfg, F.QUANTUM_ADMET["margin"])
-    r["cv"] = cv["cv"]
+    r["cv"], r["qk"] = cv["cv"], cv["choice"]["qk"]
     r["q8_quantum"] = json.loads((ROOT / "results_admet.json").read_text(encoding="utf-8"))["endpoints"][name]["metric"]["quantum"]
     print(name, "post-hoc", {k: round(v, 3) for k, v in r["metric"].items()}, "Q8 quantum", round(r["q8_quantum"], 3),
           "meets Q8's rule" if r["pass"] else "misses", flush=True)

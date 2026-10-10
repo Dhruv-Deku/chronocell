@@ -1795,7 +1795,33 @@ the **global** encoding (every component divided by the first component's traini
 cross-validation, the quantum model meets Q8's per-endpoint rule on more of Q8's own (now seen) test splits:
 
 <!-- BEGIN generated:admet_q8b_posthoc -->
-_results_admet_q8b_posthoc.json: not run (python validation/admet_q8b.py --posthoc)._
+Why Q8 failed, checked after its test on Q8's own (now seen) test splits: the same quantum kernel with the "global" encoding, settings by the same 5-fold cross-validation, Q8's RBF models unchanged. Q8's verdict stands; these numbers are the reason for Q8b, not evidence.
+
+| Endpoint | Quantum, Q8 encoding | Quantum, global encoding | RBF, same 8 inputs | Meets Q8's rule |
+|---|---|---|---|---|
+| caco2_wang | 0.750 | 0.730 | 0.755 | yes |
+| hia_hou | 0.974 | 0.961 | 0.962 | yes |
+| pgp_broccatelli | 0.851 | 0.840 | 0.832 | yes |
+| bioavailability_ma | 0.704 | 0.742 | 0.740 | yes |
+| lipophilicity_astrazeneca | 0.517 | 0.510 | 0.502 | yes |
+| solubility_aqsoldb | 0.722 | 0.726 | 0.735 | yes |
+| bbb_martins | 0.832 | 0.835 | 0.838 | yes |
+| ppbr_az | 0.372 | 0.465 | 0.403 | yes |
+| vdss_lombardo | 0.627 | 0.632 | 0.609 | yes |
+| cyp2c9_veith | 0.813 | 0.819 | 0.817 | yes |
+| cyp2d6_veith | 0.799 | 0.799 | 0.806 | yes |
+| cyp3a4_veith | 0.792 | 0.788 | 0.788 | yes |
+| cyp2c9_substrate_carbonmangels | 0.614 | 0.653 | 0.650 | yes |
+| cyp2d6_substrate_carbonmangels | 0.757 | 0.752 | 0.739 | yes |
+| cyp3a4_substrate_carbonmangels | 0.632 | 0.645 | 0.598 | yes |
+| half_life_obach | 0.407 | 0.428 | 0.409 | yes |
+| clearance_hepatocyte_az | 0.325 | 0.333 | 0.426 | no |
+| clearance_microsome_az | 0.411 | 0.440 | 0.527 | no |
+| ld50_zhu | 0.392 | 0.421 | 0.413 | yes |
+| ames | 0.686 | 0.695 | 0.680 | yes |
+| dili | 0.921 | 0.923 | 0.933 | yes |
+
+With the global encoding 19 of 21 endpoints meet Q8's per-endpoint rule (Q8 itself: 16 of 21).
 <!-- END generated:admet_q8b_posthoc -->
 
 **The new test.** Nineteen TDC endpoints no ChronoCell test has used: CYP1A2 and CYP2C19 inhibition (Veith), PAMPA
@@ -1805,7 +1831,29 @@ split once by Bemis–Murcko scaffold (80 % train / 20 % test, seed 42; only SMI
 model was fitted. Practice used the train parts only:
 
 <!-- BEGIN generated:admet_q8b_practice -->
-_results_admet_q8b_practice.json: not run (python validation/admet_q8b.py --practice)._
+Practice (train parts only; training capped at 2500 compounds; 5-fold cross-validation):
+
+| Endpoint | Task | Compounds | Quantum kernel, global encoding (CV) | RBF, same 8 inputs | RBF, all 17 |
+|---|---|---|---|---|---|
+| cyp1a2_veith | yes/no (AUC) | 2500 | 0.859 | 0.859 | 0.871 |
+| cyp2c19_veith | yes/no (AUC) | 2500 | 0.812 | 0.814 | 0.826 |
+| pampa_ncats | yes/no (AUC) | 1628 | 0.737 | 0.739 | 0.736 |
+| freesolv | value (Spearman) | 514 | 0.939 | 0.934 | 0.954 |
+| skin_reaction | yes/no (AUC) | 323 | 0.777 | 0.778 | 0.781 |
+| carcinogens_lagunin | yes/no (AUC) | 224 | 0.875 | 0.869 | 0.875 |
+| clintox | yes/no (AUC) | 1182 | 0.822 | 0.820 | 0.837 |
+| tox21_NR-AR | yes/no (AUC) | 2500 | 0.735 | 0.726 | 0.747 |
+| tox21_NR-AR-LBD | yes/no (AUC) | 2500 | 0.786 | 0.788 | 0.795 |
+| tox21_NR-AhR | yes/no (AUC) | 2500 | 0.850 | 0.846 | 0.853 |
+| tox21_NR-Aromatase | yes/no (AUC) | 2500 | 0.786 | 0.789 | 0.799 |
+| tox21_NR-ER | yes/no (AUC) | 2500 | 0.726 | 0.729 | 0.731 |
+| tox21_NR-ER-LBD | yes/no (AUC) | 2500 | 0.743 | 0.766 | 0.777 |
+| tox21_NR-PPAR-gamma | yes/no (AUC) | 2500 | 0.752 | 0.755 | 0.773 |
+| tox21_SR-ARE | yes/no (AUC) | 2500 | 0.732 | 0.737 | 0.763 |
+| tox21_SR-ATAD5 | yes/no (AUC) | 2500 | 0.778 | 0.791 | 0.822 |
+| tox21_SR-HSE | yes/no (AUC) | 2500 | 0.714 | 0.722 | 0.764 |
+| tox21_SR-MMP | yes/no (AUC) | 2500 | 0.830 | 0.825 | 0.865 |
+| tox21_SR-p53 | yes/no (AUC) | 2500 | 0.779 | 0.783 | 0.799 |
 <!-- END generated:admet_q8b_practice -->
 
 <!-- BEGIN generated:admet_q8b -->
