@@ -658,19 +658,19 @@ scene({ t0: T.ws4, t1: T.stack + 0.46, inT: { type: "push-left", at: T.ws4 }, ou
     pop(s.fold, t, DRAG1 + 0.1, { s: 0.5, r: -8 });
   } });
 
-// ================================================================================================= 08 genes + guide (ws 05, 06)
+// ================================================================================================= 08 genes + guide (ws 05, 08)
 const PICK_GENES = 44.4, PICK_GUIDE = 45.8;
 track(43.6, 47.3, [[43.6, 1900, 900], [44.3, 1560, 420], [45.3, 1560, 420], [45.7, 1560, 520], [47.3, 1700, 940]], [PICK_GENES, PICK_GUIDE], C.cobalt);
 scene({ t0: T.stack, t1: T.quantum + 0.5, inT: { type: "zoom", at: T.stack }, outT: { type: "shrink", at: T.quantum },
   build(s) {
     bgPaper(s);
     const u = s.ui;
-    s.kick = kick(u, "WORKSPACES 05 · 06", 112, 84, C.cobalt);
+    s.kick = kick(u, "WORKSPACES 05 · 08", 112, 84, C.cobalt);
     s.h = headline(u, "GENES + GUIDE", 100, 120, { size: 120, color: C.ink, ext: C.cobalt, depth: 9, soft: "rgba(0,0,0,.12)" });
     s.iso = mk("div", "abs", u, null, { left: "250px", top: "330px", width: "900px", height: "506px", transformStyle: "preserve-3d", transform: "rotateX(55deg) rotateZ(-38deg)" });
     const names = ["ws06_pages", "ws06_quantum", "ws06_top", "ws05_fold", "ws05_top"];
     s.cards = names.map((n, k) => card(s.iso, n, 0, 0, 900, 506, null, { style: { borderRadius: "18px" } }));
-    s.btns = [["05 Genes", 380], ["06 Guide", 480], ["Plain words", 580]].map(([n, y]) =>
+    s.btns = [["05 Genes", 380], ["08 Guide", 480], ["Plain words", 580]].map(([n, y]) =>
       mk("div", "abs dc", u, n, { left: "1380px", top: `${y}px`, width: "380px", height: "80px", borderRadius: "999px", background: "#fff", color: C.ink, fontSize: "46px", lineHeight: "80px", textAlign: "center", boxShadow: "0 12px 30px rgba(0,0,0,.12)" }));
     s.hero = card(u, "ws06_top", 360, 210, 1200, 675, null);
     s.cap = mk("div", "pill", u, "What everything means, in plain words", { left: "360px", top: "915px", background: C.ink, color: "#fff", fontSize: "21px" });
@@ -700,7 +700,7 @@ scene({ t0: T.stack, t1: T.quantum + 0.5, inT: { type: "zoom", at: T.stack }, ou
     pop(s.cap, t, PICK_GUIDE + 0.7, { s: 0.6 });
   } });
 
-// ================================================================================================= 09 quantum lab (ws 07)
+// ================================================================================================= 09 quantum lab (ws 06)
 const QTABS = ["TAD boundaries", "Molecule (VQE)", "Noise &amp; mitigation", "Lattice fold", "Quantum walk", "Drug combination"];
 const qx = (k) => 112 + k * 292 + 135;
 const QCLICK = [48.5, 50.0, 51.3], QTAB = [3, 2, 4];
@@ -710,7 +710,7 @@ scene({ t0: T.quantum, t1: T.bento + 0.46, inT: { type: "iris", at: T.quantum, d
     bgDark(s, C.cobalt, 50, 70);
     const u = s.ui;
     s.ring = rings(s.bg, 960, 760, [260, 420, 600], "rgba(130,145,255,.14)");
-    s.kick = kick(u, "WORKSPACE 07 · SIMULATED QUANTUM COMPUTER", 112, 96, "#8E98FF");
+    s.kick = kick(u, "WORKSPACE 06 · SIMULATED QUANTUM COMPUTER", 112, 96, "#8E98FF");
     s.h = headline(u, "QUANTUM LAB", 100, 132, { size: 150, color: "#fff", ext: C.cobaltDk, depth: 10 });
     s.lead = lead(u, "Try ChronoCell’s problems on a simulated quantum computer, next to the classical answer.", 112, 290, 1300, "rgba(255,255,255,.8)");
     s.tabs = QTABS.map((n, k) => mk("div", "tab", u, n, { left: `${112 + k * 292}px`, top: "375px", background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.85)", border: "1px solid rgba(255,255,255,.16)" }));
@@ -818,29 +818,31 @@ scene({ t0: T.bento, t1: T.score + 0.5, inT: { type: "push-up", at: T.bento }, o
     s.seglab.style.opacity = lin(t, T.bento + 1.8, T.bento + 2.1);
   } });
 
-// ================================================================================================= 11 the scoreboard (ws 08)
+// ================================================================================================= 11 the scoreboard (ws 07)
 const NC = [1250, 560];
 const AREAS = Object.keys(TS.areas);
 const ASHORT = { "Structure & imaging": "STRUCTURE", "Analysis & perturbations": "ANALYSIS", "Quantum lab": "QUANTUM", "Drug lab": "DRUG LAB" };
+// the tests sort into four rows: passed; failed, then fixed by a retest (new method, new data); failed and still open; mixed
+const rowOf = (r) => (r.status === "fail" ? (r.fixed_by ? "fixed" : "open") : r.status);
 const NET = (() => {
   const nodes = [], hubs = [];
   let a0 = -Math.PI / 2;
-  const rowCount = { pass: 0, fail: 0, other: 0 };
+  const rowCount = { pass: 0, fixed: 0, open: 0, other: 0 };
   AREAS.forEach((area) => {
     const rows = TS.rows.filter((r) => r.area === area);
     const span = (2 * Math.PI * rows.length) / TS.n;
     hubs.push({ area, ang: a0 + span / 2 });
     rows.forEach((r, k) => {
       const ang = a0 + (span * (k + 0.5)) / rows.length;
-      const slot = rowCount[r.status]++;
-      nodes.push({ ...r, ang, rad: k % 2 ? 405 : 330, hub: hubs.length - 1, slot });
+      const row = rowOf(r), slot = rowCount[row]++;
+      nodes.push({ ...r, ang, rad: k % 2 ? 405 : 330, hub: hubs.length - 1, row, slot });
     });
     a0 += span;
   });
   nodes.forEach((n, i) => (n.order = i));
   return { nodes, hubs };
 })();
-const ROWY = { pass: 470, fail: 640, other: 810 };
+const ROWY = { pass: 452, fixed: 578, open: 704, other: 830 };
 const STAMP_SB = 64.0;
 scene({ t0: T.score, t1: T.loops + 0.46, inT: { type: "iris", at: T.score, d: 0.5 }, outT: { type: "push-left", at: T.loops },
   build(s) {
@@ -853,15 +855,17 @@ scene({ t0: T.score, t1: T.loops + 0.46, inT: { type: "iris", at: T.score, d: 0.
     s.l1 = chars(mk("div", "", h), "EVERY CLAIM");
     s.l2 = chars(mk("div", "", h, null, { color: C.ochre, textShadow: extrude(C.ochreDk, 9) }), "IS A TEST");
     s.sub = lead(u, "Written down before its data were read. Run once. Kept on the record, pass or fail.", 112, 290, 700, "rgba(255,255,255,.8)", 25);
-    s.cnt = [["pass", TS.pass, "passed"], ["fail", TS.fail, "failed"], ["other", TS.other, "mixed · blocked · baseline"]].map(([k, n, l]) => {
+    s.cnt = [["pass", TS.pass, "passed", C.pass], ["fixed", TS.fixed, "failed · then passed as a retest", C.fail],
+      ["open", TS.open, "failed · still open", C.fail], ["other", TS.other, "mixed · blocked · baseline", C.other]].map(([k, n, l, col]) => {
       const e = mk("div", "abs", u, null, { left: "112px", top: `${ROWY[k] - 50}px`, display: "flex", alignItems: "center", gap: "18px" });
-      const o = odo(e, String(n), { fontSize: "96px", color: STATUS[k] });
-      mk("div", "kick", e, l, { color: STATUS[k], width: "230px", lineHeight: "1.3" });
+      const o = odo(e, String(n), { fontSize: "96px", color: col });
+      mk("div", "kick", e, k === "fixed" ? `failed · <span style="color:${C.pass}">then passed as a retest</span>` : l,
+        { color: col, width: "250px", lineHeight: "1.3" });
       return { e, o, n };
     });
     s.stamp = stamp(u, "KEPT ON THE RECORD", 980, 600, -6, { color: C.fail, bg: "rgba(17,19,24,.88)" });
-    s.win = win(u, "ws08_top", 260, 150, 1400, 834, "localhost:8501 · ChronoCell-5D · 08 Scoreboard");
-    s.wtag = mk("div", "pill", u, "Workspace 08 · Scoreboard", { left: "260px", top: "90px", background: C.ochre, color: C.ink, fontSize: "21px" });
+    s.win = win(u, "ws08_top", 260, 150, 1400, 834, "localhost:8501 · ChronoCell-5D · 07 Scoreboard");
+    s.wtag = mk("div", "pill", u, "Workspace 07 · Scoreboard", { left: "260px", top: "90px", background: C.ochre, color: C.ink, fontSize: "21px" });
     cue(T.score + 0.45, "hit");
     shake(T.score + 0.5, 8);
     cue(60.1, "rise", { d: 0.9 });
@@ -887,7 +891,7 @@ scene({ t0: T.score, t1: T.loops + 0.46, inT: { type: "iris", at: T.score, d: 0.
     const leaf = NET.nodes.map((n) => {
       const p = E.oBack(lin(t, T.score + 0.6 + n.order * 0.018, T.score + 1.25 + n.order * 0.018));
       const [x0, y0] = pos(n.ang, n.rad, p);
-      const f = fly(n), tx = 660 + n.slot * 74, ty = ROWY[n.status];
+      const f = fly(n), tx = 660 + n.slot * 68, ty = ROWY[n.row];          // 15 in a row stay behind the window (x < 1660)
       const x = mix(x0, tx, f), y = mix(y0, ty, f) - Math.sin(Math.PI * f) * 90;
       return { n, p, x, y, f };
     });
@@ -917,7 +921,7 @@ scene({ t0: T.score, t1: T.loops + 0.46, inT: { type: "iris", at: T.score, d: 0.
     }
     // leaves
     g.textAlign = "center"; g.textBaseline = "middle";
-    leaf.forEach(({ n, p, x, y }, i) => {
+    leaf.forEach(({ n, p, x, y, f }, i) => {
       if (p <= 0) return;
       const ct = 60.1 + (i / NET.nodes.length) * 0.9, cl = lin(t, ct, ct + 0.12);
       const col = STATUS[n.status];
@@ -925,6 +929,10 @@ scene({ t0: T.score, t1: T.loops + 0.46, inT: { type: "iris", at: T.score, d: 0.
       g.globalAlpha = clamp(p * 2);
       g.fillStyle = cl > 0.5 ? col : "#ECEEF7";
       g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill();
+      if (n.row === "fixed" && f > 0.6) {                    // a fail that a later retest passed: a green ring
+        g.strokeStyle = C.pass; g.lineWidth = 5; g.globalAlpha = lin(f, 0.6, 1);
+        g.beginPath(); g.arc(x, y, r + 5, 0, 6.2832); g.stroke(); g.globalAlpha = clamp(p * 2);
+      }
       if (cl > 0 && t < ct + 0.5) { g.strokeStyle = col; g.lineWidth = 3; g.globalAlpha = 1 - lin(t, ct, ct + 0.5); g.beginPath(); g.arc(x, y, r + 6 + 26 * lin(t, ct, ct + 0.5), 0, 6.2832); g.stroke(); g.globalAlpha = 1; }
       g.fillStyle = cl > 0.5 ? "#fff" : C.ink;
       g.font = `700 ${n.id.length > 3 ? 12 : 14}px 'IBM Plex Mono'`;
@@ -1195,7 +1203,7 @@ scene({ t0: T.outro, t1: T.end + 0.1, inT: { type: "iris", at: T.outro, d: 0.45,
     s.tag = mk("div", "pill", u, "Chromatin 3D / 4D workstation", { left: "0", top: "510px", background: C.ink, color: "#fff", fontSize: "28px", padding: "18px 32px" });
     s.card = mk("div", "abs", u, null, { left: "310px", top: "650px", width: "1300px", height: "190px", borderRadius: "28px", background: C.ink, boxShadow: "0 30px 70px rgba(0,0,0,.35)", textAlign: "center", paddingTop: "34px" });
     mk("div", "dc", s.card, `${TS.n} tests · <span style="color:${C.pass}">${TS.pass} passed</span> · <span style="color:${C.fail}">${TS.fail} failed</span> · <span style="color:${C.other}">${TS.other} mixed</span>`, { fontSize: "66px", color: "#fff" });
-    mk("div", "mono", s.card, "100% code-rendered · every number read from the app · 1080p 60 fps", { font: "600 21px/1 var(--mono)", letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.7)", marginTop: "26px" });
+    mk("div", "mono", s.card, `${TS.fixed} fails later passed as a retest · ${TS.open} still open · read from the app`, { font: "600 21px/1 var(--mono)", letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.7)", marginTop: "26px" });
     s.line = mk("div", "abs mono", u, "— A CHRONOCELL-5D MOTION REEL —", { left: "0", width: "1920px", textAlign: "center", top: "905px", font: "600 24px/1 var(--mono)", letterSpacing: ".3em", color: "rgba(255,255,255,.88)" });
     burst(T.outro + 0.35, 960, 400, { n: 190, speed: 1600, life: 2.8, colors: ["#fff", C.ochre, C.terra, "#9AA4FF", C.ink] });
     burst(T.outro + 2.45, 960, 745, { n: 90, speed: 1100, life: 2.2, colors: ["#fff", C.pass, C.ochre] });
@@ -1217,8 +1225,8 @@ scene({ t0: T.outro, t1: T.end + 0.1, inT: { type: "iris", at: T.outro, d: 0.45,
 const CHAP = [[T.open, "01", "The workstation", "chromatin 3D / 4D, in one app"], [T.fold, "02", "The fold", "human chr22, reconstructed in 3D"],
   [T.map, "03", "The contacts", "what Micro-C measures"], [T.title, null], [T.ws1, "04", "3D structure", "workspace 01"],
   [T.ws2, "05", "4D dynamics", "workspace 02"], [T.ws3, "06", "Compare", "workspace 03"], [T.ws4, "07", "Drug lab", "workspace 04"],
-  [T.stack, "08", "Genes + Guide", "workspaces 05 · 06"], [T.quantum, "09", "Quantum lab", "workspace 07 · simulated"],
-  [T.bento, "10", "Everything", "eight workspaces, one app"], [T.score, "11", "The scoreboard", "workspace 08 · every claim tested"],
+  [T.stack, "08", "Genes + Guide", "workspaces 05 · 08"], [T.quantum, "09", "Quantum lab", "workspace 06 · simulated"],
+  [T.bento, "10", "Everything", "eight workspaces, one app"], [T.score, "11", "The scoreboard", "workspace 07 · every claim tested"],
   [T.loops, "12", "DNA loops", "gate 6b · new cell types"], [T.mol, "13", "Molecules", "gate Q6d · simulated chip"],
   [T.mit, "14", "Noisy chips", "gate Q9 · error mitigation"], [T.fail, "15", "The honest fail", "gate Q7b · quantum docking"],
   [T.words, "16", "In one word", "what each workspace is for"], [T.outro, null], [T.end + 1, null]];

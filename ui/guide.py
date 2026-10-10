@@ -76,7 +76,7 @@ def _film() -> None:
              '<code>python motion/render.py</code> (about 30 minutes; Chrome and ffmpeg are used). It then plays here.</p>')
     explainer = next((p for p in (EXPLAINER_SHARE, EXPLAINER) if p.exists()), None)
     if explainer:
-        html('<h2 class="cc-h2">Watch the explainer (4 min 48 s)</h2>')
+        html('<h2 class="cc-h2">Watch the explainer (5 min)</h2>')
         st.video(str(explainer))
         html('<p class="cc-note">What the app is, the app running live (real screen recordings), and how it is tested: the '
              'test suite running and every accuracy score recomputed from its saved result file '

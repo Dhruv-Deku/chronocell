@@ -22,7 +22,7 @@ perturbation data, and the failures are reported next to the successes.
   <sub><b>The film (100 s, 1080p60, with sound).</b> A fast, colourful motion-graphics reel made from the app itself:
   real screenshots, the reference model's own coordinates and contacts, and every number read from the test results. Build it with
   <code>python motion/render.py</code> (see <a href="motion/README.md">motion/README.md</a>); it also plays in the app's Guide.
-  A 4 min 48 s <b>explainer</b> shows the app live (real screen recordings), the test suite running and every accuracy
+  A 5-minute <b>explainer</b> shows the app live (real screen recordings), the test suite running and every accuracy
   score recomputed from its result file: <code>python motion/render.py --page explainer</code>
   (<a href="motion/explainer/README.md">motion/explainer/README.md</a>).</sub>
 </p>

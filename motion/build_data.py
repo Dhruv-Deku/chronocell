@@ -93,17 +93,70 @@ def fold_and_sv() -> tuple[dict, dict]:
     return fold, sv
 
 
+# The explainer's pass / fail table: a short plain name and a short result per test. Every number in a short result is
+# copied from that test's Scoreboard row (tests/test_round3.py checks it); the verdict itself always comes from the row.
+TABLE = {
+    "v3.3": ("Starting point: the reproducible fold", "85.6 % of the reproducible structure"),
+    "1": ("Whole chromosome vs windows", "94.4 vs 94.4 %; 96.2 vs 96.7 %"),
+    "1b": ("From Hi-C to microscope distances", "ranks 80.4–84.7 % of ceiling; sizes off"),
+    "1c": ("Sizes in real nanometres", "CCC 0.43–0.72 (0.8 needed)"),
+    "2": ("90 % ranges really hold 90 %?", "raw 71–84 %; recalibrated 83–91 %"),
+    "2b": ("Same, with Hi-C input", "raw 23–51 %; recalibrated 43–73 %"),
+    "2c": ("Spot which distances are wrong", "per pair: 0 of 6 and 0 of 4 sets"),
+    "2d": ("Ranges hold at every distance", "imaging 4 of 7 sets, Hi-C 1 of 5"),
+    "2e": ("Second try: spot wrong distances", "ρ +0.01 to +0.12 (0.30 needed)"),
+    "3": ("vs PASTIS, a published method", "55.4–97.3 % vs PASTIS 47.4–94.2 %"),
+    "3b": ("A learned correction", "not run: practice chose none"),
+    "4": ("Cohesin removed: predict the change", "agreement 0.868 vs 0.336 for trend only"),
+    "4b": ("Effect of DNA deletions", "a what-if simulator, not validated"),
+    "4c": ("Cohesin loss, 6 new regions", "5 of 6 regions beat trend only"),
+    "4d": ("Rearrangements, before and after", "blocked: two usable events, three needed"),
+    "5": ("The fold from DNA sequence alone", "4 of 5 test sets"),
+    "5b": ("Sequence + cohesin data", "0 of 5 test sets"),
+    "5m": ("Human predictor on mouse cells", "17.0 % and 7.2 % of the ceiling"),
+    "6": ("Find DNA loops", "F1 0.40 / 0.74 vs Mustache 0.49 / 0.47"),
+    "6b": ("DNA loops, two new cell types", "F1 0.74 / 0.61, beats both tools"),
+    "7": ("Change-finder: no false alarms", "false discoveries 0.002 (0.05 allowed)"),
+    "8": ("Drug lab vs real drug-treated cells", "0 of 4 drugs met the rule"),
+    "Q1": ("Quantum optimiser finds the best", "98 % of windows (90 % needed)"),
+    "Q2": ("Quantum finds DNA ‘rooms’", "F1 0.24 / 0.27 vs classical 0.39 / 0.40"),
+    "Q2b": ("DNA ‘rooms’, two new cell types", "F1 0.49 / 0.34 vs classical 0.45 / 0.37"),
+    "Q3": ("Quantum chemistry, small molecules", "worst error 5.1e-11 mHa (1.6 allowed)"),
+    "Q4": ("Quantum gene classifier", "AUC 0.623 vs classical 0.657"),
+    "Q4b": ("Gene classifier, new cell type", "AUC 0.586 vs classical 0.575"),
+    "Q5": ("Quantum heart-risk drug screen", "AUC 0.710 vs classical 0.695"),
+    "Q6": ("Stretched molecules (quantum)", "worst error 78.35 mHa (1.6 allowed)"),
+    "Q6b": ("Stretched, smarter circuit", "10 of 11 within; worst 2.46 mHa"),
+    "Q6c": ("Stretched, right spin state", "9 of 12 within; worst 167.99 mHa"),
+    "Q6d": ("Stretched, escape + restarts", "14 of 14 within; worst 1.16 mHa"),
+    "Q7": ("Quantum docking", "docked 6 % vs random search 2 %"),
+    "Q7b": ("Quantum docking, better score", "docked 35 % vs random search 58 %"),
+    "Q8": ("21 drug properties (quantum)", "16 of 21 met the rule"),
+    "Q8b": ("Drug properties, scaling fixed", "17 of 19 met the rule"),
+    "Q9": ("Error mitigation, noisy chip", "16 of 16 within after mitigation"),
+}
+
+
+def short_id(name: str) -> str:
+    """'Gate Q6d: ...' -> 'Q6d'; 'v3.3 windows, ...' -> 'v3.3'."""
+    head = name.split(":")[0].split(",")[0].strip()
+    return head.replace("Gate ", "").split(" ")[0]
+
+
 def tests() -> dict:
     from ui import scoreboard as S
     df = S.rows()
-    def short(name: str) -> str:            # "Gate Q6d: ..." -> "Q6d"; "v3.3 windows, ..." -> "v3.3"
-        head = name.split(":")[0].split(",")[0].strip()
-        return head.replace("Gate ", "").split(" ")[0]
-    rows = [{"area": r["area"], "test": r["test"], "id": short(r["test"]), "measured": r["measured"], "status": r["status"]}
-            for _, r in df.iterrows()]
+    rows = []
+    for _, r in df.iterrows():
+        k = short_id(r["test"])
+        if k not in TABLE:
+            raise KeyError(f"no short name for test {k!r} in motion/build_data.py TABLE")
+        rows.append({"area": r["area"], "test": r["test"], "id": k, "measured": r["measured"], "status": r["status"],
+                     "fixed_by": r["fixed_by"].replace("Gate ", ""), "name": TABLE[k][0], "result": TABLE[k][1]})
     cnt = df["status"].value_counts().to_dict()
+    fixed = sum(1 for r in rows if r["fixed_by"])
     return {"rows": rows, "n": len(rows), "pass": int(cnt.get("pass", 0)), "fail": int(cnt.get("fail", 0)),
-            "other": int(cnt.get("other", 0)),
+            "other": int(cnt.get("other", 0)), "fixed": fixed, "open": int(cnt.get("fail", 0)) - fixed,
             "areas": {a: {s: int(((df["area"] == a) & (df["status"] == s)).sum()) for s in ("pass", "fail", "other")}
                       for a in S.AREAS}}
 
@@ -119,7 +172,7 @@ def highlights() -> dict:
     mit = _load("results_mitigation.json")
     q9 = [{"m": x["molecule"], "s": x["bond_scale"], "noisy": round(abs(x["methods"][mit["method_key"]]["noisy_mEh"]), 3),
            "fixed": round(abs(x["methods"][mit["method_key"]]["mitigated_mEh"]), 3)} for x in mit["rows"]]
-    adm = _load("results_admet.json")
+    adm, adm_b = _load("results_admet.json"), _load("results_admet_q8b.json")
     q7b = r2["q7b"]
     gq = _load("results_gateq.json")
     q1_rate = gq["q1"]["pooled_hit_rate"]
@@ -128,7 +181,8 @@ def highlights() -> dict:
             "q6c": {"within": r2["q6c"]["within"], "cases": r2["q6c"]["cases"], "rows": q6c},
             "q9": {"within": mit["within"], "cases": mit["cases"], "median": round(mit["median_abs_mEh"], 2),
                    "noisy": round(mit["median_noisy_mEh"], 1), "reduction": round(mit["median_reduction"]), "rows": q9},
-            "q8": {"passed": adm["passed"], "of": adm["of"]},
+            "q8": {"passed": adm["passed"], "of": adm["of"], "needed": adm["rule"]["min_endpoints"]},
+            "q8b": {"passed": adm_b["passed"], "of": adm_b["of"], "needed": adm_b["rule"]["min_endpoints"]},
             "q7b": {"qaoa": round(100 * q7b["success_qaoa"]), "random": round(100 * q7b["success_random"]),
                     "complexes": q7b["complexes"]},
             "q1": round(100 * q1_rate),

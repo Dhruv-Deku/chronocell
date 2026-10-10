@@ -53,3 +53,18 @@
 .side .vd { position: absolute; right: 20px; top: 18px; padding: 7px 12px; border-radius: 9px; font: 800 17px/1 var(--mono); color: #fff; }
 .cmd { font: 500 30px/1.7 var(--mono); color: #d6d9e6; }
 .cmd .p { color: #3ddc84; }
+
+/* the pass / fail table: four columns of row cards */
+.tbh { position: absolute; height: 70px; border-radius: 16px; display: flex; align-items: center; gap: 14px; padding: 0 18px; color: #fff;
+  box-shadow: 0 12px 30px rgba(0,0,0,.14); }
+.tbh .n { font: 900 50px/1 var(--display); font-variant-numeric: tabular-nums; }
+.tbh .l { font: 700 17px/1.25 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.tbr { position: absolute; height: 38px; border-radius: 10px; background: #fff; color: var(--ink);
+  box-shadow: 0 6px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04); }
+.tbr .id { position: absolute; left: 6px; top: 6px; width: 52px; height: 27px; border-radius: 7px; color: #fff; text-align: center;
+  font: 700 14px/27px var(--mono); }
+.tbr .tx { position: absolute; left: 68px; right: 12px; top: 2px; }
+.tbr .nm { font: 700 16.5px/19px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbr .rs { font: 500 14px/17px var(--sans); color: #474A45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbr .fx { position: absolute; right: 8px; top: 7px; height: 25px; padding: 0 9px; border-radius: 13px; background: #27B26B; color: #fff;
+  font: 700 14px/25px var(--mono); white-space: nowrap; }

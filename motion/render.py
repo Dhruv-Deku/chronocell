@@ -172,7 +172,7 @@ def main() -> None:
             times = [float(x) for x in a.at.split(",")]
         else:
             times, t = [], 0.3
-            while t < (100 if a.page == "film" else 288):
+            while t < (100 if a.page == "film" else 300):
                 times.append(round(t, 2))
                 t += a.every
         preview(times, a.page)
