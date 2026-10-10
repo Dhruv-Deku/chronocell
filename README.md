@@ -226,6 +226,7 @@ original results above stand):**
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
 | Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | 16 of 21 endpoints met the rule; quantum − classical median -0.006 | fail |
+| Gate Q8b: quantum-kernel drug properties with the encoding fixed, 19 new TDC endpoints (scaffold test splits) | 17 of 19 endpoints met the rule; quantum − classical median +0.001 | pass |
 | Gate Q9: error mitigation on a simulated noisy chip, 16 new molecules | 16 of 16 within chemical accuracy after mitigation (median 0.41 mHa, noisy 11.5) | pass |
 <!-- END generated:summary_new -->
 

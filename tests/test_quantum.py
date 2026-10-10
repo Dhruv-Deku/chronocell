@@ -241,7 +241,8 @@ def test_quantum_lab_is_added_in_research_mode_and_runs_on_demand(app):
     at = app
     opts = at.segmented_control(key="workspace").options
     assert any("Quantum lab" in o for o in opts)
-    assert [o for o in opts if "Quantum" not in o][:6] == [o for o in opts][:6]      # the six pages keep their order
+    assert [o for o in opts if "Quantum" not in o][:5] == [o for o in opts][:5]      # the five data pages come first
+    assert "Quantum lab" in opts[5] and "Guide" in opts[-1]                         # then the Quantum lab; the Guide last
     at.segmented_control(key="workspace").set_value("Quantum lab").run()
     assert not at.exception, [e.value for e in at.exception]
     assert "qlab_tad" not in at.session_state                                    # nothing computed before Run
