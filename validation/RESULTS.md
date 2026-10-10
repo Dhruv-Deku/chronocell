@@ -1776,6 +1776,107 @@ Summary of the new tests:
 | Gate Q9: error mitigation on a simulated noisy chip, 16 new molecules | 16 of 16 within chemical accuracy after mitigation (median 0.41 mHa, noisy 11.5) | pass |
 <!-- END generated:summary_new -->
 
+## Round 3 — the open failures revisited (October 2026)
+
+Sixteen tests on the Scoreboard had failed. Six of them already had a later retest that passed (Gate 6 → 6b, Q2 → Q2b,
+Q4 → Q4b, Q6 / Q6b / Q6c → Q6d); the Scoreboard now says so next to each of those fails. Round 3 went through the other
+ten, looking for *why* each failed and whether a better method could pass a new, pre-registered test on data no test
+had used. The old verdicts do not change: a failed test is never re-run and never re-scored. Everything below that
+uses an old test's data is post-hoc (those data are seen now) and decides only whether a new test is worth running.
+
+### Gate Q8b — the quantum drug-property model with its input scaling fixed (pre-registered)
+
+`validation/admet_q8b.py`; split `validation/admet_q8b_split.py` (`admet_q8b_split.json`); rule `QUANTUM_ADMET_Q8B` in
+`validation/frozen.py`. **Why Q8 failed.** The quantum model turned the 8 principal components into angles by
+stretching each to [0, π] by its own training range. The minor, noisier components then weighed as much as the main
+ones, while the classical RBF model it is compared with sees the components with their real variances. Clipping of
+out-of-range molecules was checked first and is not the cause (0–6 % of test molecules, no change when removed). With
+the **global** encoding (every component divided by the first component's training SD), settings chosen by the same
+cross-validation, the quantum model meets Q8's per-endpoint rule on more of Q8's own (now seen) test splits:
+
+<!-- BEGIN generated:admet_q8b_posthoc -->
+_results_admet_q8b_posthoc.json: not run (python validation/admet_q8b.py --posthoc)._
+<!-- END generated:admet_q8b_posthoc -->
+
+**The new test.** Nineteen TDC endpoints no ChronoCell test has used: CYP1A2 and CYP2C19 inhibition (Veith), PAMPA
+permeability (NCATS), hydration free energy (FreeSolv), skin reaction, carcinogens (Lagunin), ClinTox and the twelve
+Tox21 assays (hERG sets are left out: Gate Q5 used them). Each file is checked against the MD5 Dataverse publishes and
+split once by Bemis–Murcko scaffold (80 % train / 20 % test, seed 42; only SMILES are read for the split), before any
+model was fitted. Practice used the train parts only:
+
+<!-- BEGIN generated:admet_q8b_practice -->
+_results_admet_q8b_practice.json: not run (python validation/admet_q8b.py --practice)._
+<!-- END generated:admet_q8b_practice -->
+
+<!-- BEGIN generated:admet_q8b -->
+_results_admet_q8b.json: not run (python validation/admet_q8b.py --test)._
+<!-- END generated:admet_q8b -->
+
+### The structure gates (1c, 2, 2b, 2d): sizes and distance ranges from Hi-C
+
+`validation/round3_posthoc.py` (`results_round3_posthoc.json`). With every Hi-C unit seen, there are ten datasets to
+learn from instead of five. Each was held out in turn:
+
+<!-- BEGIN generated:round3_posthoc -->
+Sizes from Hi-C (119 Hi-C units, every dataset held out in turn; CCC / median size ratio of the held-out dataset; Gate 1c's rule needs CCC ≥ 0.8 and a ratio of 0.8–1.25):
+
+| Calibration form | bintu_a549_28_30 | bintu_hct116_28_30 | bintu_hct116_34_37 | bintu_imr90_18_20 | bintu_imr90_28_30 | bintu_k562_28_30 | su_chr2 | su_chr21 | su_genome | su_genome_tx | Within 1c's rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| global | 0.43 / 0.68 | 0.90 / 1.00 | 0.76 / 1.10 | 0.45 / 0.82 | 0.58 / 1.03 | 0.72 / 1.14 | 0.58 / 1.25 | 0.47 / 1.37 | 0.61 / 1.13 | 0.65 / 0.98 | 1 of 10 |
+| sep | 0.51 / 0.74 | 0.82 / 1.12 | 0.63 / 1.25 | 0.53 / 0.90 | 0.50 / 1.17 | 0.60 / 1.29 | 0.65 / 1.19 | 0.46 / 1.38 | 0.65 / 1.09 | 0.67 / 0.93 | 1 of 10 |
+| sep2 | 0.57 / 0.73 | 0.82 / 1.09 | 0.63 / 1.23 | 0.55 / 0.88 | 0.50 / 1.12 | 0.60 / 1.25 | 0.58 / 1.14 | 0.40 / 1.46 | 0.67 / 1.08 | 0.67 / 0.93 | 1 of 10 |
+| sep2+step | 0.37 / 0.68 | 0.90 / 1.02 | 0.75 / 1.15 | 0.39 / 0.83 | 0.57 / 1.09 | 0.71 / 1.17 | 0.43 / 0.90 | 0.67 / 1.20 | 0.63 / 1.11 | 0.68 / 0.94 | 1 of 10 |
+| sep2+step+depth | 0.70 / 0.87 | 0.83 / 0.86 | 0.85 / 0.93 | 0.51 / 0.85 | 0.74 / 1.04 | 0.86 / 1.04 | 0.45 / 0.95 | 0.87 / 0.95 | 0.70 / 1.04 | 0.69 / 0.93 | 4 of 10 |
+| sep2+step+depth+protocol | 0.76 / 0.93 | 0.84 / 0.85 | 0.93 / 0.94 | 0.54 / 0.86 | 0.78 / 1.15 | 0.91 / 1.03 | 0.47 / 0.98 | 0.86 / 1.03 | 0.69 / 1.04 | 0.69 / 0.93 | 4 of 10 |
+
+Hi-C-input distance ranges around the sep2+step+depth+protocol calibration (each dataset held out; coverage of the 90 % / 50 % range per separation band; Gate 2d's rule needs 85–95 % / 40–60 % in every band):
+
+| Held-out dataset | Coverage by band | Within 2d's rule |
+|---|---|---|
+| bintu_a549_28_30 | 0–0.1 Mb: 86 / 41 %; 0.1–0.3 Mb: 92 / 51 %; 0.3–1 Mb: 92 / 52 %; 1–3 Mb: 92 / 49 % | yes |
+| bintu_hct116_28_30 | 0–0.1 Mb: 92 / 52 %; 0.1–0.3 Mb: 92 / 50 %; 0.3–1 Mb: 91 / 51 %; 1–3 Mb: 92 / 50 % | yes |
+| bintu_hct116_34_37 | 0–0.1 Mb: 95 / 59 %; 0.1–0.3 Mb: 95 / 57 %; 0.3–1 Mb: 94 / 56 %; 1–3 Mb: 96 / 58 % | no |
+| bintu_imr90_18_20 | 0–0.1 Mb: 92 / 47 %; 0.1–0.3 Mb: 92 / 48 %; 0.3–1 Mb: 88 / 45 %; 1–3 Mb: 89 / 45 % | yes |
+| bintu_imr90_28_30 | 0–0.1 Mb: 93 / 53 %; 0.1–0.3 Mb: 93 / 54 %; 0.3–1 Mb: 93 / 55 %; 1–3 Mb: 94 / 58 % | yes |
+| bintu_k562_28_30 | 0–0.1 Mb: 92 / 55 %; 0.1–0.3 Mb: 90 / 51 %; 0.3–1 Mb: 91 / 52 %; 1–3 Mb: 94 / 60 % | yes |
+| su_chr2 | 0.1–0.3 Mb: 84 / 44 %; 0.3–1 Mb: 83 / 40 %; 1–3 Mb: 86 / 41 %; 3–10 Mb: 90 / 49 %; 10–300 Mb: 93 / 52 % | no |
+| su_chr21 | 0–0.1 Mb: 76 / 39 %; 0.1–0.3 Mb: 81 / 43 %; 0.3–1 Mb: 85 / 47 %; 1–3 Mb: 93 / 55 %; 3–10 Mb: 95 / 59 %; 10–300 Mb: 92 / 52 % | no |
+| su_genome | 1–3 Mb: 82 / 40 %; 3–10 Mb: 88 / 47 %; 10–300 Mb: 89 / 50 % | no |
+| su_genome_tx | 1–3 Mb: 77 / 39 %; 3–10 Mb: 80 / 38 %; 10–300 Mb: 87 / 47 % | no |
+<!-- END generated:round3_posthoc -->
+
+**Reading.**
+- **Sizes: the overall scale is now right, the distance-by-distance agreement is not.** The richer calibration (separation,
+  locus spacing, depth, protocol) brings every held-out dataset's median size ratio inside 0.85–1.15 (one global factor:
+  0.68–1.37). CCC still misses 0.8 on six of ten: the region without domain structure (IMR-90 18–20 Mb, 0.54), the
+  chromosome-wide and genome-scale sets (0.47–0.69), where the pattern itself, not the scale, limits agreement, and
+  narrowly A549 and IMR-90 28–30 Mb (0.76, 0.78). Gate 1c's rule would fail again, so no new size test was
+  pre-registered.
+- **Ranges: right for one imaging method, too narrow for the other.** Around the calibrated medians, Gate 2d's ranges hold
+  their coverage in every band on five of the six held-out Bintu et al. regions, but cover only 76–86 % at 90 % on all
+  four Su et al. sets, whose single-copy distances spread more (a different imaging method and locus size). A Hi-C map
+  says nothing about which microscope will check it, so no input-only correction exists; a new range test on new
+  imaging data (the human 4DN tracing sets: Wang et al. 2016 IMR-90 chr20/22/X, Cheng et al. 2023 A549 chr22,
+  Patterson et al. 2023 H9 chrX) would succeed or fail on that technique, not on the model. Not pre-registered.
+
+### Not retested, and why
+
+- **Gate 2c / 2e (which distances will be wrong).** Three pre-registered attempts (per bead, per pair, per pair on
+  untouched data) found a real but weak signal with imaging input (ρ 0.07–0.20) and none with Hi-C input; the bar is
+  ρ ≥ 0.30. No new score did better on practice, so nothing new to test.
+- **Gate 5b (prediction with cohesin peaks).** Cohesin peaks helped within the practice cell types and did not transfer
+  to new ones. Published deep-learning predictors were considered again: C.Origami needs pyBigWig (no Windows build)
+  and was trained on IMR-90 Hi-C over the loci of most test sets; Akita was trained on IMR-90 and HCT116 Hi-C
+  genome-wide; Orca predicts only H1 and HFF. None gives a clean "no contact data for this cell type" test here, and
+  no practice result suggests the 50 %-of-the-pattern bar is within reach of a model on peak features.
+- **Gate 8 (Drug lab against real drug treatment).** No new chromatin-tracing data after these drug classes exist. The
+  4DN portal's drug-treated Hi-C is transcription inhibition only (flavopiridol, triptolide), which Gate 8 did not test
+  and which barely changes Hi-C within an hour; a test there would measure noise.
+- **Gate Q7b (docking).** Three practice variants (refined clique poses, clique-seeded local search, a hybrid giving
+  25 % of random search's budget to clique seeds) all docked fewer complexes than random search with the same score and
+  refinement (32.6–52.5 % against 52.3–55.6 %). The 20-qubit interaction graph is too coarse to place a ligand as well as
+  many random placements; graphs large enough to help need more qubits than this computer can simulate. Not retested.
+
 ## Cost (Pillar 1): runtime and peak memory against bead count
 
 `python validation/scale_benchmark.py`: each run in its own process. Input: windows of the

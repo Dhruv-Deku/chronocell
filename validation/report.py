@@ -1279,6 +1279,82 @@ def admet() -> str:
     return "\n".join(out)
 
 
+def admet_q8b_posthoc() -> str:
+    r = _load("results_admet_q8b_posthoc.json")
+    if not r:
+        return "_results_admet_q8b_posthoc.json: not run (python validation/admet_q8b.py --posthoc)._"
+    out = ["Why Q8 failed, checked after its test on Q8's own (now seen) test splits: the same quantum kernel with the "
+           "\"global\" encoding, settings by the same 5-fold cross-validation, Q8's RBF models unchanged. Q8's verdict "
+           "stands; these numbers are the reason for Q8b, not evidence.", "",
+           "| Endpoint | Quantum, Q8 encoding | Quantum, global encoding | RBF, same 8 inputs | Meets Q8's rule |",
+           "|---|---|---|---|---|"]
+    for n, e in r["endpoints"].items():
+        out.append(f"| {n} | {e['q8_quantum']:.3f} | {e['metric']['quantum']:.3f} | {e['metric']['rbf8']:.3f} | "
+                   f"{'yes' if e['pass'] else 'no'} |")
+    out += ["", f"With the global encoding {r['meets_q8_rule']} of {r['of']} endpoints meet Q8's per-endpoint rule "
+                "(Q8 itself: 16 of 21)."]
+    return "\n".join(out)
+
+
+def admet_q8b_practice() -> str:
+    r = _load("results_admet_q8b_practice.json")
+    if not r:
+        return "_results_admet_q8b_practice.json: not run (python validation/admet_q8b.py --practice)._"
+    out = [f"Practice (train parts only; training capped at {r['cap']} compounds; 5-fold cross-validation):", "",
+           "| Endpoint | Task | Compounds | Quantum kernel, global encoding (CV) | RBF, same 8 inputs | RBF, all 17 |",
+           "|---|---|---|---|---|---|"]
+    for n, e in r["endpoints"].items():
+        out.append(f"| {n} | {'yes/no (AUC)' if e['task'] == 'cls' else 'value (Spearman)'} | {e['n']} | "
+                   f"{e['cv']['quantum']:.3f} | {e['cv']['rbf8']:.3f} | {e['cv']['rbf17']:.3f} |")
+    return "\n".join(out)
+
+
+def admet_q8b() -> str:
+    r = _load("results_admet_q8b.json")
+    if not r:
+        return "_results_admet_q8b.json: not run (python validation/admet_q8b.py --test)._"
+    out = ["Test (scaffold test parts never read before; run once):", "",
+           "| Endpoint | Train / test | Quantum kernel (95 % interval) | RBF, same 8 inputs | RBF, all 17 | Quantum − RBF (95 %) | Verdict |",
+           "|---|---|---|---|---|---|---|"]
+    for n, e in r["endpoints"].items():
+        m, ci = e["metric"], e["ci95"]
+        out.append(f"| {n} | {e['train']} / {e['test']} | {m['quantum']:.3f}{_ci(ci['quantum'], 3)} | {m['rbf8']:.3f} | "
+                   f"{m['rbf17']:.3f} | {m['quantum'] - m['rbf8']:+.3f}{_ci(ci['quantum_minus_rbf8'], 3)} | "
+                   f"{'pass' if e['pass'] else 'fail'} |")
+    out += ["", f"Gate Q8b: **{'pass' if r['pass'] else 'fail'}**: {r['passed']} of {r['of']} endpoints met the rule "
+                f"(needed {r['rule']['min_endpoints']})."]
+    return "\n".join(out)
+
+
+def round3_posthoc() -> str:
+    r = _load("results_round3_posthoc.json")
+    if not r:
+        return "_results_round3_posthoc.json: not run (python validation/round3_posthoc.py)._"
+    sz = r["sizes"]
+    groups = list(next(iter(sz.values())))
+    out = [f"Sizes from Hi-C ({r['units']} Hi-C units, every dataset held out in turn; CCC / median size ratio of the "
+           "held-out dataset; Gate 1c's rule needs CCC ≥ 0.8 and a ratio of 0.8–1.25):", "",
+           "| Calibration form | " + " | ".join(groups) + " | Within 1c's rule |", "|---|" + "---|" * (len(groups) + 1)]
+    for form, per in sz.items():
+        out.append(f"| {form} | " + " | ".join(f"{per[g]['ccc']:.2f} / {per[g]['size_ratio']:.2f}" for g in groups)
+                   + f" | {sum(v['within_1c_rule'] for v in per.values())} of {len(per)} |")
+    iv = r["intervals_hic"]
+    out += ["", f"Hi-C-input distance ranges around the {r['intervals_form']} calibration (each dataset held out; coverage of "
+                "the 90 % / 50 % range per separation band; Gate 2d's rule needs 85–95 % / 40–60 % in every band):", "",
+            "| Held-out dataset | Coverage by band | Within 2d's rule |", "|---|---|---|"]
+    for g, v in iv.items():
+        bands = "; ".join(f"{_band_label(int(b))}: {100 * x['0.9']:.0f} / {100 * x['0.5']:.0f} %" for b, x in v["bands"].items())
+        out.append(f"| {g} | {bands} | {'yes' if v['within_2d_rule'] else 'no'} |")
+    return "\n".join(out)
+
+
+def _band_label(lo: int) -> str:
+    edges = [0, 100_000, 300_000, 1_000_000, 3_000_000, 10_000_000, 300_000_000]
+    hi = edges[edges.index(lo) + 1]
+    f = lambda v: f"{v / 1e6:g}"                                                        # noqa: E731
+    return f"{f(lo)}–{f(hi)} Mb"
+
+
 def mitigation_practice() -> str:
     r = _load("results_mitigation_practice.json")
     if not r:
@@ -1317,6 +1393,12 @@ def summary_new() -> str:
         rows.append(f"| Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | "
                     f"{r['passed']} of {r['of']} endpoints met the rule; quantum − classical median {np.median(q):+.3f} | "
                     f"{'pass' if r['pass'] else 'fail'} |")
+    r = _load("results_admet_q8b.json")
+    if r:
+        q = [e["metric"]["quantum"] - e["metric"]["rbf8"] for e in r["endpoints"].values()]
+        rows.append(f"| Gate Q8b: quantum-kernel drug properties with the encoding fixed, {r['of']} new TDC endpoints "
+                    f"(scaffold test splits) | {r['passed']} of {r['of']} endpoints met the rule; quantum − classical "
+                    f"median {np.median(q):+.3f} | {'pass' if r['pass'] else 'fail'} |")
     r = _load("results_mitigation.json")
     if r:
         rows.append(f"| Gate Q9: error mitigation on a simulated noisy chip, {r['cases']} new molecules | {r['within']} of "
@@ -1335,6 +1417,7 @@ BLOCKS = {"gate1": gate1, "gate2": gate2, "gate2b": gate2b, "gate2c": gate2c, "g
           "qdrug_practice": qdrug_practice, "qdrug": qdrug, "summary_qd": summary_qd,
           "round2_practice": round2_practice, "round2": round2, "summary_r2": summary_r2, "gate6b": gate6b,
           "gate8_marks": gate8_marks, "admet_practice": admet_practice, "admet": admet,
+          "admet_q8b_posthoc": admet_q8b_posthoc, "round3_posthoc": round3_posthoc, "admet_q8b_practice": admet_q8b_practice, "admet_q8b": admet_q8b,
           "mitigation_practice": mitigation_practice, "mitigation": mitigation, "summary_new": summary_new}
 TARGETS = (RESULTS_MD, ROOT.parent / "README.md")
 

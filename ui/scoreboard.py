@@ -63,7 +63,8 @@ PLAIN = {   # what each test asks, in plain words (the measured numbers come fro
     "Gate Q7:": "Can quantum matching dock a drug into its protein?",
     "Gate Q7b": "Docking with a better score, on a new set.",
     "Gate Q7c": "Docking with a quantum-seeded hybrid search, on new complexes.",
-    "Gate Q8": "A 21-property drug safety profile (ADMET) from a quantum model.",
+    "Gate Q8:": "A 21-property drug safety profile (ADMET) from a quantum model.",
+    "Gate Q8b": "Drug properties again, with the quantum model's input scaling fixed, on 19 new properties.",
     "Gate Q9": "Can error mitigation rescue a noisy quantum computer?",
 }
 
@@ -82,7 +83,12 @@ def _load(name: str):
         return None
 
 
-RETESTS = ("Gate 6b", "Gate Q2b", "Gate Q4b", "Gate Q6b", "Gate Q6c", "Gate Q6d", "Gate Q7b", "Gate Q7c")
+RETESTS = ("Gate 6b", "Gate Q2b", "Gate Q4b", "Gate Q6b", "Gate Q6c", "Gate Q6d", "Gate Q7b", "Gate Q7c", "Gate Q8b")
+# a test -> its later retests (new method, new data), in order. A failed test stays a fail on the record; when one of its
+# retests passed, the row also says so ("later passed as ...").
+LINEAGE = {"Gate 6:": ("Gate 6b",), "Gate Q2:": ("Gate Q2b",), "Gate Q4:": ("Gate Q4b",),
+           "Gate Q6:": ("Gate Q6b", "Gate Q6c", "Gate Q6d"), "Gate Q6b": ("Gate Q6c", "Gate Q6d"), "Gate Q6c": ("Gate Q6d",),
+           "Gate Q7b": ("Gate Q7c",), "Gate Q8:": ("Gate Q8b",)}
 
 
 def status_of(verdict: str) -> str:
@@ -117,7 +123,20 @@ def rows() -> pd.DataFrame:
             key = next((k for k in sorted(PLAIN, key=len, reverse=True) if test.startswith(k)), None)
             out.append({"area": area, "test": test, "question": PLAIN.get(key, ""), "measured": measured, "verdict": verdict,
                         "status": status_of(verdict), "retest": test.startswith(RETESTS)})
-    return pd.DataFrame(out)
+    df = pd.DataFrame(out)
+    df["fixed_by"] = [later_pass(df, t) if s == "fail" else "" for t, s in zip(df["test"], df["status"])] if len(df) else []
+    return df
+
+
+def later_pass(df: pd.DataFrame, test: str) -> str:
+    """The first retest of `test` that passed (its short name, e.g. "Gate 6b"), or "" if none has."""
+    for root, later in LINEAGE.items():
+        if test.startswith(root):
+            for name in later:
+                hit = df[df["test"].str.startswith(name) & (df["status"] == "pass")]
+                if len(hit):
+                    return name
+    return ""
 
 
 def _chip(status: str) -> str:
@@ -130,8 +149,11 @@ def _chip(status: str) -> str:
 def overview(df: pd.DataFrame) -> None:
     n = len(df)
     p, f, o = (int((df["status"] == s).sum()) for s in ("pass", "fail", "other"))
+    fixed = int((df["fixed_by"] != "").sum()) if "fixed_by" in df else 0
     readout([("Tests on held-out real data", f"{n}", "each pre-registered, each run once"),
-             ("Passed", f"{p}", f"{100 * p / max(n, 1):.0f} %"), ("Failed", f"{f}", "kept on the record"),
+             ("Passed", f"{p}", f"{100 * p / max(n, 1):.0f} %"),
+             ("Failed", f"{f}", f"kept on the record; {fixed} later passed as a retest" if fixed else "kept on the record"),
+             ("Open failures", f"{f - fixed}", "no retest has passed yet"),
              ("Blocked / baseline / mixed", f"{o}", "see the verdict text")])
     fig = go.Figure()
     for s, col in (("pass", PASS), ("fail", FAIL), ("other", OTHER)):
@@ -146,12 +168,15 @@ def overview(df: pd.DataFrame) -> None:
 def table(df: pd.DataFrame) -> None:
     c1, c2 = st.columns([1.2, 1])
     area = c1.selectbox("Area", ["All"] + list(AREAS), key="sb_area")
-    show = c2.segmented_control("Show", ["All", "Passed", "Failed", "Retests"], default="All", required=True, key="sb_show")
+    show = c2.segmented_control("Show", ["All", "Passed", "Failed", "Open failures", "Retests"], default="All", required=True,
+                                key="sb_show")
     d = df if area == "All" else df[df["area"] == area]
     if show == "Passed":
         d = d[d["status"] == "pass"]
     elif show == "Failed":
         d = d[d["status"] == "fail"]
+    elif show == "Open failures":
+        d = d[(d["status"] == "fail") & (d["fixed_by"] == "")]
     elif show == "Retests":
         d = d[d["retest"]]
     for _, r in d.iterrows():
@@ -159,7 +184,10 @@ def table(df: pd.DataFrame) -> None:
              f'{_chip(r["status"])}<b>{esc(r["test"])}</b></div>'
              + (f'<div style="margin-top:4px"><i>{esc(r["question"])}</i></div>' if r["question"] else "")
              + f'<div style="margin-top:4px"><b>Measured:</b> {esc(r["measured"])}</div>'
-             f'<div><b>Verdict:</b> {esc(r["verdict"])}</div></div>')
+             f'<div><b>Verdict:</b> {esc(r["verdict"])}</div>'
+             + (f'<div style="margin-top:4px;color:{PASS}"><b>Later passed as {esc(r["fixed_by"])}</b> (a retest with a new '
+                'method on new data; this fail stays on the record)</div>' if r.get("fixed_by") else "")
+             + '</div>')
 
 
 # ------------------------------------------------------------------------------------------- charts
