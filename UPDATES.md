@@ -590,26 +590,26 @@ happened.** Commit times are the witnesses (IST). Every commit on `feat/v4-evide
 `Contributors:` lines are left blank for that reason. The measured results are in
 `validation/RESULTS.md`; they are not repeated here.
 
-**11:13 · `1e20719` Baseline:** ChronoCell-5D v3.3 as downloaded (118 tests passing).
+**11:13 · `57ffcb1` Baseline:** ChronoCell-5D v3.3 as downloaded (118 tests passing).
 **11:18 – 12:54 · Core of v4:**
-- `e4feebc` scalable population model with exact per-pair uncertainty (Pillars 1, 2);
-- `37cdab2` built-in `.hic` reader (local or remote by HTTP range) and the shared validation protocol;
-- `35c1d8d` perturbation engine, SV files, chromosome names; cohesin parameters frozen (Pillar 4);
-- `1217079` Gate 1 settings frozen before the Su chr21 test run;
-- `141ea88` Self-Math PDB State Evaluator (Pillar 7);
-- `5fa9472`, `ced6aaa` population model beyond 400 beads in the app; exact interval in the probe;
-- `66023af` genome assemblies as configuration (hg38 + mm39) (Pillar 6);
-- `f6516fe` reproducibility record, JSON + PDF (Pillar 8);
-- `20493a0` held-out results of Gate 1 and Gate 4 (cohesin); Gate 2 recalibration frozen.
+- `fb2b44a` scalable population model with exact per-pair uncertainty (Pillars 1, 2);
+- `f85444d` built-in `.hic` reader (local or remote by HTTP range) and the shared validation protocol;
+- `1d48ffb` perturbation engine, SV files, chromosome names; cohesin parameters frozen (Pillar 4);
+- `0ca6520` Gate 1 settings frozen before the Su chr21 test run;
+- `fe1b727` Self-Math PDB State Evaluator (Pillar 7);
+- `dfd8fea`, `635065d` population model beyond 400 beads in the app; exact interval in the probe;
+- `a53c21c` genome assemblies as configuration (hg38 + mm39) (Pillar 6);
+- `792dbd0` reproducibility record, JSON + PDF (Pillar 8);
+- `bf4c490` held-out results of Gate 1 and Gate 4 (cohesin); Gate 2 recalibration frozen.
 
-**16:12 – 16:32 · Structural variants and environment:** `50a1e27` SV test pre-registered; `38bfbbc`
-Gate 4b measured, not validated; `7338fda`, `89fdaa2` variant files and the 04 Variant impact panel;
-`1224f11` pinned versions, Dockerfile, CI.
+**16:12 – 16:32 · Structural variants and environment:** `701effa` SV test pre-registered; `9cf6e1e`
+Gate 4b measured, not validated; `e65bf12`, `6010992` variant files and the 04 Variant impact panel;
+`868b539` pinned versions, Dockerfile, CI.
 
-**17:10 – 18:15 · Prediction without contact data:** `233fdaa` Gate 5 pre-registered; `780aba7`
-predictor frozen on practice data; `9fef9e3`, `84effe1`, `c183b9b` tuning record and protocol;
-`ebfe542` recalibrated interval in the probe; `9ba5061` RESULTS.md v4; `03f20c0` Gate 5 passes its
-pre-registered rule, modestly; `e153602` the prediction in the app.
+**17:10 – 18:15 · Prediction without contact data:** `e9275af` Gate 5 pre-registered; `deb2e91`
+predictor frozen on practice data; `fba3337`, `c8c8274`, `370b063` tuning record and protocol;
+`8ec496b` recalibrated interval in the probe; `e0a3e56` RESULTS.md v4; `fbb4af6` Gate 5 passes its
+pre-registered rule, modestly; `08dda4d` the prediction in the app.
 
 Contributors: _______________
 
@@ -626,27 +626,27 @@ file through `validation/report.py`; pass rules are committed before the test th
 uses practice data only; failures are reported next to successes; nothing is pushed.
 
 **Pre-registrations, each committed before its test:**
-- `a372531` Gate 2b, intervals with Hi-C input (rule + practice-fitted Hi-C recalibration);
-- `1af2b96` Gate 5m, the predictor on mouse (not run, see below);
-- `b625717` Gate 2c, a per-pair reliability score (after a practice comparison of three candidates).
+- `a522955` Gate 2b, intervals with Hi-C input (rule + practice-fitted Hi-C recalibration);
+- `302a033` Gate 5m, the predictor on mouse (not run, see below);
+- `354c0d5` Gate 2c, a per-pair reliability score (after a practice comparison of three candidates).
 
 **Results:**
-- `bea3fde` **Gate 2b fails**: with Hi-C input the stated intervals stay far below nominal even after
+- `52b8641` **Gate 2b fails**: with Hi-C input the stated intervals stay far below nominal even after
   a Hi-C recalibration fitted on practice data. The probe no longer applies the imaging recalibration
   to sequencing input; it shows the measured shortfall.
-- `667d290` **Gate 2c fails**: the chosen per-pair score ranks error weakly with imaging-derived input and
+- `d2ed6f9` **Gate 2c fails**: the chosen per-pair score ranks error weakly with imaging-derived input and
   not at all with Hi-C input, below the pre-registered bar; no reliability score is shown in the app.
-- `3297c52` **Gate 3 measured**: with imaging-derived input the population models are best or tied best
+- `c7347e7` **Gate 3 measured**: with imaging-derived input the population models are best or tied best
   on 27 of 28 test units; with Hi-C input on 18 of 26 (the no-3D inversion or PASTIS is ahead on seven
   genome-scale chromosomes). The full run was stopped by the machine's 2-hour job limit, so the plan
   was run in four parts and merged (`--merge`); PASTIS PM2 on the two 651-locus sets did not finish in
   an hour and is recorded as not finished.
-- `21b7078` **Cost**: the scale benchmark is complete (v4 fits the whole synthetic chr22 in under nine
+- `77b27f6` **Cost**: the scale benchmark is complete (v4 fits the whole synthetic chr22 in under nine
   minutes on this CPU). The per-chromosome runtime is **partial**: the 2-hour job limit stopped it after
   13 chromosomes; three were measured while the test suite ran and are kept but discarded from the
   table; 35 remain. `python validation/chromosome_runtime.py --resume` finishes it.
 
-**Features** (`7263d77`):
+**Features** (`b01c03a`):
 - CTCF peaks by cell type: "ENCODE, by cell type" fetches the GRCh38 IDR peaks of IMR-90, A549, K562
   or HCT116 (listed in `chronocell/data/validation_sources.json`) once into the cache, checks the MD5
   the portal publishes, records the accession in the prediction's inputs and shows the citation.
@@ -720,30 +720,30 @@ test run once; every number in the documents from a result file through `validat
 reported next to successes.
 
 **Phase A (accuracy core).**
-- A0 `eb8887d`: PyTorch 2.11.0 with CUDA 12.8 on the RTX 5050 Laptop GPU; CPU fallback on GPU out-of-memory;
+- A0 `926f3a7`: PyTorch 2.11.0 with CUDA 12.8 on the RTX 5050 Laptop GPU; CPU fallback on GPU out-of-memory;
   a GPU / CPU agreement test.
-- A6 `e07e340`: two untouched genome-scale sets registered with fixed roles; `f5a2295`, `fbc189d`: shared cached
+- A6 `f76cd63`: two untouched genome-scale sets registered with fixed roles; `871cc69`, `290c7d3`: shared cached
   units (fits + held-out truth), ENCODE Hi-C sources, depth thinning.
-- Gate 1c (sizes from Hi-C): pre-registered `c1726a9`, **fail** `41d46c2`.
-- Gate 2d (conformal ranges): pre-registered `4dad69c`, **fail** `c3e466b`.
-- Gate 2e (per-pair reliability): pre-registered `0a7998d`, **fail** (this entry's documentation commit).
-- Gate 3b (learned correction): practice chose no correction, **not run** `8763ab1`.
-- Gate 5b (prediction with cohesin peaks): pre-registered `cbebab1`, **fail** `4415433`.
+- Gate 1c (sizes from Hi-C): pre-registered `7186462`, **fail** `e319970`.
+- Gate 2d (conformal ranges): pre-registered `2dbd2d8`, **fail** `e3fdc90`.
+- Gate 2e (per-pair reliability): pre-registered `8953d30`, **fail** (this entry's documentation commit).
+- Gate 3b (learned correction): practice chose no correction, **not run** `c6fa7a7`.
+- Gate 5b (prediction with cohesin peaks): pre-registered `ff19389`, **fail** `003deba`.
 - Gate 5m (the predictor on mouse): the 4DN files turned out to be public on 4DN Open Data, so the test that was
-  pre-registered in `1af2b96` ran unchanged: runner `2f205fc`, **pass, modestly** `54075e2`; the predictor is now
+  pre-registered in `302a033` ran unchanged: runner `0f28abc`, **pass, modestly** `38aa9b8`; the predictor is now
   offered for mouse, labelled.
 
 **Phase B (product features).**
-- B8 `17c1578`: Research mode switch (default on), "SYNTHETIC ·" labels, warnings on synthetic results.
-- B1–B7 library `817428f`: variant engine v2 (joins, two chromosomes, copy number, ranking), analysis suite
+- B8 `53e5d4c`: Research mode switch (default on), "SYNTHETIC ·" labels, warnings on synthetic results.
+- B1–B7 library `a2746e9`: variant engine v2 (joins, two chromosomes, copy number, ranking), analysis suite
   (HiCCUPS-like loops, TopDom-like / Arrowhead-like domains), replicate-aware differential analysis, region-wise
   .hic / .cool / .mcool / .pairs reading with assembly checks, KR balancing, liftover, exports for IGV / Juicebox /
   HiGlass, offline HTML / PDF reports, the `chronocell` command, a local job queue, saved projects, three REST
   endpoints, `pyproject.toml`.
-- App `80fb251`: new panels (01 → 06 Analysis suite, 03 → Differential analysis, 02 → 05 Variant engine v2,
+- App `1a58703`: new panels (01 → 06 Analysis suite, 03 → Differential analysis, 02 → 05 Variant engine v2,
   05 Genes → reference annotations), sidebar Projects and Jobs, a built-in bigWig reader, mouse prediction.
-- Gate 4c (cohesin loss vs RAD21-degron Hi-C): pre-registered `a1d20fb`, **pass** `88e7436`.
-- Gates 6 (loops) and 7 (differential FDR), and Gate 4d recorded as blocked: pre-registered `b22fe02`; Gate 6
+- Gate 4c (cohesin loss vs RAD21-degron Hi-C): pre-registered `4e8149a`, **pass** `75e2e84`.
+- Gates 6 (loops) and 7 (differential FDR), and Gate 4d recorded as blocked: pre-registered `cb2e681`; Gate 6
   **fail**, Gate 7 **pass** (this entry's documentation commit).
 - B9: chromosight and Mustache run from an isolated environment (`.chronocell_cache/tools-venv`); every other
   tool is recorded with the reason it could not run here (`validation/results_tools_b9.json`).
@@ -803,7 +803,7 @@ solves the problem in linear time is also reported as the honest classical compa
 widened once because its first best setting sat at the grid's edge. A VQE panel that would have computed on page load
 was moved behind a button before the first commit.
 
-**Gate Q.** Pre-registered in `eba6efa` (rules, practice results, the lab itself). Test run once (this entry's
+**Gate Q.** Pre-registered in `bc12d26` (rules, practice results, the lab itself). Test run once (this entry's
 commit): **Q1 pass** (QAOA reached the exact optimum of the held-out domain puzzles), **Q2 fail** (the domain QUBO's
 calls agreed with ENCODE's Arrowhead calls less well than the classical TopDom-like and insulation callers, on both
 cell lines), **Q3 pass** (UCCSD-VQE exact for H2 and HeH+), **Q4 fail** (the quantum-kernel gene classifier trailed
@@ -842,7 +842,7 @@ chosen; the kernel grids were widened on practice when a best value sat at an ed
 simulator's agreement with alpha-amanitin came from a generic compaction pattern (shuffled targeting did as well), so its
 rule asks that the real targeting beat shuffled targeting.
 
-**Results** (pre-registered in `fa41e78`; each test run once; this entry's commit): **Gate 8 fail** (no drug met the
+**Results** (pre-registered in `a3919e5`; each test run once; this entry's commit): **Gate 8 fail** (no drug met the
 rule: where predicted and measured changes agreed, shuffled targeting agreed as well), **Q5 pass** (the quantum-kernel
 hERG screen slightly ahead of the classical models on about 13,000 unseen compounds), **Q6 fail** (the chemistry matched
 OpenFermion's independent LiH reference; VQE missed chemical accuracy on stretched N2 and HCN), **Q7 pass**, modestly
@@ -1066,3 +1066,7 @@ version.
 - **The second copy of the brief removed.** `AI-Powered Codon Optimization for Vaccines(1).pdf` (the file noted on
   4 – 5 October as deleted but left for the owner to decide) is removed from the repository at the owner's request;
   the first copy, `AI-Powered Codon Optimization for Vaccines.pdf`, stays.
+- **Co-author lines removed (11 October 2026).** At the owner's request the line `Co-Authored-By: Claude ...` was
+  removed from every commit message on `main` and `feat/v4-evidence` (91 of 93 commits), so GitHub no longer lists
+  Claude among the contributors. Only the messages changed: every commit keeps its files, author and dates (checked
+  commit by commit), but each one has a new ID, and the commit IDs quoted in this log were updated to the new ones.
