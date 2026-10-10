@@ -13,8 +13,11 @@ validation/data/
 # pip install -e . metadata
 *.egg-info/
 
-# the rendered film and its previews (rebuilt by python motion/render.py)
-motion/out/
+# the rendered videos, soundtracks and previews (rebuilt by python motion/render.py); the two compact copies are
+# committed, so a fresh download (git clone or the GitHub ZIP) plays both videos in the Guide without rendering
+motion/out/*
+!motion/out/ChronoCell-5D_film_share.mp4
+!motion/out/ChronoCell-5D_explainer_share.mp4
 # the explainer's screen recordings (about 190 MB; re-recorded by python motion/explainer/record_app.py)
 motion/explainer/clips/*.mp4
 # reference recordings dropped into motion/ by hand

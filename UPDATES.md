@@ -1045,3 +1045,14 @@ The user asked for the pass / fail table to be put into both videos.
 - **Fonts kept locally.** Google Fonts timed out on this computer, which would have rendered both videos in fallback
   fonts; the three typefaces (SIL Open Font License) now ship in `motion/vendor/fonts/`. Also fixed: the explainer's
   terminal colouring could colour the word "ok" inside its own markup (it showed `ok">` on summary lines).
+
+## 10 October 2026 — Published: both videos come with the download
+
+The user asked for everything to be committed and published, so that anyone who downloads the GitHub ZIP gets the new
+version.
+
+- **The videos are now committed.** `.gitignore` keeps `motion/out/` ignored except the two compact copies
+  (`ChronoCell-5D_film_share.mp4`, about 35 MB; `ChronoCell-5D_explainer_share.mp4`, about 70 MB), so a fresh download
+  plays both videos in the Guide without rendering. The full-size renders, soundtracks and previews stay local.
+- **Published to `main`.** The work on `feat/v4-evidence` was pushed and merged into `main` (pull request #1), the
+  branch GitHub's "Download ZIP" uses.

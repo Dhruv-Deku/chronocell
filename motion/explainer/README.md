@@ -51,4 +51,6 @@ python motion/explainer/build.py
 python motion/render.py --page explainer
 ```
 
-The recordings (`clips/*.mp4`, about 190 MB) and the rendered video are not committed.
+The recordings (`clips/*.mp4`, about 190 MB) and the full-size video are not committed. The compact copy
+(`motion/out/ChronoCell-5D_explainer_share.mp4`, about 70 MB) is, so the Guide plays the explainer straight after a
+download; re-render with `--share` and commit the new copy when the explainer changes.
