@@ -25,7 +25,10 @@ def _population(n: int = 14, bond: float = 0.6, cells: int = 6000, loop: tuple[i
         end = rng.normal(size=(closed.sum(), 1, 3)) * 0.1          # loop anchors ~0.1 r_c apart
         steps[closed, a:b] = seg - (seg.sum(1, keepdims=True) - end) / (b - a)
     x = np.concatenate([np.zeros((cells, 1, 3)), np.cumsum(steps, axis=1)], axis=1)
-    return np.linalg.norm(x[:, :, None] - x[:, None], axis=-1)
+    d = np.empty((cells, n, n))
+    for s in range(0, cells, 250):                  # in chunks: all at once needs (cells, n, n, 3), 13 GB at n = 420
+        d[s:s + 250] = np.linalg.norm(x[s:s + 250, :, None] - x[s:s + 250, None], axis=-1)
+    return d
 
 
 def test_contact_probability_and_distance_inversions_are_consistent():
