@@ -1063,3 +1063,6 @@ version.
   17 GB for the 420-bead test, so GitHub's 16 GB machine was shut down near the end of the suite. scikit-learn 1.7.2
   (the version the suite ran with) is now listed, and the helper works in chunks of 250 cells, giving byte-identical
   distances.
+- **The second copy of the brief removed.** `AI-Powered Codon Optimization for Vaccines(1).pdf` (the file noted on
+  4 – 5 October as deleted but left for the owner to decide) is removed from the repository at the owner's request;
+  the first copy, `AI-Powered Codon Optimization for Vaccines.pdf`, stays.
