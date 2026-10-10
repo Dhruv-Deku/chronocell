@@ -1067,7 +1067,8 @@ breakdown by the liver enzymes CYP2C9, CYP2D6, CYP3A4), Excretion (half-life, tw
 toxicity, Ames mutagenicity, liver injury). The quantum-kernel model's call is shown next to the classical model on
 all 17 descriptors, with their agreement; for measured values, the percentile within the training compounds. The first
 use downloads the TDC ADMET benchmark (1.5 MB, MD5-checked) and trains 21 models (about a minute). A screen for
-teaching and triage, not a safety assessment. Standing: Gate Q8.
+teaching and triage, not a safety assessment. Standing: Gate Q8 (fail, 16 of 21); its retest Gate Q8b passed (17 of 19
+new properties) after the quantum model's input scaling was fixed, and the panel uses the fixed scaling.
 
 **Noise & mitigation** (06 Quantum lab → *Noise & mitigation*). Choose a molecule, a bond stretch and the chip's
 two-qubit error rate (0.003 is about today's best superconducting devices); *Run on the noisy simulated chip* runs the

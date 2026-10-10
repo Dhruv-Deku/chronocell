@@ -1000,3 +1000,27 @@ being run and accuracy being calculated, with animations, in a more conventional
 - **04 Where it stands** and the commands to run the app. The Guide plays the explainer under the film when it has been
   rendered. The screen recordings (about 190 MB) and the video are not committed.
 
+
+## 10 October 2026 — The Guide moves last; round 3: the failed tests revisited
+
+The user asked to put the Guide tab last and to "try to make the failed tests pass by thinking all ways".
+
+- **Tabs.** 06 Quantum lab, 07 Scoreboard, 08 Guide (the Guide was 06). Numbers updated wherever they are written;
+  the app screenshots were captured again for the Guide's tour pictures and the README gallery. The rendered film and
+  explainer still show the old tab bar until they are rendered again.
+- **The rule that does not bend.** A failed test is never re-run or re-scored: that would turn the Scoreboard into a
+  record of retries. What can pass is a *retest*: a new method, chosen on practice data, frozen in
+  `validation/frozen.py`, then run once on data no test has used (the way Gate 6 → 6b and Q6 → Q6d were done).
+- **Scoreboard.** Six of the sixteen fails already had a passing retest; each now says "Later passed as …" under its
+  FAIL chip, and an *Open failures* count and filter show the rest (ten before round 3).
+- **Q8 → Q8b (drug properties).** Diagnosed on Q8's now-seen test splits: the quantum model's angle encoding stretched
+  every principal component to the same width, so noisy minor components counted as much as the main ones. With the
+  "global" encoding the same cross-validation meets Q8's per-endpoint rule on more endpoints (`results_admet_q8b_posthoc.json`).
+  Q8b tests that on 19 TDC endpoints no test had used, scaffold-split before any model was fitted.
+  **Q8b passed: 17 of 19 endpoints** (16 needed; quantum within 0.03 of the classical model on the same inputs on 18).
+  The Scoreboard shows "Later passed as Gate Q8b" under Q8, and the app's ADMET panel now uses the fixed encoding.
+  Open failures: 9 (were 10).
+- **Studied and not retested, with the reasons in RESULTS.md (Round 3):** sizes from Hi-C (the scale is now right on
+  every held-out dataset, CCC still below 0.8 on six of ten); Hi-C distance ranges (right for one imaging method, too
+  narrow for the other); which distances will be wrong (2c/2e); prediction with cohesin peaks (5b); the Drug lab
+  against real drugs (8: no new data); docking (Q7b: random search wins in every practice variant).

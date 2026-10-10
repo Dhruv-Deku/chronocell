@@ -1773,6 +1773,7 @@ Summary of the new tests:
 | Test (held-out, real data; simulated quantum) | Measured | Verdict |
 |---|---|---|
 | Gate Q8: quantum-kernel ADMET profile, 21 TDC endpoints (official scaffold test splits) | 16 of 21 endpoints met the rule; quantum − classical median -0.006 | fail |
+| Gate Q8b: quantum-kernel drug properties with the encoding fixed, 19 new TDC endpoints (scaffold test splits) | 17 of 19 endpoints met the rule; quantum − classical median +0.001 | pass |
 | Gate Q9: error mitigation on a simulated noisy chip, 16 new molecules | 16 of 16 within chemical accuracy after mitigation (median 0.41 mHa, noisy 11.5) | pass |
 <!-- END generated:summary_new -->
 
@@ -1857,8 +1858,46 @@ Practice (train parts only; training capped at 2500 compounds; 5-fold cross-vali
 <!-- END generated:admet_q8b_practice -->
 
 <!-- BEGIN generated:admet_q8b -->
-_results_admet_q8b.json: not run (python validation/admet_q8b.py --test)._
+Test (scaffold test parts never read before; run once):
+
+| Endpoint | Train / test | Quantum kernel (95 % interval) | RBF, same 8 inputs | RBF, all 17 | Quantum − RBF (95 %) | Verdict |
+|---|---|---|---|---|---|---|
+| cyp1a2_veith | 2500 / 2516 | 0.874 [0.861, 0.888] | 0.874 | 0.887 | +0.000 [-0.001, 0.002] | pass |
+| cyp2c19_veith | 2500 / 2533 | 0.797 [0.781, 0.814] | 0.802 | 0.816 | -0.005 [-0.010, 0.000] | pass |
+| pampa_ncats | 1628 / 407 | 0.697 [0.615, 0.784] | 0.693 | 0.685 | +0.004 [-0.018, 0.025] | pass |
+| freesolv | 514 / 128 | 0.823 [0.741, 0.887] | 0.808 | 0.811 | +0.014 [-0.030, 0.062] | pass |
+| skin_reaction | 323 / 81 | 0.596 [0.484, 0.712] | 0.571 | 0.647 | +0.024 [-0.027, 0.076] | fail |
+| carcinogens_lagunin | 224 / 56 | 0.775 [0.637, 0.890] | 0.781 | 0.761 | -0.006 [-0.041, 0.030] | pass |
+| clintox | 1182 / 295 | 0.694 [0.570, 0.809] | 0.693 | 0.755 | +0.001 [-0.025, 0.030] | pass |
+| tox21_NR-AR | 2500 / 1431 | 0.863 [0.823, 0.897] | 0.860 | 0.865 | +0.003 [-0.009, 0.017] | pass |
+| tox21_NR-AR-LBD | 2500 / 1309 | 0.907 [0.869, 0.944] | 0.908 | 0.910 | -0.002 [-0.013, 0.009] | pass |
+| tox21_NR-AhR | 2500 / 1262 | 0.758 [0.727, 0.786] | 0.760 | 0.792 | -0.002 [-0.014, 0.010] | pass |
+| tox21_NR-Aromatase | 2500 / 1040 | 0.719 [0.652, 0.774] | 0.717 | 0.725 | +0.002 [-0.027, 0.031] | pass |
+| tox21_NR-ER | 2500 / 1166 | 0.712 [0.672, 0.752] | 0.711 | 0.734 | +0.001 [-0.005, 0.007] | pass |
+| tox21_NR-ER-LBD | 2500 / 1337 | 0.731 [0.670, 0.785] | 0.737 | 0.783 | -0.006 [-0.045, 0.036] | pass |
+| tox21_NR-PPAR-gamma | 2500 / 1209 | 0.763 [0.686, 0.828] | 0.658 | 0.694 | +0.106 [0.011, 0.195] | pass |
+| tox21_SR-ARE | 2500 / 1065 | 0.715 [0.677, 0.749] | 0.729 | 0.744 | -0.013 [-0.036, 0.010] | pass |
+| tox21_SR-ATAD5 | 2500 / 1379 | 0.672 [0.589, 0.745] | 0.733 | 0.769 | -0.061 [-0.118, -0.001] | fail |
+| tox21_SR-HSE | 2500 / 1223 | 0.789 [0.740, 0.834] | 0.754 | 0.815 | +0.035 [0.000, 0.067] | pass |
+| tox21_SR-MMP | 2500 / 1090 | 0.784 [0.752, 0.814] | 0.777 | 0.811 | +0.007 [-0.004, 0.018] | pass |
+| tox21_SR-p53 | 2500 / 1306 | 0.667 [0.616, 0.715] | 0.688 | 0.700 | -0.022 [-0.055, 0.010] | pass |
+
+Gate Q8b: **pass**: 17 of 19 endpoints met the rule (needed 16).
 <!-- END generated:admet_q8b -->
+
+**Reading Q8b (pass).**
+- **Pass: 17 of 19 new endpoints (16 needed).** The quantum model was within 0.03 of the classical RBF model on the same
+  8 inputs on 18 of 19 and ahead on 11 (median difference +0.001). The two misses: skin reaction, where the quantum
+  model was ahead (0.596 vs 0.571) but 81 test molecules leave its 95 % interval reaching down to 0.484, below chance;
+  and Tox21 SR-ATAD5, 0.061 behind.
+- **What it shows, and what it does not.** With the input scaling fixed, the simulated quantum kernel is as good as a
+  classical kernel on the same inputs, across many new properties. It is not better than classical models in general:
+  the RBF model on all 17 descriptors scored higher on 15 of 19. At the small bandwidths chosen, a quantum kernel of this
+  kind behaves much like a classical Gaussian kernel (Shaydulin & Wild, PRA 2022), so a tie is the expected best case.
+- **Q8 stays a fail on the record**; the Scoreboard now shows "Later passed as Gate Q8b" under it.
+- **In the app** the ADMET panel's quantum model now uses the global encoding, with the settings Q8b's post-hoc run chose
+  for each of its 21 properties; those properties' own test scores are the post-hoc ones above (19 of 21 within Q8's
+  margin), and the panel shows both standings.
 
 ### The structure gates (1c, 2, 2b, 2d): sizes and distance ranges from Hi-C
 
@@ -1906,6 +1945,11 @@ Hi-C-input distance ranges around the sep2+step+depth+protocol calibration (each
   says nothing about which microscope will check it, so no input-only correction exists; a new range test on new
   imaging data (the human 4DN tracing sets: Wang et al. 2016 IMR-90 chr20/22/X, Cheng et al. 2023 A549 chr22,
   Patterson et al. 2023 H9 chrX) would succeed or fail on that technique, not on the model. Not pre-registered.
+- **Ranges with imaging-derived input (Gates 2, 2d): the same cause.** Gate 2d's cached test histograms show the model's
+  centre right on every set (median log ratio −0.06 to +0.22) but the spread of single-copy distances differing by
+  method: the 90 % width in log units is 2.06–2.25 for the Bintu regions below 100 kb and 2.55–2.63 for Su chr21 and its
+  replicate. One set of quantiles cannot fit both, and contact frequencies carry no measure of a microscope's
+  localisation error. Not pre-registered.
 
 ### Not retested, and why
 
