@@ -156,6 +156,22 @@ def main() -> None:
     out(f"   {met} of {len(adm['endpoints'])} endpoints met -> {'PASS' if ok8 else 'FAIL'}   "
         f"{check('stored', met, adm['passed'])}   {check('Scoreboard', 'pass' if ok8 else 'fail', _status(df, 'Gate Q8'))}", 0.15)
 
+    if (VAL / "results_admet_q8b.json").exists():
+        q8b = load("results_admet_q8b.json")
+        R = q8b["rule"]
+        head(f"Gate Q8b · drug properties with the encoding fixed, {len(q8b['endpoints'])} new endpoints",
+             f"quantum >= classical - {R['margin']} and its 95 % interval above chance, on at least {R['min_endpoints']}")
+        met = 0
+        for n, e in q8b["endpoints"].items():
+            m, lo = e["metric"], e["ci95"]["quantum"][0]
+            ok = m["quantum"] >= m["rbf8"] - R["margin"] and lo > (0.5 if e["task"] == "cls" else 0.0)
+            met += ok
+            check("endpoint", ok, bool(e["pass"]))
+        ok8b = met >= R["min_endpoints"]
+        out(f"   each endpoint's verdict recomputed from its scores and interval: {met} of {len(q8b['endpoints'])} met -> "
+            f"{'PASS' if ok8b else 'FAIL'}   {check('stored', met, q8b['passed'])}   "
+            f"{check('Scoreboard', 'pass' if ok8b else 'fail', _status(df, 'Gate Q8b'))}", 0.15)
+
     q1 = g["q1"]
     head("Gate Q1 · quantum optimiser finds the best answer", f"hit rate >= {g['rule']['q1_min_hit_rate']:.0%} of windows")
     ok1 = q1["pooled_hit_rate"] >= g["rule"]["q1_min_hit_rate"]

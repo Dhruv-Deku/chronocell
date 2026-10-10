@@ -103,19 +103,26 @@ def target(name: str, y: np.ndarray) -> np.ndarray:
 
 @dataclass
 class Prep:
-    """Standardise -> 8 principal components (fitted on training); [0, pi] scaling for the quantum feature map."""
+    """Standardise -> 8 principal components (fitted on training); angles for the quantum feature map.
+
+    Encodings of the components into angles (Gate Q8 used "minmax"; Gate Q8b "global"):
+      minmax  each component to [0, pi] by its own training range (clipped outside it)
+      global  every component divided by the same number, the first component's training SD: the components keep
+              their relative variance, i.e. the geometry the RBF model on the same 8 numbers sees (minmax stretches
+              the minor, noisier components to the same width as the main ones)"""
     mu: np.ndarray
     sd: np.ndarray
     V: np.ndarray
     lo: np.ndarray
     hi: np.ndarray
+    s1: float = 1.0
 
     @classmethod
     def fit(cls, X: np.ndarray, k: int = 8) -> "Prep":
         mu, sd = X.mean(0), X.std(0) + 1e-9
         _, _, Vt = np.linalg.svd((X - mu) / sd, full_matrices=False)
         P = ((X - mu) / sd) @ Vt[:k].T
-        return cls(mu, sd, Vt[:k], P.min(0), P.max(0))
+        return cls(mu, sd, Vt[:k], P.min(0), P.max(0), float(P[:, 0].std()) + 1e-9)
 
     def z(self, X: np.ndarray) -> np.ndarray:
         return (X - self.mu) / self.sd
@@ -123,7 +130,9 @@ class Prep:
     def pca(self, X: np.ndarray) -> np.ndarray:
         return self.z(X) @ self.V.T
 
-    def angles(self, X: np.ndarray) -> np.ndarray:
+    def angles(self, X: np.ndarray, encoding: str = "minmax") -> np.ndarray:
+        if encoding == "global":
+            return self.pca(X) / self.s1
         span = np.where(self.hi > self.lo, self.hi - self.lo, 1.0)
         return np.clip((self.pca(X) - self.lo) / span, 0, 1) * math.pi
 
@@ -200,7 +209,7 @@ class EndpointModel:
     def fit(self) -> "EndpointModel":
         m = 0.0 if self.task == "cls" else float(self.ytr.mean())
         q = self.cfg["qk"]
-        Sa = qstates(self.prep.angles(self.Xtr), q["bandwidth"], q["reps"])
+        Sa = qstates(self.prep.angles(self.Xtr, q.get("encoding", "minmax")), q["bandwidth"], q["reps"])
         self.fitted["quantum"] = (make(self.task, q["reg"]).fit(qkernel(Sa, Sa), self.ytr - m), Sa, m)
         for k, f in (("rbf8", self.prep.pca), ("rbf17", self.prep.z)):
             A = f(self.Xtr)
@@ -216,7 +225,7 @@ class EndpointModel:
         for k, (est, ref, m) in self.fitted.items():
             if k == "quantum":
                 q = self.cfg["qk"]
-                K = qkernel(qstates(self.prep.angles(X), q["bandwidth"], q["reps"]), ref)
+                K = qkernel(qstates(self.prep.angles(X, q.get("encoding", "minmax")), q["bandwidth"], q["reps"]), ref)
             else:
                 f = self.prep.pca if k == "rbf8" else self.prep.z
                 K = rbf(f(X), ref, self.cfg[k]["gamma"])

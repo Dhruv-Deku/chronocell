@@ -1053,7 +1053,9 @@ The same three tools are in *06 Quantum lab* (problem picker: *Drug molecules (V
 **07 Scoreboard** (both modes; needs no data). Every pre-registered accuracy test on held-out real data in one list:
 what it asks in plain words, what was measured, and a PASS / FAIL / OTHER chip (other: blocked, a baseline, or a mixed
 verdict; the verdict text says which). Filters by area (structure and imaging, analysis and perturbations, Drug lab,
-quantum lab) and by passed / failed / retests. Tabs chart the molecule-energy errors of every quantum chemistry round
+quantum lab) and by passed / failed / open failures / retests. A failed test whose later retest (a new method on new
+data) passed keeps its FAIL chip and says "Later passed as …" underneath; the counts at the top give failed tests and,
+separately, the open failures that no retest has fixed yet. Tabs chart the molecule-energy errors of every quantum chemistry round
 against chemical accuracy, the loop callers' F1 against the ENCODE reference, the ADMET endpoints, error mitigation and
 docking. Everything is read from `validation/results_*.json` through `validation/report.py`, as `RESULTS.md` is.
 
