@@ -66,4 +66,6 @@ python motion/render.py --share
 python motion/make_ui_images.py
 ```
 
-The rendered film (`out/`) is not committed: it is about 100 MB and is rebuilt by `render.py`.
+The full-size film (`out/ChronoCell-5D_film.mp4`, about 70 MB) is not committed and is rebuilt by `render.py`; its
+compact copy (`out/ChronoCell-5D_film_share.mp4`, about 35 MB) is, so the Guide plays the film straight after a
+download. Re-render with `--share` and commit the new copy when the film changes.

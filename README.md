@@ -20,11 +20,14 @@ perturbation data, and the failures are reported next to the successes.
   <img src="docs/images/film_poster.jpg" alt="Title frame of the ChronoCell-5D film" width="760">
   <br>
   <sub><b>The film (100 s, 1080p60, with sound).</b> A fast, colourful motion-graphics reel made from the app itself:
-  real screenshots, the reference model's own coordinates and contacts, and every number read from the test results. Build it with
-  <code>python motion/render.py</code> (see <a href="motion/README.md">motion/README.md</a>); it also plays in the app's Guide.
+  real screenshots, the reference model's own coordinates and contacts, and every number read from the test results. Watch it:
+  <a href="motion/out/ChronoCell-5D_film_share.mp4">motion/out/ChronoCell-5D_film_share.mp4</a>; it also plays in the app's Guide.
   A 5-minute <b>explainer</b> shows the app live (real screen recordings), the test suite running and every accuracy
-  score recomputed from its result file: <code>python motion/render.py --page explainer</code>
-  (<a href="motion/explainer/README.md">motion/explainer/README.md</a>).</sub>
+  score recomputed from its result file:
+  <a href="motion/out/ChronoCell-5D_explainer_share.mp4">motion/out/ChronoCell-5D_explainer_share.mp4</a>.
+  Both come with the download; rebuild them with <code>python motion/render.py</code> and
+  <code>python motion/render.py --page explainer</code> (see <a href="motion/README.md">motion/README.md</a> and
+  <a href="motion/explainer/README.md">motion/explainer/README.md</a>).</sub>
 </p>
 
 | | | | |
