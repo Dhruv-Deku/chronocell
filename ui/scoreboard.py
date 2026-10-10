@@ -231,6 +231,11 @@ def retest_pairs() -> list[dict]:
         if "q7b" in r2:
             pts.append(("Q7b", r2["q7b"]["success_qaoa"] - r2["q7b"]["success_random"]))
         out.append({"family": "Docking: share docked vs random search", "points": pts})
+    adm, adm_b = _load("results_admet.json"), _load("results_admet_q8b.json")
+    if adm:
+        share = lambda r: (r["passed"] - r["rule"]["min_endpoints"]) / r["of"]                        # noqa: E731
+        out.append({"family": "Drug properties: endpoints met − needed (share)",
+                    "points": [("Q8", share(adm))] + ([("Q8b", share(adm_b))] if adm_b else [])})
     return out
 
 

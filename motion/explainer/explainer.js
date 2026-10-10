@@ -4,7 +4,7 @@
  * Terminal sessions: real output of the test suite and of recheck.py (record_terminal.py). Numbers: ../data/data.js. */
 "use strict";
 
-const T = { title: 0, prob: 9, tour: 41, clips: 44, test: 167, pytest: 187, recheck: 209, results: 252, outro: 274, end: 288 };
+const T = { title: 0, prob: 9, tour: 41, clips: 44, test: 167, pytest: 187, recheck: 209, results: 252, table: 266, outro: 286, end: 300 };
 const W = 1920, H = 1080, FPS = 30;
 const D = window.DATA, F = D.fold, TS = D.tests, HI = D.hi, EX = window.EX;
 const C = { cobalt: "#3340D1", cobaltHi: "#5F6BFF", cobaltDk: "#1F2896", terra: "#E8582C", terraDk: "#A93A16", ochre: "#F5B931",
@@ -278,7 +278,7 @@ const SW = { x: 260, y: 96, w: 1400, h: 832 };               // the browser wind
 const VW = SW.w, VH = SW.h - 44;
 const CLIPS = [
   { c: "c01_launch", d: 8, n: "01", label: "Eight workspaces", url: "the app’s home",
-    caps: [[0, 8, "One app, eight workspaces: <b>3D, 4D, compare, drug lab, genes, guide, quantum lab, scoreboard</b>."]] },
+    caps: [[0, 8, "One app, eight workspaces: <b>3D, 4D, compare, drug lab, genes, quantum lab, scoreboard, guide</b>."]] },
   { c: "c02_structure", d: 18, n: "02", label: "3D structure", url: "01 3D structure",
     zoom: [[0, 1, 0.5, 0.5], [3, 1.28, 0.32, 0.52], [14, 1.28, 0.32, 0.52], [16, 1, 0.5, 0.5]],
     caps: [[0, 6, "<b>3D structure</b>: the fold of a whole chromosome, here human chr22 in 5,082 beads of 10 kb."],
@@ -291,17 +291,19 @@ const CLIPS = [
     caps: [[0, 11, "<b>Drug lab</b>: apply a virtual epigenetic drug, then play the dose up and watch the fold respond."]] },
   { c: "c06_genes", d: 12, n: "06", label: "Genes", url: "05 Genes",
     caps: [[0, 12, "<b>Genes</b>: which genes sit in open, active chromatin, and which are buried and likely silenced."]] },
-  { c: "c07_guide", d: 8, to: 8, n: "07", label: "Guide", url: "06 Guide",
-    caps: [[0, 8, "<b>Guide</b>: what everything means, in plain words, with pictures."]] },
-  { c: "c08_quantum", d: 24, n: "08", label: "Quantum lab", url: "07 Quantum lab",
+  { c: "c07_quantum", d: 24, n: "07", label: "Quantum lab", url: "06 Quantum lab",
     zoom: [[0, 1, 0.5, 0.5], [5.6, 1, 0.5, 0.5], [6.4, 1.25, 0.62, 0.86], [12.8, 1.25, 0.62, 0.86], [13.6, 1, 0.5, 0.5]],
     marks: [[6.6, 13.0, 0.03, 0.83, 0.97, 0.99, "VQE energy vs the exact answer"], [19.6, 24.7, 0.02, 0.73, 0.45, 0.78, "the same circuit, with hardware noise"]],
     caps: [[0, 5.6, "<b>Quantum lab</b>: ChronoCell’s problems on a simulated quantum computer."],
       [5.6, 13, "Live: the energy of a HeH⁺ molecule by VQE, checked against the exact answer: <b>error 0.000 mHa</b> (limit 1.6)."],
       [13, 18.6, "Now add realistic hardware noise and run it again…"],
       [18.6, 24, "…the same circuit is off by <b>763 mHa</b>. That is why error mitigation matters."]] },
-  { c: "c09_scoreboard", d: 18, n: "09", label: "Scoreboard", url: "08 Scoreboard",
-    caps: [[0, 7, "<b>Scoreboard</b>: every accuracy test on held-out real data."], [7, 18, "What passed, what failed, and by how much, read straight from the result files."]] },
+  { c: "c08_scoreboard", d: 18, n: "08", label: "Scoreboard", url: "07 Scoreboard",
+    caps: [[0, 6, `<b>Scoreboard</b>: every accuracy test on held-out real data: <b>${TS.n} tests, ${TS.pass} passed, ${TS.fail} failed</b>.`],
+      [6, 11.5, "Every row: the question, what was measured, and the verdict, read straight from the result files."],
+      [11.5, 18, `A fail stays on the record. When a later retest passes, it says so: <b>${TS.fixed} fails fixed, ${TS.open} still open</b>.`]] },
+  { c: "c09_guide", d: 8, to: 8, n: "09", label: "Guide", url: "08 Guide",
+    caps: [[0, 8, "<b>Guide</b>, the last tab: what everything means, in plain words, with pictures."]] },
 ];
 {
   let t0 = T.clips;
@@ -378,7 +380,7 @@ const ICON = {
 };
 cap(T.test + 0.4, T.test + 7, "How do we know it works? <b>Every accuracy claim is a test</b>, with its rule written down first.");
 cap(T.test + 7, T.test + 14, "Each test runs <b>once</b>, on data the method has never seen, so nobody can tune it to the answer.");
-cap(T.test + 14, T.pytest - 0.05, "Failures stay on the record. So far: <b>37 tests · 14 passed · 16 failed · 7 mixed or blocked</b>.");
+cap(T.test + 14, T.pytest - 0.05, `Failures stay on the record. So far: <b>${TS.n} tests · ${TS.pass} passed · ${TS.fail} failed · ${TS.other} mixed or blocked</b>.`);
 scene({ t0: T.test, t1: T.pytest + 0.55, inT: { type: "push-left", at: T.test }, outT: { type: "push-up", at: T.pytest },
   build(s) {
     bgPaper(s);
@@ -394,7 +396,7 @@ scene({ t0: T.test, t1: T.pytest + 0.55, inT: { type: "push-left", at: T.test },
     });
     s.arrows = [0, 1, 2].map((k) => mk("div", "abs", u, `<svg width="40" height="40" viewBox="0 0 40 40"><path d="M6 20 H30 M20 9 L32 20 L20 31" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`, { left: `${512 + k * 445}px`, top: "475px" }));
     const row = mk("div", "abs", u, null, { left: "110px", top: "720px", display: "flex", gap: "60px", alignItems: "baseline" });
-    s.nums = [["37", "tests", C.ink], [String(TS.pass), "passed", C.pass], [String(TS.fail), "failed, kept", C.fail], [String(TS.other), "mixed or blocked", C.other]].map(([v, l, col]) => {
+    s.nums = [[String(TS.n), "tests", C.ink], [String(TS.pass), "passed", C.pass], [String(TS.fail), "failed, kept", C.fail], [String(TS.other), "mixed or blocked", C.other]].map(([v, l, col]) => {
       const e = mk("div", "", row, null, { display: "flex", alignItems: "baseline", gap: "14px" });
       const o = odo(e, v, { fontSize: "110px", color: col });
       mk("div", "kick", e, l, { color: col });
@@ -423,14 +425,16 @@ function terminal(parent, x, y, w, h, title) {
   return { e, lines, rows };
 }
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+// one pass over the plain text (a chain of replaces would colour words inside the markup it had just added)
+const PAINT = /(\bPASSED\b|\b\d+ passed\b|-> PASS|  PASS |\bok\b|within\b|beats both)|(\bFAILED\b|-> FAIL|  FAIL |MISMATCH|OUTSIDE)|(\bSKIPPED\b|\b\d+ skipped\b|(?<=  )OTHER(?= ))/g;
 function paint(s) {
-  let h = esc(s);
-  if (/^={2,}|^== /.test(s)) return `<span class="hd">${h}</span>`;
-  h = h.replace(/\bPASSED\b/g, '<span class="ok">PASSED</span>').replace(/\bFAILED\b/g, '<span class="bad">FAILED</span>')
-    .replace(/\bSKIPPED\b/g, '<span class="warn">SKIPPED</span>').replace(/\b(\d+ passed)\b/g, '<span class="ok">$1</span>')
-    .replace(/\b(\d+ skipped)\b/g, '<span class="warn">$1</span>').replace(/(-&gt; PASS|  PASS |\bok\b|within\b|beats both)/g, '<span class="ok">$1</span>')
-    .replace(/(-&gt; FAIL|  FAIL |MISMATCH|OUTSIDE)/g, '<span class="bad">$1</span>').replace(/  (OTHER) /g, '  <span class="warn">$1</span> ');
-  return h;
+  if (/^={2,}|^== /.test(s)) return `<span class="hd">${esc(s)}</span>`;
+  let h = "", last = 0;
+  for (const m of s.matchAll(PAINT)) {
+    h += esc(s.slice(last, m.index)) + `<span class="${m[1] ? "ok" : m[2] ? "bad" : "warn"}">${esc(m[0])}</span>`;
+    last = m.index + m[0].length;
+  }
+  return h + esc(s.slice(last));
 }
 function replay(term, data, lt, speed, typeDur = 1.4, hl = null) {
   const cmd = data.cmd, typed = Math.floor(clamp(lt / typeDur) * cmd.length);
@@ -448,7 +452,8 @@ function replay(term, data, lt, speed, typeDur = 1.4, hl = null) {
 // ---- the test suite
 const PY = EX.terms.pytest, PY_SPEED = PY.secs / 17.5;
 const PY_SUM = PY.lines.map(([, s]) => s).reverse().find((s) => /passed/.test(s)) || "";
-cap(T.pytest + 0.3, T.pytest + 9, "First, the software itself: the project’s <b>308 automated checks</b>, run for real on this computer.");
+const PY_N = (PY_SUM.match(/\d+(?= (passed|skipped|failed))/g) || []).reduce((a, b) => a + +b, 0);   // every check collected
+cap(T.pytest + 0.3, T.pytest + 9, `First, the software itself: the project’s <b>${PY_N} automated checks</b>, run for real on this computer.`);
 cap(T.pytest + 9, T.recheck - 0.05, `Result: <b>${(PY_SUM.match(/\d+ passed[^=]*/) || [""])[0].trim()}</b>, shown ${Math.round(PY_SPEED)}× faster than it ran.`);
 scene({ t0: T.pytest, t1: T.recheck + 0.55, inT: { type: "push-up", at: T.pytest }, outT: { type: "push-left", at: T.recheck },
   build(s) {
@@ -472,7 +477,8 @@ const SIDE = [
   [/^== Gate Q6d/, "Gate Q6d · molecules", `${HI.q6d.within} / ${HI.q6d.cases} within`, `chemical accuracy (1.6 mHa); worst ${HI.q6d.worst} mHa`, true, /14 of 14 within/],
   [/^== Gate Q9/, "Gate Q9 · noisy chip", `${HI.q9.reduction}× smaller error`, `${HI.q9.within} / ${HI.q9.cases} molecules rescued by error mitigation`, true, /16 of 16 within/],
   [/^== Gate Q7b/, "Gate Q7b · docking", `${HI.q7b.qaoa} % vs ${HI.q7b.random} %`, "quantum route vs plain random search: a fail, kept", false, /quantum route \d+\/\d+/],
-  [/^== Gate Q8/, "Gate Q8 · drug safety", `${HI.q8.passed} / ${HI.q8.of} endpoints`, "17 were needed: a fail, kept", false, /endpoints met/],
+  [/^== Gate Q8b/, "Q8 → Q8b · drug properties", `${HI.q8.passed}/${HI.q8.of} → ${HI.q8b.passed}/${HI.q8b.of}`,
+    `Q8 failed (${HI.q8.needed} needed) and stays on the record; the retest Q8b passed (${HI.q8b.needed} needed)`, "retest", /each endpoint's verdict recomputed/],
 ];
 cap(T.recheck + 0.3, T.recheck + 10, "Then the accuracy. Each test ran once, so we don’t re-run it: <b>we re-check its arithmetic</b>.");
 cap(T.recheck + 10, T.recheck + 35.5, "The script recomputes every score from the saved numbers and <b>re-applies the frozen rule</b>.");
@@ -491,7 +497,8 @@ scene({ t0: T.recheck, t1: T.results + 0.55, inT: { type: "push-left", at: T.rec
       mk("div", "g", e, g);
       mk("div", "v", e, v, { color: ok ? C.ink : C.fail });
       mk("div", "s", e, sub);
-      mk("div", "vd", e, ok ? "PASS" : "FAIL", { background: ok ? C.pass : C.fail });
+      if (ok === "retest") mk("div", "vd", e, "FAIL → PASS", { background: `linear-gradient(90deg, ${C.fail} 0 46%, ${C.pass} 54% 100%)` });
+      else mk("div", "vd", e, ok ? "PASS" : "FAIL", { background: ok ? C.pass : C.fail });
       return e;
     });
     s.all = mk("div", "stamp", s.ui, "ALL VERDICTS MATCH", { left: "360px", top: "430px", color: "#fff", background: C.pass, borderColor: "#fff", fontSize: "72px" });
@@ -500,38 +507,41 @@ scene({ t0: T.recheck, t1: T.results + 0.55, inT: { type: "push-left", at: T.rec
     cue(s.done + 0.2, "stamp");
   },
   update(s, t) {
-    replay(s.term, RC, t - T.recheck, RC_SPEED, 1.4, /^ {3}\S.*(F1 0\.\d+|\d+ of \d+ within|quantum route \d+|endpoints met)|^Recomputed scores/);
+    replay(s.term, RC, t - T.recheck, RC_SPEED, 1.4, /^ {3}\S.*(F1 0\.\d+|\d+ of \d+ within|quantum route \d+|endpoints met|\d+ of \d+ met)|^Recomputed scores/);
     s.side.forEach((e, k) => pop(e, t, T.recheck + 1.6 + s.when[k] / RC_SPEED, { s: 0.6, x: 60, y: 0 }));
     const p = lin(t, s.done + 0.2, s.done + 0.42);
     setT(s.all, `rotate(${(-5 + (1 - E.o3(p)) * 8).toFixed(2)}deg) scale(${mix(2.4, 1, E.o3(p)).toFixed(4)})`, clamp(p * 3));
   } });
 
 // ================================================================================================= results
-cap(T.results + 0.3, T.results + 8, "Where ChronoCell-5D stands today, test by test, on the Scoreboard.");
-cap(T.results + 8, T.outro - 0.05, "Strong on DNA loops and simulated quantum chemistry; honest about docking, drug safety and calibration.");
-scene({ t0: T.results, t1: T.outro + 0.55, inT: { type: "push-up", at: T.results }, outT: { type: "fade", at: T.outro },
+cap(T.results + 0.3, T.results + 7, `Where ChronoCell-5D stands today: <b>${TS.pass} passed, ${TS.fail} failed</b>, and ${TS.other} with no simple pass or fail.`);
+cap(T.results + 7, T.table - 0.05, "Strong on DNA loops and simulated quantum chemistry. The drug-property fail was fixed by a retest; docking still fails.");
+scene({ t0: T.results, t1: T.table + 0.55, inT: { type: "push-up", at: T.results }, outT: { type: "push-left", at: T.table },
   build(s) {
     bgBurst(s, C.cobalt);
     const u = s.ui;
     s.h = head(u, "THE SCOREBOARD", 110, 90, 110, "#fff", C.cobaltDk);
     s.big = [[TS.pass, "passed", C.pass], [TS.fail, "failed, kept on the record", C.fail], [TS.other, "mixed, blocked or baseline", "#C9CCDA"]].map(([n, l, col], k) => {
-      const e = mk("div", "abs", u, null, { left: "110px", top: `${270 + k * 190}px`, display: "flex", alignItems: "center", gap: "26px" });
-      const o = odo(e, String(n), { fontSize: "150px", color: "#fff", textShadow: extrude("rgba(0,0,0,.25)", 8) });
+      const e = mk("div", "abs", u, null, { left: "110px", top: `${250 + k * 200}px`, display: "flex", alignItems: "center", gap: "26px" });
+      const o = odo(e, String(n), { fontSize: "130px", color: "#fff", textShadow: extrude("rgba(0,0,0,.25)", 8) });
       mk("div", "", e, null, { width: "26px", height: "26px", borderRadius: "50%", background: col });
       mk("div", "kick", e, l, { color: "#fff" });
       return { e, o, n };
     });
+    s.split = mk("div", "abs", u, `<span style="color:#8DF5BE">${TS.fixed} later passed as a retest</span> · ${TS.open} still open`,
+      { left: "114px", top: "592px", font: "600 27px/1 var(--mono)", color: "rgba(255,255,255,.92)", whiteSpace: "nowrap" });
     const rows = [
       [true, "DNA loops", `F1 ${HI.loops.hmec.chronocell.toFixed(2)} / ${HI.loops.hap1.chronocell.toFixed(2)} vs best tool ${Math.max(HI.loops.hmec.mustache, HI.loops.hmec.chromosight).toFixed(2)} / ${Math.max(HI.loops.hap1.mustache, HI.loops.hap1.chromosight).toFixed(2)}`],
       [true, "Molecules", `${HI.q6d.within} / ${HI.q6d.cases} within chemical accuracy`],
       [true, "Noisy chip", `${HI.q9.within} / ${HI.q9.cases} after mitigation, ${HI.q9.reduction}× smaller error`],
-      [false, "Docking", `${HI.q7b.qaoa} % vs ${HI.q7b.random} % for random search`],
-      [false, "Drug safety", `${HI.q8.passed} / ${HI.q8.of} endpoints, 17 needed`]];
+      ["retest", "Drug properties", `Q8 ${HI.q8.passed}/${HI.q8.of} failed (${HI.q8.needed} needed) → retest Q8b ${HI.q8b.passed}/${HI.q8b.of} passed`],
+      [false, "Docking", `${HI.q7b.qaoa} % vs ${HI.q7b.random} % for random search · still open`]];
     s.rows = rows.map(([ok, a, b], k) => {
       const e = mk("div", "abs", u, null, { left: "1000px", top: `${260 + k * 128}px`, width: "820px", height: "108px", borderRadius: "22px", background: "#fff", color: C.ink, padding: "18px 26px", boxShadow: "0 16px 40px rgba(0,0,0,.25)" });
-      mk("div", "abs", e, ok ? "✓" : "✕", { right: "24px", top: "28px", width: "52px", height: "52px", borderRadius: "50%", background: ok ? C.pass : C.fail, color: "#fff", font: "900 30px/52px var(--sans)", textAlign: "center" });
+      if (ok === "retest") mk("div", "abs", e, "✕ → ✓", { right: "24px", top: "28px", height: "52px", padding: "0 16px", borderRadius: "26px", background: `linear-gradient(90deg, ${C.fail} 0 42%, ${C.pass} 58% 100%)`, color: "#fff", font: "900 26px/52px var(--sans)", whiteSpace: "nowrap" });
+      else mk("div", "abs", e, ok ? "✓" : "✕", { right: "24px", top: "28px", width: "52px", height: "52px", borderRadius: "50%", background: ok ? C.pass : C.fail, color: "#fff", font: "900 30px/52px var(--sans)", textAlign: "center" });
       mk("div", "dc", e, a, { fontSize: "40px" });
-      mk("div", "lead", e, b, { fontSize: "23px", marginTop: "6px", color: C.ink2 });
+      mk("div", "lead", e, b, { fontSize: "23px", marginTop: "6px", color: C.ink2, whiteSpace: "nowrap" });
       cue(T.results + 1.6 + k * 0.3, "pop");
       return e;
     });
@@ -540,7 +550,69 @@ scene({ t0: T.results, t1: T.outro + 0.55, inT: { type: "push-up", at: T.results
   update(s, t) {
     pop(s.h, t, T.results + 0.3, { s: 0.8 });
     s.big.forEach((b, k) => { pop(b.e, t, T.results + 0.6 + k * 0.15, { s: 0.7, x: -40, y: 0 }); b.o.set(b.n * E.o3(lin(t, T.results + 0.8, T.results + 2.0))); });
+    rise(s.split, t, T.results + 2.1);
     s.rows.forEach((e, k) => pop(e, t, T.results + 1.6 + k * 0.3, { s: 0.6, x: 60, y: 0 }));
+  } });
+
+// ================================================================================================= the pass / fail table
+// Every test in one of four groups, read from the Scoreboard rows (../build_data.py: a name and short result per test).
+const GROUPS = [
+  ["pass", "passed", TS.pass, C.pass, (r) => r.status === "pass"],
+  ["fixed", "failed → passed as a retest", TS.fixed, C.fail, (r) => r.status === "fail" && r.fixed_by],
+  ["open", "failed, still open", TS.open, C.fail, (r) => r.status === "fail" && !r.fixed_by],
+  ["other", "no pass / fail verdict", TS.other, C.other, (r) => r.status === "other"]];
+const TB = { x: 60, w: 435, gap: 20, top: 194, rowsTop: 276, row: 42 };
+const COL_IN = (c) => T.table + 0.9 + c * 0.45;                // each column lands
+const FIX0 = T.table + 6.8, FIXD = 0.72, OPEN0 = T.table + 12.7;  // fixed rows light up with their retest; then the open ones
+cap(T.table + 0.3, T.table + 6.6, `The whole table: every test in one of four groups. <b>${TS.pass} passed</b>; ${TS.other} have no simple pass or fail.`);
+cap(T.table + 6.6, T.table + 12.6, `<b>${TS.fixed} fails were later fixed</b>: a retest, with a new method on new data, passed. The FAIL stays on the record.`);
+cap(T.table + 12.6, T.outro - 0.05, `<b>${TS.open} fails are still open</b>. Why each can’t honestly be retested yet is written down in RESULTS.md.`);
+scene({ t0: T.table, t1: T.outro + 0.55, inT: { type: "push-left", at: T.table }, outT: { type: "fade", at: T.outro },
+  build(s) {
+    bgPaper(s);
+    const u = s.ui;
+    s.h = head(u, "THE PASS / FAIL TABLE", 60, 104, 78, C.ink, C.cobalt);
+    s.sub = mk("div", "abs lead", u, `All ${TS.n} tests · each written down first, run once`, { left: "1060px", top: "128px", width: "800px", textAlign: "right", color: C.ink2, fontSize: "26px" });
+    const pass = {};
+    s.cols = GROUPS.map(([key, label, n, col, keep], c) => {
+      const x = TB.x + c * (TB.w + TB.gap);
+      const hd = mk("div", "tbh", u, null, { left: `${x}px`, top: `${TB.top}px`, width: `${TB.w}px`, background: col });
+      mk("div", "n", hd, String(n));
+      mk("div", "l", hd, key === "fixed" ? `failed → <span style="background:${C.pass};padding:2px 7px;border-radius:6px">passed as a retest</span>` : label);
+      const rows = TS.rows.filter(keep).map((r, k) => {
+        const e = mk("div", "tbr", u, null, { left: `${x}px`, top: `${TB.rowsTop + k * TB.row}px`, width: `${TB.w}px` });
+        mk("div", "id", e, r.id, { background: col });
+        const tx = mk("div", "tx", e, null, r.fixed_by ? { right: "84px" } : null);
+        mk("div", "nm", tx, r.name);
+        mk("div", "rs", tx, r.result);
+        if (r.fixed_by) mk("div", "fx", e, `→ ${r.fixed_by}`);
+        const o = { e, r, k };
+        if (key === "pass") pass[r.id] = o;
+        return o;
+      });
+      cue(COL_IN(c), "pop");
+      return { hd, rows };
+    });
+    s.fixes = s.cols[1].rows.map((o, k) => ({ o, at: FIX0 + k * FIXD, to: pass[o.r.fixed_by] }));
+    s.fixes.forEach((x) => cue(x.at, "tick"));
+    cue(OPEN0, "pop");
+  },
+  update(s, t) {
+    pop(s.h, t, T.table + 0.3, { s: 0.8 });
+    rise(s.sub, t, T.table + 0.7);
+    s.cols.forEach((c, ci) => {
+      pop(c.hd, t, COL_IN(ci), { s: 0.6, y: 30 });
+      c.rows.forEach((o) => { pop(o.e, t, COL_IN(ci) + 0.2 + o.k * 0.06, { s: 0.85, y: 16, d: 0.35 }); o.e.style.boxShadow = ""; });
+    });
+    const ring = (col, a) => `0 0 0 ${(4 * a).toFixed(2)}px ${hexA(col, 0.95 * a)}, 0 6px 16px rgba(0,0,0,.08)`;
+    s.fixes.forEach(({ o, at, to }) => {                    // each fixed fail lights up together with the retest that passed
+      const a = lin(t, at, at + 0.2) * (1 - lin(t, at + 1.25, at + 1.55));
+      if (a <= 0) return;
+      o.e.style.boxShadow = ring(C.pass, a);
+      if (to) to.e.style.boxShadow = ring(C.pass, a);
+    });
+    const oa = lin(t, OPEN0, OPEN0 + 0.3);
+    if (oa > 0) s.cols[2].rows.forEach((o) => (o.e.style.boxShadow = ring(C.fail, oa * 0.8)));
   } });
 
 // ================================================================================================= outro
@@ -614,8 +686,8 @@ async function seek(t) {
 window.seek = seek;
 window.DURATION = T.end;
 window.CUES = CUES.sort((a, b) => a.t - b.t);
-window.SECTIONS = [[0, 9, 0.55, false, true], [9, 41, 0.45, false, true], [41, 167, 0.6, true, true], [167, 187, 0.45, false, true],
-  [187, 252, 0.6, true, true], [252, 274, 0.75, true, true], [274, 288, 0.4, false, true]];
+window.SECTIONS = [[T.title, T.prob, 0.55, false, true], [T.prob, T.tour, 0.45, false, true], [T.tour, T.test, 0.6, true, true],
+  [T.test, T.pytest, 0.45, false, true], [T.pytest, T.results, 0.6, true, true], [T.results, T.outro, 0.75, true, true], [T.outro, T.end, 0.4, false, true]];
 window.READY = (async () => {
   await document.fonts.ready;
   await Promise.all(["900 100px Archivo", "600 20px 'IBM Plex Mono'", "500 20px 'Inter Tight'"].map((f) => document.fonts.load(f)));

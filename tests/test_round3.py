@@ -174,6 +174,15 @@ def test_film_numbers_come_from_the_result_files():
     assert len(hi["q9"]["rows"]) == hi["q9"]["cases"] and all(r["fixed"] <= hi["chem_accuracy"] < r["noisy"] for r in hi["q9"]["rows"])
     assert len({r["id"] for r in t["rows"]}) == t["n"]                       # every test has its own label in the film
     assert all(v["chronocell"] > max(v["chromosight"], v["mustache"]) for v in hi["loops"].values())
+    # the explainer's pass / fail table: fixed + open = failed, and every number in a short result is the Scoreboard's
+    assert t["fixed"] == int((df["fixed_by"] != "").sum()) and t["fixed"] + t["open"] == t["fail"]
+    import re
+    num = re.compile(r"\d+(?:\.\d+)?")
+    for r in t["rows"]:
+        src = set(num.findall(r["test"] + " " + r["measured"] + " " + df.loc[df["test"] == r["test"], "verdict"].iloc[0]))
+        extra = set(num.findall(r["result"])) - src - {str(hi["chem_accuracy"])}     # chemical accuracy, 1.6 mHa
+        assert not extra, (r["id"], r["result"], extra)
+        assert (r["fixed_by"] != "") == (r["status"] == "fail" and r["fixed_by"] in {x["id"] for x in t["rows"] if x["status"] == "pass"})
 
 
 def test_recheck_recomputes_every_verdict_without_a_mismatch(capsys):

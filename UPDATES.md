@@ -1024,3 +1024,24 @@ The user asked to put the Guide tab last and to "try to make the failed tests pa
   every held-out dataset, CCC still below 0.8 on six of ten); Hi-C distance ranges (right for one imaging method, too
   narrow for the other); which distances will be wrong (2c/2e); prediction with cohesin peaks (5b); the Drug lab
   against real drugs (8: no new data); docking (Q7b: random search wins in every practice variant).
+
+## 10 October 2026 — Both videos updated: the pass / fail table and the new tab order
+
+The user asked for the pass / fail table to be put into both videos.
+
+- **The film (100 s).** The Scoreboard scene now sorts the 38 tests into four rows: 15 passed; 7 failed, then passed
+  as a retest (each with a green ring); 9 failed and still open; 7 mixed. The outro adds "7 fails later passed as a
+  retest · 9 still open". Tab numbers follow the app (06 Quantum lab, 07 Scoreboard, 08 Guide), and the Scoreboard
+  screenshot was taken again.
+- **The explainer (now 5 min 0 s).** New scene, *The pass / fail table*: all 38 tests in four columns, each fail
+  lighting up together with the retest that later passed. *Where it stands* shows the 7 fixed / 9 open split and the
+  drug-property fail fixed by Q8b. The nine app clips were recorded again in the new tab order (the Scoreboard take
+  shows the fails with their "Later passed as" notes); the test suite and the re-check were recorded again
+  (`recheck.py` now marks each fixed fail with its retest and splits the fails into fixed and open).
+- **The table's text.** Each test has a short name and result in `motion/build_data.py` (`TABLE`);
+  `tests/test_round3.py` checks that every number in a short result is copied from that test's Scoreboard row, and
+  the verdict always comes from the row itself.
+- **Scoreboard.** The "Before → after" chart now includes Q8 → Q8b (endpoints met minus endpoints needed, as a share).
+- **Fonts kept locally.** Google Fonts timed out on this computer, which would have rendered both videos in fallback
+  fonts; the three typefaces (SIL Open Font License) now ship in `motion/vendor/fonts/`. Also fixed: the explainer's
+  terminal colouring could colour the word "ok" inside its own markup (it showed `ok">` on summary lines).

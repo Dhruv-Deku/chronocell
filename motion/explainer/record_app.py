@@ -17,6 +17,7 @@ import argparse
 import base64
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -225,7 +226,7 @@ def t_launch(pg: Page, h: Hand, take: Take):
     h.cursor()
     take.start()
     h.wait(0.8)
-    for label in ("3D structure", "4D dynamics", "Compare", "Drug lab", "Genes", "Guide", "Quantum lab", "Scoreboard"):
+    for label in ("3D structure", "4D dynamics", "Compare", "Drug lab", "Genes", "Quantum lab", "Scoreboard", "Guide"):
         h.to(ws(pg, label), 0.38)
         h.wait(0.12)
     h.to(ws(pg, "3D structure"), 0.6)
@@ -328,18 +329,6 @@ def t_ws05(pg: Page, h: Hand, take: Take):
 
 
 def t_ws06(pg: Page, h: Hand, take: Take):
-    open_ws(pg, h, "Guide")
-    scroll_top(pg)
-    take.start()
-    h.wait(1.0)
-    h.glide(VW * 0.6, VH * 0.6, 0.5)
-    for _ in range(3):
-        h.wheel(520, 1.5)
-        h.wait(0.9)
-    take.stop("c07_guide")
-
-
-def t_ws07(pg: Page, h: Hand, take: Take):
     open_ws(pg, h, "Quantum lab")
     scroll_top(pg)
     h.click(btn(pg, "Molecule (VQE)"), 0.5, after=0.2)
@@ -379,32 +368,53 @@ def t_ws07(pg: Page, h: Hand, take: Take):
     h.wheel(260, 0.8)
     h.glide(VW * 0.5, VH * 0.8, 0.8)
     h.wait(2.0)
-    take.stop("c08_quantum")
+    take.stop("c07_quantum")
+
+
+def t_ws07(pg: Page, h: Hand, take: Take):
+    open_ws(pg, h, "Scoreboard")
+    scroll_top(pg)
+    take.start()
+    h.wait(2.4)                                      # the readouts: tests, passed, failed (and how many a retest fixed), open
+    h.glide(VW * 0.6, VH * 0.6, 0.5)
+    h.wheel(560, 1.6)                                # the tests by area, then "Before -> after": each retest next to its original
+    h.wait(2.2)
+    t = pg.get_by_role("tab", name="All tests")
+    if t.count():
+        h.click(t, 0.6, after=0.8)
+        f = pg.locator(".st-key-sb_show").get_by_role("radio", name="Failed", exact=True)      # a segmented control
+        if f.count():
+            h.click(f, 0.6, after=0.4)
+            idle(pg, 0.6)
+            h.cursor()
+            note = pg.locator("b").filter(has_text=re.compile(r"^Later passed as Gate"))      # not the readout at the top
+            if note.count():                         # a fail whose retest passed: scroll until its green note is in view
+                h.glide(VW * 0.62, VH * 0.6, 0.4)
+                for _ in range(14):
+                    b = note.first.bounding_box()
+                    if not b or b["y"] < VH * 0.55:
+                        break
+                    h.wheel(min(b["y"] - VH * 0.45, 520), 0.7)
+                h.wait(2.6)
+                h.wheel(760, 2.4)
+    h.wait(1.4)
+    take.stop("c08_scoreboard")
 
 
 def t_ws08(pg: Page, h: Hand, take: Take):
-    open_ws(pg, h, "Scoreboard")
+    open_ws(pg, h, "Guide")
     scroll_top(pg)
     take.start()
     h.wait(1.0)
     h.glide(VW * 0.6, VH * 0.6, 0.5)
-    h.wheel(560, 1.6)
-    h.wait(0.6)
-    for tab in ("Molecules (quantum chemistry)", "DNA loops", "Error mitigation", "Docking"):
-        t = pg.get_by_role("tab", name=tab)
-        if t.count():
-            h.click(t, 0.6, after=1.6)
-    t = pg.get_by_role("tab", name="All tests")
-    if t.count():
-        h.click(t, 0.6, after=0.8)
-        h.glide(VW * 0.6, VH * 0.6, 0.4)
-        h.wheel(900, 2.2)
-    h.wait(1.0)
-    take.stop("c09_scoreboard")
+    for _ in range(3):
+        h.wheel(520, 1.5)
+        h.wait(0.9)
+    take.stop("c09_guide")
 
 
 TAKES = {"launch": t_launch, "ws01": t_ws01, "ws02": t_ws02, "ws03": t_ws03, "ws04": t_ws04, "ws05": t_ws05,
-         "ws06": t_ws06, "ws07": t_ws07, "ws08": t_ws08}
+         "ws06": t_ws06, "ws07": t_ws07, "ws08": t_ws08}          # the app's order: 06 Quantum lab, 07 Scoreboard, 08 Guide
 
 
 def main() -> None:

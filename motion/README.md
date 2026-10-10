@@ -13,8 +13,8 @@ python motion/render.py --preview       # stills every 2 s + a contact sheet in 
 open motion/index.html?play             # watch it live in a browser (?t=42.5 shows one frame)
 ```
 
-There is also a longer **explainer** (4 min 48 s): what the app is, real screen recordings of the app in use, the
-test suite running, and every accuracy score recomputed from its result file. See
+There is also a longer **explainer** (5 min): what the app is, real screen recordings of the app in use, the
+test suite running, every accuracy score recomputed from its result file, and the full pass / fail table. See
 [`explainer/README.md`](explainer/README.md); render it with `python motion/render.py --page explainer`.
 
 ## What is on screen, and where it comes from
@@ -29,13 +29,13 @@ test suite running, and every accuracy score recomputed from its result file. Se
 | 05 | 4D dynamics: the 22q11.2 deletion playing, largest displacement 368 nm | 29–34 s | the 4D workspace's 22q11.2 preset, simulated with the app's defaults (24 frames × 15 sweeps) |
 | 06–09 | Compare, Drug lab, Genes + Guide, Quantum lab | 34–52.5 s | real screenshots of the running app (`capture_app.py`); each sentence is the app's own one-line purpose |
 | 10 | Everything: six feature tiles | 52.5–58 s | the same data and screenshots |
-| 11 | The scoreboard: 37 tests burst out as a network, then sort into 14 passed, 16 failed, 7 mixed | 58–67 s | `ui/scoreboard.rows()` (read from `validation/results_*.json`), one node per test, labelled with its gate |
+| 11 | The scoreboard: 38 tests burst out as a network, then sort into four rows: 15 passed; 7 failed, then passed as a retest (a green ring); 9 failed and still open; 7 mixed | 58–67 s | `ui/scoreboard.rows()` (read from `validation/results_*.json`), one node per test, labelled with its gate |
 | 12 | DNA loops: a bar race; ChronoCell first on both new cell types | 67–72.5 s | `results_gate6b.json` (F1 vs ENCODE loops) |
 | 13 | Molecules: 14 / 14 within chemical accuracy, worst 1.16 mHa | 72.5–76.5 s | `results_round2.json` (Gate Q6d) |
 | 14 | Noisy chips: 16 molecules fall from noisy to mitigated error | 76.5–80 s | `results_mitigation.json` (Gate Q9), per molecule |
 | 15 | The honest fail: quantum docking 35 % vs random search 58 % | 80–84 s | `results_round2.json` (Gate Q7b) |
 | 16 | In one word: Fold. Time. Dose. Genes. Qubits. Proof. | 84–90 s | — |
-| — | Outro: 37 tests · 14 passed · 16 failed · 7 mixed | 90–100 s | the Scoreboard |
+| — | Outro: 38 tests · 15 passed · 16 failed · 7 mixed; 7 fails later passed as a retest · 9 still open | 90–100 s | the Scoreboard |
 
 Nothing on screen is typed in: `build_data.py` writes `data/data.js` from the app and the result files, and the film
 reads it (`tests/test_round3.py` checks the numbers against the Scoreboard). Re-run it after a new test and the film
@@ -52,7 +52,7 @@ follows. The bars grow at one speed in the loop race, so the order you see emerg
 | `sound.py` | the soundtrack, synthesised from the film's cue list (120 bpm, A minor; no samples) |
 | `render.py` | frame-by-frame capture (Playwright + Chrome) piped into ffmpeg; motion blur; muxes the soundtrack |
 | `make_ui_images.py` | the Guide's banner, the film poster and the tour pictures in `docs/images/` |
-| `vendor/` | three.js r128 (MIT) |
+| `vendor/` | three.js r128 (MIT); the three typefaces in `vendor/fonts/` (Archivo, Inter Tight, IBM Plex Mono; SIL Open Font License), so a render never needs the network |
 
 ## Rebuilding everything
 

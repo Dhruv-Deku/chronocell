@@ -68,7 +68,8 @@ def main() -> None:
     for i, r in enumerate(df.itertuples(), 1):
         name = r.test if len(r.test) <= 58 else r.test[:57] + "…"
         meas = r.measured if len(r.measured) <= 34 else r.measured[:33] + "…"
-        out(f"  {i:>2}  {tag[r.status]}  {name:<58}  {meas}", 0.06)
+        later = f"  → {r.fixed_by.replace('Gate ', '')}" if r.fixed_by else ""        # a later retest passed
+        out(f"  {i:>2}  {tag[r.status]}  {name:<58}  {meas:<34}{later}".rstrip(), 0.06)
 
     # ------------------------------------------------------------------ recomputations
     g6b = load("results_gate6b.json")
@@ -180,8 +181,10 @@ def main() -> None:
 
     # ------------------------------------------------------------------ summary
     p, f, o = (int((df["status"] == s).sum()) for s in ("pass", "fail", "other"))
+    fixed = int((df["fixed_by"] != "").sum())
     out()
-    out(f"Summary: {len(df)} tests · {p} passed · {f} failed (kept on the record) · {o} mixed, blocked or baseline", 0.2)
+    out(f"Summary: {len(df)} tests · {p} passed · {f} failed, kept ({fixed} later passed as a retest, {f - fixed} open) · "
+        f"{o} mixed or blocked", 0.2)
     out(f"Recomputed scores and verdicts: {'all match the saved results and the Scoreboard' if not mismatches else f'{mismatches} MISMATCHES'}", 0.2)
 
 
