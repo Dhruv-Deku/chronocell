@@ -38,9 +38,10 @@ class Drug:
     name: str
     examples: str
     plain: str            # one-sentence, jargon-free mechanism
-    target: str           # compact_low_signal | low_signal | hubs | loops
+    target: str           # compact_low_signal | low_signal | hubs | loops (extended set adds compact | mid_signal | high_signal)
     direction: int        # +1 open, -1 compact, 0 loops
     evidence: str
+    strength: float = 1.0  # extended set: how far, relative to the core classes, a full dose moves its targets
 
 
 DRUGS: dict[str, Drug] = {d.key: d for d in (
@@ -61,6 +62,49 @@ DRUGS: dict[str, Drug] = {d.key: d for d in (
          "Strengthens the loops that fence the genome into neighbourhoods, pulling each loop's two anchors together.",
          "loops", 0, "hypothetical / research"),
 )}
+
+
+# Extended set (Quantum lab era, October 2026): further chromatin-acting drug classes, each reduced to the same two
+# facts (where, which way) from its mechanism in the literature, fixed BEFORE any drug-treated measurement was
+# examined (validation/drug_gate8.py tests some of them against chromatin tracing after treatment). The core four
+# above are unchanged and remain the default set in the app. Facts about each class: chronocell/drug_info.py.
+EXTRA_DRUGS: dict[str, Drug] = {d.key: d for d in (
+    Drug("dnmt", "DNMT inhibitor (hypomethylating agent)",
+         "azacitidine, decitabine (approved for myelodysplastic syndromes and AML)",
+         "Stops DNA methylation from being copied, so methylated, packed-away DNA (silenced genes, heterochromatin) "
+         "slowly loosens.",
+         "compact", +1, "approved (myeloid cancers)", 0.7),
+    Drug("kdm", "JmjC demethylase blocker (2-OG mimic)",
+         "DMOG (research tool); related 2-oxoglutarate-site drugs are used for anaemia, not for chromatin",
+         "Blocks the enzymes that erase 'closed' histone methylation, so repressive marks build up and quiet "
+         "chromatin packs tighter.",
+         "compact_low_signal", -1, "research tool", 0.6),
+    Drug("lsd1", "LSD1 (KDM1A) inhibitor",
+         "iadademstat, bomedemstat (clinical trials); tranylcypromine (an approved antidepressant with weak LSD1 activity)",
+         "Stops LSD1 from switching enhancers off, so poised, moderately active enhancers open up.",
+         "mid_signal", +1, "clinical trials", 0.8),
+    Drug("dot1l", "DOT1L inhibitor",
+         "pinometostat (clinical trials in MLL-rearranged leukaemia)",
+         "Removes a mark that keeps highly transcribed genes in an open state, so the most active stretches settle.",
+         "high_signal", -1, "clinical trials", 0.6),
+    Drug("menin", "Menin inhibitor",
+         "revumenib (approved 2024 for acute leukaemia with a KMT2A translocation)",
+         "Breaks the menin-KMT2A complex that drives a few master genes, so their hyper-active hubs shut down.",
+         "hubs", -1, "approved (KMT2A-rearranged acute leukaemia)", 0.8),
+    Drug("p300", "p300/CBP acetyltransferase inhibitor",
+         "A-485 (research tool); inobrodib (clinical trials)",
+         "Stops the main enzymes that write 'open' acetyl marks at enhancers, so active enhancers lose them and compact.",
+         "high_signal", -1, "research / clinical trials", 0.8),
+    Drug("bet_degrader", "BET degrader (PROTAC)",
+         "dBET6, ARV-771, MZ1 (research tools)",
+         "Destroys BRD4 instead of just blocking it, so enhancer hubs collapse more completely than with a BET inhibitor.",
+         "hubs", -1, "research", 1.3),
+    Drug("txn", "Transcription inhibitor",
+         "actinomycin D (dactinomycin, approved chemotherapy); alpha-amanitin, flavopiridol, triptolide (research / trials)",
+         "Halts RNA polymerase II, so the chromatin changes that ongoing transcription maintains at active genes fade.",
+         "high_signal", -1, "approved (dactinomycin) / research", 0.5),
+)}
+ALL_DRUGS: dict[str, Drug] = {**DRUGS, **EXTRA_DRUGS}
 
 
 @dataclass
@@ -117,6 +161,12 @@ def target_weights(drug: Drug, x: np.ndarray, signal: np.ndarray, valid: np.ndar
     pc = _pct(crowd, valid)
     if drug.target == "compact_low_signal":
         w = np.clip(((pc + (1 - ps)) / 2 - 0.5) * 2, 0, 1)
+    elif drug.target == "compact":                 # extended set: crowded beads whatever their signal
+        w = np.clip((pc - 0.4) / 0.6, 0, 1)
+    elif drug.target == "mid_signal":              # extended set: moderately active (poised enhancers)
+        w = np.clip(1 - np.abs(ps - 0.65) / 0.2, 0, 1)
+    elif drug.target == "high_signal":             # extended set: the active top third
+        w = np.clip((ps - 0.6) / 0.4, 0, 1)
     elif drug.target == "low_signal":
         w = np.clip(((1 - ps) - 0.3) / 0.7, 0, 1)
     elif drug.target == "hubs":
@@ -190,7 +240,7 @@ def simulate_treatment(x_disease: np.ndarray, signal: np.ndarray, valid: np.ndar
                        doses: np.ndarray | None = None, relax_iters: int = 15,
                        loops: list[tuple[int, int, float]] | None = None,
                        signal_ref: np.ndarray | None = None) -> TreatmentResult:
-    drug = DRUGS[drug_key]
+    drug = ALL_DRUGS[drug_key]
     x0 = np.asarray(x_disease, dtype=np.float64)
     n = len(x0)
     if n < 20:
@@ -228,7 +278,7 @@ def simulate_treatment(x_disease: np.ndarray, signal: np.ndarray, valid: np.ndar
     d_min = physics.D_MIN_FACTOR * b0
     frames = []
     for d in doses:
-        s = float(d) * float(efficacy)
+        s = float(d) * float(efficacy) * float(drug.strength)
         if s <= 0:
             frames.append(x0.copy())
             continue
@@ -270,10 +320,12 @@ def simulate_treatment(x_disease: np.ndarray, signal: np.ndarray, valid: np.ndar
 
 
 def compare_drugs(x_disease: np.ndarray, signal: np.ndarray, valid: np.ndarray, b0: float, x_healthy: np.ndarray,
-                  efficacy: float = 0.8, relax_iters: int = 15, signal_ref: np.ndarray | None = None) -> pd.DataFrame:
-    """Full-dose restoration for every drug class (needs a healthy baseline of the same beads)."""
+                  efficacy: float = 0.8, relax_iters: int = 15, signal_ref: np.ndarray | None = None,
+                  drugs: dict | None = None) -> pd.DataFrame:
+    """Full-dose restoration for every drug class (needs a healthy baseline of the same beads). `drugs` defaults to
+    the core four (unchanged); pass ALL_DRUGS for the extended set."""
     out = []
-    for key, drug in DRUGS.items():
+    for key, drug in (drugs or DRUGS).items():
         r = simulate_treatment(x_disease, signal, valid, b0, key, x_healthy, efficacy, np.array([0.0, 1.0]), relax_iters,
                                signal_ref=signal_ref)
         last = r.metrics.iloc[-1]

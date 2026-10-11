@@ -30,6 +30,7 @@
 8. [Legacy Code](#8-legacy-code)
 9. [Dependency Graph](#9-dependency-graph)
 10. [Technology Stack](#10-technology-stack)
+11. [Population models, validation and the predictor (v3.3 and v4)](#11-population-models-validation-and-the-predictor-v33-and-v4-septemberoctober-2026)
 
 ---
 
@@ -638,3 +639,201 @@ graph TD
 | **Testing** | Pytest ≥ 8 | 21-test verification suite |
 | **Genomics** | pyfaidx, pyBigWig, cooler | Raw-input graph building (optional) |
 | **Export** | wwPDB v3.3 format | Standard structural biology interchange |
+
+
+---
+
+## 11. Population models, validation and the predictor (v3.3 and v4, September–October 2026)
+
+Sections 1–10 describe the v3.2 single-structure pipeline. This section covers what was added since:
+the population models, the held-out validation harness and the prediction without contact data. Every
+measured number lives in `validation/RESULTS.md` (generated from the result files by
+`python validation/report.py`); none is repeated here.
+
+### 11.1 Core modules (`chronocell/`, no Streamlit imports)
+
+| Module | Role | Main entry points |
+|---|---|---|
+| `ensemble.py` | v3.3 population model: maximum-entropy Gaussian ensemble (HIPPS/DIMES approach) on windows of ≤ 400 beads; exact Langevin trajectories | `fit_ensemble`, `fit_from_counts`, `EnsembleResult` |
+| `population.py` | v4 population model: low rank plus a random walk, exact block gradients, up to 6,000 beads; per-pair uncertainty (Maxwell law); practice-fitted interval recalibration | `fit_population`, `fit_population_from_counts`, `fit_population_from_medians`, `pair_summary`, `recalibrated_interval(level, kind)` |
+| `perturb.py` | cohesin depletion; structural variants built exactly in covariance space; enhancer–promoter pairs | `cohesin_loss_map`, `derive`, `variant_impact`, `bootstrap_impact` |
+| `svio.py` | VCF / BEDPE reading, variants to scenarios | `read_any`, `to_scenario` |
+| `hicfile.py` | `.hic` reader (format versions 6–9), local or remote by HTTP range requests | `HicFile`, `read_counts` |
+| `predict.py` | prediction without contact data (Pillar 5): CTCF peaks oriented by the JASPAR CTCF motif plus GC give 12 pair features; the frozen ridge model predicts each pair's median distance; verified downloads; command line | `load_model`, `predict_window`, `compare_maps`, `download_verified`, `fetch_chromosome_fasta`, `fetch_encode_peaks`, `encode_ctcf_sources`, `main` |
+| `accuracy.py` | the two accuracy scores kept apart; every held-out number the app shows, read from `validation/` result files | `two_scores`, `load_benchmark`, `interval_evidence`, `interval_input_kind`, `interval_note`, `sv_evidence` |
+| `provenance.py` | reproducibility record (JSON + PDF): inputs with SHA-256, parameters, software versions, sources | `build`, `to_json`, `to_pdf`, `validation_sources` |
+
+**`population.fit_population_from_medians(median_nm)`** turns a distance map that did not come from
+contacts (the predictor's output) into a population model: each median d_ij gives a per-axis spread
+σ_ij = d_ij / 1.538 (the Maxwell median), hence a contact frequency at the radius where adjacent beads
+touch with probability `p_adjacent`; those frequencies are fitted like measured ones (v3.3 up to 400
+beads, v4 above). This projects the map onto a valid 3D Gaussian ensemble, so every page (viewer, probe,
+Compare, exports) can use it. The result carries `config["input"]`, which the app uses to label it.
+
+**`predict.py` in detail.** Per locus: forward / reverse / unoriented CTCF peaks (strand of the best
+JASPAR MA0139.1 match within ±100 bp of the summit, relative score ≥ 0.8) and GC fraction. Per pair:
+convergent, divergent and tandem orientation products, peaks at either end, CTCF peaks between the loci,
+GC similarity, and each of these times log10(separation). Prediction: log d_ij = a + b·log10 s_ij +
+x_ij·β, with the trend (a, b) and β frozen in `data/predictor.json`. Downloads (`download_verified`)
+resume with HTTP Range requests and are moved into place only if their MD5 equals the one the source
+publishes (UCSC `md5sum.txt`, the ENCODE portal); without a published MD5 nothing is downloaded.
+
+### 11.2 Data files (`chronocell/data/`)
+
+| File | What it is | Where it comes from |
+|---|---|---|
+| `predictor.json` | the frozen Gate 5 model (β, feature means and SDs, trend, ridge λ, training sets, settings, validation reference) | copy of `validation/predictor_model.json`, fitted on practice data only (`validation/predictor.py --practice`) |
+| `jaspar_MA0139.1.jaspar` | CTCF position frequency matrix | JASPAR 2024, CC BY 4.0 (hashes in `validation_sources.json`) |
+| `calibration.json` | PIT histogram for the interval recalibration with imaging-derived contacts (Gate 2) | `validation/calibration.py --practice` |
+| `calibration_hic.json` | the same for sequencing Hi-C input (Gate 2b); the app uses it only if Gate 2b passed | `validation/calibration.py --practice --input hic` |
+| `perturbation_params.json` | cohesin-depletion parameters (Gate 4) | `validation/perturbation.py --practice` |
+| `validation_sources.json` | every external dataset, tool and annotation: URL, citation, licence, published checksum | maintained by hand; the ENCODE CTCF entries also feed the app's "ENCODE, by cell type" list |
+
+### 11.3 User interface (`ui/`)
+
+| Module | Role |
+|---|---|
+| `predict_view.py` | 01 · 3D structure → 03 Model & convergence → Input "Sequence + CTCF (predicted)": CTCF peaks uploaded, pasted or fetched from ENCODE by cell type; the chromosome sequence downloaded once from UCSC; the Gate 5 result and the cohesin-control caveat read from the result file; the population fitted to the prediction (`fit_population_from_medians`) and labelled "predicted" everywhere. `render_comparison` shows the model built from measured contacts and the predicted one side by side, with their rank agreement (raw and beyond the separation trend), when a window has both; they are never blended. |
+| `variant_impact.py` | 02 · 4D dynamics → 04 Variant impact; uses only populations built from contacts, never a prediction |
+| `pdb_eval_view.py` | Self-Math PDB State Evaluator; labels predicted populations as such |
+
+The distance probe (in `app.py`) shows, under the interval, the measured coverage for the input type of
+the population on screen (`accuracy.interval_input_kind`): imaging-derived contacts (Gate 2), sequencing
+Hi-C (Gate 2b: the Hi-C recalibration only if that test passed, otherwise the measured shortfall), or a
+prediction (intervals not tested).
+
+### 11.4 Validation (`validation/`)
+
+| Script | Gate | Output |
+|---|---|---|
+| `validate_tracing.py` | v3.3 windows (baseline) | `results.json` |
+| `gate1.py` | 1 / 1b: whole chromosome vs windows; Hi-C → imaging | `results_gate1*.json` |
+| `calibration.py` (`--input imaging` / `hic`) | 2 / 2b: interval coverage, recalibration | `results_calibration*.json`, `data/calibration*.json` |
+| `reliability.py` | 2c: per-pair reliability vs held-out error | `results_reliability*.json` |
+| `benchmark/run.py` | 3: baselines and PASTIS on the same inputs | `benchmark/results.json`, `RESULTS_TABLE.md` |
+| `perturbation.py`, `sv_validation.py` | 4 / 4b: cohesin loss; structural variants | `results_perturbation*.json`, `results_sv*.json` |
+| `predictor.py` | 5: prediction without contact data | `results_predictor.json`, `predictor_model.json` |
+| `scale_benchmark.py`, `chromosome_runtime.py` | cost: runtime and peak memory (synthetic input) | `scale_benchmark.json`, `chromosome_runtime.json` |
+| `report.py` | every numeric table in `RESULTS.md` and the README | (rewrites the generated blocks) |
+
+`frozen.py` holds every pre-registered setting and pass rule; git history shows each was committed
+before the test that uses it. `protocol.py` is the shared held-out protocol (half A in, half B as the
+answer key, trend-removed Spearman as a % of the half A vs half B ceiling). `datasets.py` is the dataset
+registry with practice / test roles, downloads and checksums.
+
+## 12. Phase B: variant impact, analysis suite, differential analysis, data handling, platform (October 2026)
+
+Everything here is additive: the pages, defaults, models, commands, endpoints and result files of section 11 are
+unchanged, and each new feature carries its measured standing (`validation/RESULTS.md`). `chronocell/` still has
+no Streamlit imports. Third-party tools run only from an isolated environment (`.chronocell_cache/tools-venv`), so
+the app's own environment is never changed by them.
+
+### 12.1 Design note per item
+
+| Item | Modules | Place in the app | CLI / API | Tests | Gate |
+|---|---|---|---|---|---|
+| B1 variant impact engine v2 | `sv_engine.py` (joins → derivative chromosomes, several sources, copy number, read-outs, ranking), `annotations.py` (ClinVar, GTEx, user-supplied COSMIC) | 02 · 4D dynamics → 05 Variant impact engine v2 (`ui/variant_engine_view.py`); the old 04 panel is unchanged | `chronocell impact`; `POST /api/v1/impact` | engine walks, exact agreement with `perturb` on deletions / inversions, translocation read-outs, copy number; AppTest | 4c (cohesin loss, Hi-C), 4d (SVs, blocked) |
+| B2 two-condition comparison | `differential.py` (moderated t, BH FDR, tracks, loop / boundary / compartment changes) | 03 · Compare → Differential analysis (`ui/diff_view.py`) | `chronocell diff`; `POST /api/v1/diff` | null and planted changes; AppTest | 7 |
+| B3 analysis suite | `analysis.py` (HiCCUPS-like loops, TopDom-like, Arrowhead-like, compartments, insulation, P(s)); `domains.py` reused unchanged | 01 · 3D structure → 06 Analysis suite (`ui/analysis_view.py`) | `chronocell analyze`; `POST /api/v1/analyze` | planted loops and domains; AppTest | 6 |
+| B4 data handling | `contacts_io.py` (region-wise .hic / .cool / .mcool / .pairs, assembly detection, errors), `normalize.kr_balance`, `liftover.py`, `bigwig.py` | Differential analysis and partner windows read files or URLs by region | `chronocell batch` (sample sheet, resumable) | fixtures for every format and error | — |
+| B5 integration | `annotations.py`, `bigwig.py` (pure-Python bigWig reader used when pyBigWig is missing), RNA-seq as before | 05 · Genes → Reference annotations; variant report gene table | — | local fixture files | — (information only) |
+| B6 reports and exports | `report_html.py` (offline HTML + PDF with gate standing and run record), `exports.py` (BED / BEDPE / bedGraph, Juicebox 2D and short format, .mcool) | download buttons on each new panel | `chronocell report` | HTML has no scripts; PDF builds | — |
+| B7 local platform | `jobs.py` (queue: one GPU job at a time, CPU jobs up to a limit, Stop, recovery), `projects.py`, `cli.py`, `pyproject.toml` | sidebar: Projects, Jobs (`ui/platform_view.py`) | `chronocell analyze | diff | impact | batch | report | predict`; `python -m chronocell.jobs` | queue, recovery, projects; AppTest | — |
+| B8 Research mode | `ui/settings.py` | sidebar switch (default on) | — | AppTest | — |
+| B9 other tools | `validation/loops_gate6.py`, `validation/diff_gate7.py`, `validation/tools_b9.py` | — | — | matching and summaries | 6, 7 |
+
+### 12.2 The variant engine in one paragraph
+
+Each loaded window is a *source* with its population model's pair-variance matrix (nm²). A rearrangement is a set
+of joins between breakend sides (L = the piece ending at a cut, R = the piece starting there). Cutting every source
+at the breakpoints and walking the adjacencies from each window end gives the derivative chromosomes; pieces no walk
+reaches are acentric and lost. A derivative's ensemble is built exactly as `perturb.derive` builds one (pieces keep
+their joint law; reused pieces are independent copies; each junction is a new bond), generalised to several sources
+that are independent of each other. Hi-C in reference coordinates sums contacts over every chromosome the cell
+carries (normal homologs and derivatives with their copy numbers), so a heterozygous variant changes half the signal.
+Read-outs: contact change, insulation boundaries lost / gained and neo-domains across junctions, genes (copy number,
+broken, inverted, next to a junction, contacts changed), enhancer–promoter pairs, refit intervals, a ranking score.
+
+### 12.3 Packaging and tools
+
+`pip install -e .` installs the `chronocell` command (entry point `chronocell.cli:main`); every
+`python -m chronocell.<module>` command keeps working. Optional tools for the B9 comparisons live in
+`.chronocell_cache/tools-venv`, pinned in `requirements-tools.txt` (chromosight 1.6.3, cooler 0.10.4, Mustache 1.3.3 with NumPy 1.26.4 and a stub for
+hic-straw, which Mustache needs only for .hic input and which does not build on Windows). Not available on this
+machine, with reasons in `validation/results_tools_b9.json`: HiCCUPS / Arrowhead (Java), TopDom, dcHiC, diffHic,
+multiHiCcompare (R), CHESS (pysam does not build), cooltools, hic_breakfinder, HiNT, Akita, Orca, and a FASTQ →
+contacts pipeline (bwa / chromap / pairtools need Linux or WSL, and no WSL distribution is installed).
+
+## 13. Quantum lab (experimental, October 2026)
+
+Additive like section 12: no existing page, default, model or result changes; the lab and its sections appear only
+in Research mode and compute nothing until a Run button is pressed. `chronocell/quantum/` has no Streamlit imports
+and needs nothing beyond `requirements.txt` (NumPy, SciPy, scikit-learn; PyTorch for the GPU path when present).
+
+### 13.1 Modules
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/sim.py` | Statevector simulator, Qiskit's little-endian convention (qubit 0 = lowest bit) and gate definitions; `Circuit` (gate list, run, counts, depth, OpenQASM 2.0); QAOA on a diagonal cost (fast path: element-wise phase + RX mixer, torch on the GPU from 10 qubits; INTERP depth growth, COBYLA, expectation or CVaR objective); sampling; approximate noise (global depolarising from compiled gate counts + read-out flips); Walsh–Hadamard decomposition of a diagonal cost into Pauli-Z terms; Pauli exponentials | fast path = gate-level circuit; Pauli exponentials = `expm`; Qiskit cross-check |
+| `quantum/qubo.py` | QUBO ↔ Ising; exact enumeration (≤ 26 variables); exact dynamic programming for banded QUBOs (O(n·2^w)); simulated annealing; simulated quantum annealing (path-integral Monte Carlo with Trotter replicas) | enumeration = DP on random banded QUBOs; annealers reach the optimum |
+| `quantum/problems.py` | Domain-wall QUBO (contiguous modularity with a minimum domain size; the second-order cut expansion is exact on every feasible solution because the counted span is ≤ 2 × the minimum size); k-of-n selection (variant set, gene group); drug-combination QUBO (two bits per drug; quadratic restoration model fitted to the Drug lab simulator); boundary matching; qubit scaling table | QUBO energy = modularity computed directly; drug QUBO = its model on all 256 states |
+| `quantum/lattice.py` | Lattice folding (2 bits per bond in 2D, 3 in 3D; contact rewards from O/E contacts; overlap and unused-code penalties): a higher-order diagonal Hamiltonian | known folds |
+| `quantum/chem.py` | STO-3G integrals over s Gaussians, RHF, MO transform, second quantisation, Jordan–Wigner (16 × 16), FCI in the two-electron sector, UCCSD (singles + double as commuting Pauli exponentials) and hardware-efficient VQE (BFGS; an electron-number penalty keeps the latter in the molecule's sector), shot-noise estimate | Szabo & Ostlund's integrals and energies; UCCSD circuit = `expm` |
+| `quantum/kernels.py` | ZZ feature map (statevector and gates), quantum kernel (exact or from shots), `QSVM` (scikit-learn, precomputed kernel), amplitude encoding with Möttönen state preparation (Gray-code RY/CX), swap test | map = circuit; prepared amplitudes = target; swap-test P(0) = ½ + ½ overlap² |
+| `quantum/walk.py` | Continuous-time quantum walk (normalised Laplacian) and classical random walk on a contact graph | `expm` |
+| `ui/quantum_lab.py` | 06 Quantum lab and the hooks used by 01–05 and 03's tab; circuit diagrams, QUBO heat maps, measurement histograms, scaling chart; Gate Q standing from `results_gateq.json` | AppTest |
+
+### 13.2 Validation
+
+`validation/quantum_gateq.py` (Gate Q, rules in `frozen.QUANTUM_GATEQ`; practice GM12878, test K562 / IMR-90 maps of
+Gate 6 and ENCODE Arrowhead domains; GTEx v10 labels; resumable per window under `validation/data/cache/gateq/`).
+`validation/quantum_crosscheck.py` exports every circuit type as OpenQASM 2.0 and compares the final states with
+Qiskit 2.2.1 run from an isolated environment (`.chronocell_cache/quantum-venv`, `requirements-quantum.txt`), so the
+app's environment never depends on Qiskit.
+
+### 13.3 Limits
+
+The simulator holds at most 24 qubits (2^24 complex amplitudes). Noise is a global model, not a device emulation.
+Running on hardware is left to the user (OpenQASM export); the app holds no quantum-cloud credentials.
+
+## 14. Drug lab additions and the quantum drug tabs (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `therapy.py` (extended) | `EXTRA_DRUGS` (8 classes, literature mechanisms, a `strength` factor), `ALL_DRUGS`; new target kinds `compact`, `mid_signal`, `high_signal`; `compare_drugs(..., drugs=)`. `DRUGS`, the default ranking and every core result are unchanged (`strength` 1.0) | direction of every class; core defaults |
+| `drug_info.py` | Facts per class (target protein, its job, status as of 2025, examples, safety themes, PubChem names); PubChem PUG REST on demand (properties, 2D PNG, 3D SDF) cached with SHA-256; rule-of-five / Veber | card per class |
+| `quantum/molecules.py` | STO-3G (H-Ne, Cartesian s/p), McMurchie-Davidson integrals, RHF (damped + DIIS, two routes), frozen-core active space, sparse Jordan-Wigner, FCI in the electron/spin sector, disentangled UCCSD with closed-form rotations and an adjoint gradient | Szabo & Ostlund; OpenFermion; Basis Set Exchange; `expm` |
+| `quantum/molfeat.py` | Pure-Python SMILES reader and 17 descriptors | RDKit (isolated environment) |
+| `quantum/safety.py` | hERG screen: TDC hERG on demand (MD5), quantum-kernel SVM, RBF-SVM, logistic regression, nearest training compounds | Gate Q5 |
+| `quantum/docking.py` | SDF / PDB reading, ligand features, grid and directional pocket hot-spots, interaction graph, 20-vertex core, max-weight-clique QUBO, Kabsch pose, score, random-search baseline, PoseBusters on demand (MD5) | exact cliques; exact pose recovery; Gate Q7 |
+| `ui/drug_guide.py` | The Drug guide (classes, where they act, all classes, pairs, molecules) | AppTest |
+| `ui/quantum_lab.py` (extended) | `molecules_panel`, `safety_panel`, `docking_panel`; Drug lab Quantum section with five tabs; 07 picker entries | AppTest |
+
+Validation: `validation/drug_gate8.py` (Gate 8, MINA tracing after drug treatment, 4DN), `validation/quantum_drug_gates.py`
+(Q5-Q7; RDKit, OpenFermion and the Basis Set Exchange run only in `.chronocell_cache/quantum-venv`). New data sources are
+listed in `chronocell/data/validation_sources.json`.
+
+## 15. Round 2 of the quantum gates (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/molecules.py` (extended) | `generalized_generators`, `adapt_vqe` (ADAPT-VQE: gradient-selected operators, warm-started BFGS), `ADAPT_SETTINGS` (as frozen for Q6b), `run(..., method="adapt")`; `spin_squared`, `fci_states`, `fci_singlet` and two `MoleculeResult` fields (`lowest_spin`, `e_singlet`) | finite-difference gradient; FCI; Gate Q6b |
+| `quantum/docking.py` (extended) | Vina-like atom typing (`ligand_types`, `protein_types`), `vina_score`, rigid-body `refine` (Powell), `random_search_vina`, `polish` (the app's button), virtual polar hydrogens for structures without them | Gate Q7b |
+| `ui/quantum_lab.py` (extended) | Circuit switch and ADAPT growth chart; spin note; *Polish the poses* | AppTest |
+
+Validation: `validation/quantum_round2.py` (Q2b, Q4b, Q6b, Q7b; new cell lines HMEC and HAP-1, ENCODE RNA-seq labels,
+the Astex Diverse set) and `validation/loops_gate6b.py` (Gate 6 on the new cell lines).
+
+## 16. Scoreboard, ADMET profile, noise and error mitigation (October 2026)
+
+| Module | What it holds | Checked by |
+|---|---|---|
+| `quantum/noisy.py` | Density-matrix simulation (up to 10 qubits) with local depolarizing noise after every gate and readout errors; unitary folding; Richardson / linear / exponential zero-noise extrapolation; symmetry verification; gate-level UCCSD circuits for the active-space molecules (Pauli exponentials of the Jordan-Wigner excitations) | exact statevector; fully mixed limit; Gate Q9 |
+| `quantum/admet.py` | 21 TDC ADMET endpoints (official scaffold splits) on demand; 8-component descriptors; quantum-kernel SVM / kernel ridge, RBF on the same inputs and on all 17 descriptors | Gate Q8 |
+| `quantum/molecules.py` (extended) | `energy_scan` and the `escape` option of `adapt_vqe`; `reference` start; `lowest_determinants`, `adapt_multistart` | Gate Q6d |
+| `quantum/docking.py` (extended) | `hybrid_search` (random search's budget split between random placements and clique seeds) | Gate Q7c |
+| `ui/scoreboard.py` | 07 Scoreboard: every test from `validation/report.py`, charts | AppTest |
+| `ui/quantum_extra.py` | ADMET profile and noise & mitigation panels | AppTest |
+
+Validation: `validation/admet_gate.py` (Gate Q8), `validation/mitigation_gate.py` (Gate Q9), Q6d and Q7c in
+`validation/quantum_round2.py`.

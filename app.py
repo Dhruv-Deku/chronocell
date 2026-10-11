@@ -87,9 +87,11 @@ with _LOCK:
         try:
             from chronocell import (accuracy as ACC, agent as A, domains, features, formats, genes as G, genome,
                                     pdf_report, physics, provenance as PROV, snapshot as SN, states as S, theme as T, viz)
-            from ui import agent_panel, compare, drug_lab, four_d, genes_view, guide, states_panel
-            from ui.common import (SLOT_ROOT, Dataset, banner, clamp_window, esc, fmt, html, inject_theme, load_dataset,
-                                   readout, slot_files, slot_graph, warning_card)
+            from ui import (agent_panel, compare, drug_lab, four_d, genes_view, guide, interact, predict_view,
+                            states_panel)
+            from ui.common import (SLOT_ROOT, SYNTHETIC_PREFIX, Dataset, banner, clamp_window, esc, fmt, html, inject_theme,
+                                   is_synthetic, load_dataset, readout, slot_files, slot_graph, synthetic_warning,
+                                   telemetry_row, warning_card)
             break
         except (KeyError, ImportError):
             # A file saved while this run was importing: the watcher unloaded a module mid-import.
@@ -147,6 +149,12 @@ def read_slot_file(path: str, mtime: float) -> bytes:
 
 
 @st.cache_data(show_spinner=False)
+def bead_genes(ds_key: str, _ds: Dataset) -> np.ndarray:
+    """Genes overlapping each bead of the loaded structure (tooltips, linked selection)."""
+    return interact.gene_labels(_ds.chrom, _ds.bin0, _ds.n)
+
+
+@st.cache_data(show_spinner=False)
 def hover_labels(ds_key: str, _ds: Dataset) -> list[str]:
     ch, n = _ds.chrom, _ds.n
     g = _ds.gbin(np.arange(n))
@@ -195,20 +203,6 @@ def population_rmsf(view_key: str, _population) -> np.ndarray:
 @st.cache_data(show_spinner=False)
 def equivariance_report() -> dict:
     return egnn.equivariance_check(n=300, seed=0)
-
-
-def telemetry_row(model: str, g_lo: int, g_hi: int, n: int, stage: str, seconds: float, device: str,
-                  energy: float | None, contact_fit: float | None, consistency: float | None = None) -> dict:
-    """One measured row of the execution-telemetry table. Microscopy accuracy needs imaging ground truth,
-    which a user's window does not have, so it is never filled in here (the method's held-out benchmark is
-    shown separately under Accuracy)."""
-    ok = lambda v: v is not None and np.isfinite(v)  # noqa: E731
-    return {"Model": model, "Window": f"{g_lo:,}–{g_hi - 1:,}", "Beads": n, "Stage": stage,
-            "Time (s)": round(float(seconds), 2), "ms / bead": round(1000 * float(seconds) / max(n, 1), 2),
-            "Device": device, "Contact-map fit": round(float(contact_fit), 3) if ok(contact_fit) else None,
-            "Microscopy accuracy": None,
-            "Ensemble consistency (CV)": round(float(consistency), 3) if ok(consistency) else None,
-            "Energy (final objective)": round(float(energy), 5) if ok(energy) else None}
 
 
 def best_fit_window(ds: Dataset, width: int = 800) -> tuple[int, int]:
@@ -301,8 +295,23 @@ WORKSPACES = {   # key: (number, label, one-line plain-language purpose)
     "Compare": ("03", "Compare", "Put two biological states side by side; rotating one rotates the other."),
     "Drug lab": ("04", "Drug lab", "Apply a virtual epigenetic drug and see how far it pushes the fold back toward healthy."),
     "Genes": ("05", "Genes", "Find which genes sit in open, active chromatin and which are buried and likely silenced."),
-    "Guide": ("06", "Guide", "What everything means, in plain words, with a 2-minute tour."),
+    "Quantum lab": ("06", "Quantum lab", "Try ChronoCell's problems on a simulated quantum computer, next to the classical answer."),
+    "Scoreboard": ("07", "Scoreboard", "Every accuracy test on held-out real data: what passed, what failed, and by how much."),
+    "Guide": ("08", "Guide", "What everything means, in plain words, with a 2-minute tour."),
 }
+RESEARCH_ONLY = ("Drug lab", "Quantum lab")   # hidden when Research mode is off (Phase B8; quantum lab: experimental)
+with st.sidebar:
+    from ui import settings as APPSET
+    research = st.toggle("Research mode", value=APPSET.load()["research_mode_default"], key="research_mode",
+                         help="On: every page, including the mechanism simulators (Drug lab) and the rule-based "
+                              "Normal / Diseased / Senescent labels, none of which is validated. Off: the product view, "
+                              "with only what has a measured standing.")
+    if st.button("Open the app this way next time", key="research_default_btn",
+                 help="Saves this choice as the default on this computer (.chronocell_cache/settings.json)."):
+        APPSET.save(research_mode_default=bool(research))
+        st.toast("Saved as the default.")
+if not research:
+    WORKSPACES = {k: v for k, v in WORKSPACES.items() if k not in RESEARCH_ONLY}
 if ss.get("workspace") not in WORKSPACES:
     ss.workspace = "3D structure"
 
@@ -374,9 +383,17 @@ html(f'<p class="cc-purpose">{WORKSPACES[workspace][2]}</p>')
 # ======================================================================================
 bio = states_panel.sidebar(chrom_choice, genome.chrom(chrom_choice, None, asm_name).n_bins)
 agent_cfg = agent_panel.sidebar_settings()
+with st.sidebar:                    # Phase B7, below the existing sidebar sections
+    from ui import platform_view
+    platform_view.projects_panel()
+    platform_view.jobs_panel()
 
 if workspace == "Guide":            # plain-language guide: needs no data
     guide.render(VERSION)
+    st.stop()
+if workspace == "Scoreboard":       # every pre-registered test, read from the result files: needs no data
+    from ui import scoreboard
+    scoreboard.render()
     st.stop()
 
 # ======================================================================================
@@ -425,7 +442,7 @@ elif (gp := slot_graph(chrom_choice)) is not None:
     except OSError as exc:
         load_problems.append(f"{gp.name}: {exc.strerror or exc}")
 
-labels_src = [s[0] if s else "Reference model (synthetic)" for s in sources]
+labels_src = [s[0] if s else SYNTHETIC_PREFIX + "Reference model" for s in sources]
 default_src = 1 if len(sources) > 1 else 0
 src_key = f"source_{chrom_choice}_{len(sources)}"
 b0_arg = None if auto_b0 else float(b0_manual)
@@ -715,6 +732,16 @@ if workspace == "Genes":
     status_bar()
     st.stop()
 
+if workspace == "Quantum lab":      # experimental, Research mode only: simulated quantum algorithms
+    from ui import quantum_lab
+    ref_ds = ds if ds.is_reference else load_dataset(chrom_choice, int(seed), b0_arg, None, "Auto", None, False,
+                                                     assembly=asm_name)
+    q_options = [(labels_src[0], ref_ds)] + [(labels_src[i], d) for i, d in sorted(cond_by_idx.items())]
+    q_base = state_datasets.get(S.HEALTHY) if agent_state != S.HEALTHY else None
+    quantum_lab.render(ds, q_options, q_base, float(b0), frame_idx)
+    status_bar()
+    st.stop()
+
 # ======================================================================================
 # 3D workspace: stage header
 # ======================================================================================
@@ -758,6 +785,9 @@ with head_l:
          f'the region to the other. Beads that touch in 3D can switch each other’s genes on or off.</p>')
     options = (["Input structure"] + (["EGNN reconstruction"] if fit is not None else [])
                + (["Population model"] if ens is not None else []))
+    pending = ss.pop("structure_pending", None)       # set by a fit in the previous run, before this widget exists
+    if pending and pending[0] == fit_key and pending[1] in options:
+        ss[f"structure_{fit_key}"] = pending[1]
     shown = st.segmented_control("Structure", options, default=options[-1] if ss.get("show_fit") else options[0],
                                  required=True, key=f"structure_{fit_key}", label_visibility="collapsed") \
         if len(options) > 1 else options[0]
@@ -768,9 +798,15 @@ if shown == "EGNN reconstruction" and fit is not None and len(fit.coords_nm) == 
 elif shown == "Population model" and ens is not None and len(ens.representative_nm) == hi - lo:
     model_kind = "ensemble"
 using_fit = model_kind is not None
-model_label = {"egnn": "EGNN reconstruction", "ensemble": "Population model · representative of 100 trajectories",
+predicted = model_kind == "ensemble" and predict_view.is_predicted(ens)
+model_label = {"egnn": "EGNN reconstruction",
+               "ensemble": ("Population model · " + predict_view.INPUT_LABEL) if predicted
+               else "Population model · representative of 100 trajectories",
                None: ds.structure_label}[model_kind]
-model_method = {"egnn": "contact embedding + EGNN", "ensemble": "maximum-entropy population model (v3.3)",
+model_method = {"egnn": "contact embedding + EGNN",
+                "ensemble": ("sequence + CTCF prediction (Gate 5 model) -> maximum-entropy population model" if predicted
+                             else "maximum-entropy population model (v4)" if ens is not None
+                             and ens.config.get("model") == "population_v4" else "maximum-entropy population model (v3.3)"),
                 None: "reference model" if ds.is_reference else "input"}[model_kind]
 coords_now = ds.frames[frame_idx]
 sub = {"egnn": fit.coords_nm if fit is not None else None,
@@ -782,6 +818,8 @@ if sub is None:
 def accuracy_scores() -> dict:
     """The two separate accuracy scores for the structure in view (see chronocell.accuracy)."""
     if model_kind == "ensemble":
+        if predicted:                     # no input contacts: no contact-map fit; the Gate 5 benchmark applies
+            return ACC.two_scores("predicted_sequence_ctcf", None)
         name = "population_v4" if ens.config.get("model") == "population_v4" else "ensemble_v3_3"
         return ACC.two_scores(name, ens.config.get("window_contact_fit"))
     fit_val = None
@@ -818,14 +856,40 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
     ch = ds.chrom
     top_l, top_r = st.columns([4, 1], vertical_alignment="center")
     n_view = hi - lo
+    g_lo_view = ds.bin0 + lo
+    key_a, key_b = f"probe_a_{n_view}", f"probe_b_{n_view}"
+    ss.setdefault("probe_on", False)
+    ss.setdefault(key_a, 1)
+    ss.setdefault(key_b, max(n_view, 1))
+    # selection events (applied once each, before the probe widgets are drawn): a clicked bead fills
+    # bead A, then bead B, alternately; a clicked map pixel (i, j) fills both
+    if ss.get("pick_on") and n_view >= 2:
+        for pt in interact.fresh(ss, "viewport"):
+            bead = interact.bead_from_point(pt, g_lo_view, n_view)
+            if bead is not None:
+                slot = ss.get("pick_slot", "A")
+                ss[key_a if slot == "A" else key_b] = bead + 1
+                ss["pick_slot"] = "B" if slot == "A" else "A"
+                ss["probe_on"] = True
+                break
+        for pt in interact.fresh(ss, "matrix"):
+            pair = interact.pair_from_map_point(pt, g_lo_view, n_view, ch.resolution)
+            if pair is not None:
+                ss[key_a], ss[key_b] = pair[0] + 1, pair[1] + 1
+                ss["pick_slot"] = "A"
+                ss["probe_on"] = True
+                break
     with top_r, st.container(horizontal=True, horizontal_alignment="right", gap="small"):
         with st.popover("Measure"):
-            st.toggle("Distance probe", False, key="probe_on",
+            st.toggle("Distance probe", key="probe_on",
                       help="Pick two beads by position; the 3D view marks them and draws the line between.")
             if n_view >= 2:
-                b1 = st.number_input("Bead A (1 = first bead in view)", 1, n_view, 1, key=f"probe_a_{n_view}")
-                b2 = st.number_input("Bead B", 1, n_view, n_view, key=f"probe_b_{n_view}")
-                st.caption("Hover a bead in the view to see its number (bin) and locus.")
+                b1 = st.number_input("Bead A (1 = first bead in view)", 1, n_view, key=key_a)
+                b2 = st.number_input("Bead B", 1, n_view, key=key_b)
+                st.toggle("Click to pick beads (3D view and map)", False, key="pick_on",
+                          help="Click a bead in the 3D view to set bead A, then bead B; click a pixel of the contact "
+                               "or distance map (02 Genomic features) to set both. Off: clicks do nothing, as before.")
+                st.caption("Hover a bead in the view to see its number, locus and genes.")
                 ss["probe_pair"] = (int(b1) - 1, int(b2) - 1)
                 st.select_slider("Interval shown (population model)", ["50 %", "80 %", "90 %"], "50 %",
                                  key="probe_level",
@@ -874,11 +938,28 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
     halo = None
     if ss.get("unc_on") and population is not None and population.representative_nm.shape[0] == n_view:
         halo = population_rmsf(view_key, population)
+    probe_dist = None
+    if probe is not None and 0 <= probe[0] < n_view:
+        ref = int(probe[0])
+        if population is not None and POP is not None and population.representative_nm.shape[0] == n_view:
+            level_p = int(str(ss.get("probe_level") or "50 %").split()[0])
+            sig = POP.pair_sigma_nm(population, np.full(n_view, ref), np.arange(n_view))
+            summ = POP.summarise_sigma(sig, float(population.config.get("r_c_nm", 150.0)), level_p / 100.0)
+            probe_dist = {"ref": ref, "median": summ["median"], "lower": summ["lower"], "upper": summ["upper"],
+                          "level": level_p, "source": "population model"}
+        else:
+            probe_dist = {"ref": ref, "median": np.linalg.norm(sub - sub[ref], axis=1), "lower": None, "upper": None,
+                          "level": None, "source": "this structure"}
+    linked = ss.get("linked_gene")
+    marks = []
+    if linked and linked[2] == ds.key and g_lo_view <= linked[1] < g_lo_view + n_view:
+        marks = [(int(linked[1]) - g_lo_view, str(linked[0]))]
     fig = viz.viewport(sub, idx, intensity, labels[lo:hi], scale=colour, focus_color=focus_color, style=style,
                        radius=float(ss.get("disp_radius", 0.30)) * b0, bead_px=int(ss.get("disp_bead", 5)),
                        height=int(ss.get("disp_height", 720)), context=ctx, uirevision=view_key,
                        scale_bar_nm=bar, gc=ds.gc[lo:hi], epi=ds.epi[lo:hi], valid=ds.valid[lo:hi], chrom=ch,
-                       clip=clip, probe=probe, halo_nm=halo)
+                       clip=clip, probe=probe, halo_nm=halo, genes=bead_genes(ds.key, ds)[lo:hi],
+                       probe_dist=probe_dist, marks=marks)
 
     if colour == "Monochrome":
         legend = f'<span class="sw" style="background:{T.INK}"></span> chromatin fibre'
@@ -905,6 +986,7 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
 
     with st.container(key="stage"):
         st.plotly_chart(fig, theme=None, key="viewport", width="stretch",
+                        on_select="rerun" if ss.get("pick_on") else "ignore", selection_mode="points",
                         config={"displayModeBar": True, "displaylogo": False, "scrollZoom": True, "responsive": True,
                                 "modeBarButtonsToRemove": ["zoom3d", "pan3d", "orbitRotation", "tableRotation",
                                                            "handleDrag3d", "resetCameraLastSave3d", "hoverClosest3d",
@@ -923,11 +1005,25 @@ def stage(ds: Dataset, lo: int, hi: int, focus_mask: np.ndarray | None, sub: np.
             level = int(str(ss.get("probe_level") or "50 %").split()[0])
             ps = POP.pair_summary(population, i_p, j_p, level / 100.0)
             rows += [("Population median (all trajectories)", f"{population.median_distance_nm[i_p, j_p]:,.0f}", "nm"),
-                     (f"Middle {level} % of cells (model)", f"{ps.lower:,.0f}–{ps.upper:,.0f}", "nm"),
-                     ("Mean ± SD across cells (model)", f"{ps.mean:,.0f} ± {ps.sd:,.0f}", "nm"),
+                     (f"Middle {level} % of cells (model)", f"{ps.lower:,.0f}–{ps.upper:,.0f}", "nm")]
+            ev_int = ACC.interval_evidence()
+            in_kind = ACC.interval_input_kind(population)
+            if in_kind == "hic" and ev_int and ev_int.get("hic_verdict") == "pass":
+                pr = POP.pair_summary(population, i_p, j_p, level / 100.0, recalibrated=True, kind="hic")
+                rows.append((f"Middle {level} % of cells, recalibrated<small>quantile recalibration fitted on practice "
+                             "Hi-C input (Gate 2b, passed)</small>", f"{pr.lower:,.0f}–{pr.upper:,.0f}", "nm"))
+            elif in_kind == "imaging" and POP.recalibrated_interval(level / 100.0) is not None:
+                pr = POP.pair_summary(population, i_p, j_p, level / 100.0, recalibrated=True)
+                rows.append((f"Middle {level} % of cells, recalibrated<small>quantile recalibration fitted on practice "
+                             "imaging data (Gate 2)</small>", f"{pr.lower:,.0f}–{pr.upper:,.0f}", "nm"))
+            rows += [("Mean ± SD across cells (model)", f"{ps.mean:,.0f} ± {ps.sd:,.0f}", "nm"),
                      ("Contact probability (model)", f"{population.contact_probability[i_p, j_p]:.3f}",
                       f"< {population.config.get('r_c_nm', 0):.0f} nm")]
         readout(rows)
+        if population is not None:
+            note = ACC.interval_note(ACC.interval_evidence(), ACC.interval_input_kind(population))
+            if note:
+                html(f'<p class="cc-note">{note}</p>')
     fitv = phys["fit"]
     spec_l, spec_r = st.columns([1, 1])
     spec_l.markdown(
@@ -1007,12 +1103,17 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                                     required=True, key=f"matrix_kind_{bool(wci.size)}", label_visibility="collapsed")
         if kind == "Contact map":
             mat, k = physics.coarse_contact_map(wci + lo, wcj + lo, wcm, lo, hi)
-            st.plotly_chart(viz.matrix_chart(mat, g_lo, k, "contacts", resolution=ch.resolution), theme=None,
-                            width="stretch", config=T.PLOT_CONFIG, key="matrix")
+            fig_m = viz.matrix_chart(mat, g_lo, k, "contacts", resolution=ch.resolution)
         else:
             mat, k = physics.coarse_distance_map(sub)
-            st.plotly_chart(viz.matrix_chart(mat, g_lo, k, "distance", resolution=ch.resolution), theme=None,
-                            width="stretch", config=T.PLOT_CONFIG, key="matrix")
+            fig_m = viz.matrix_chart(mat, g_lo, k, "distance", resolution=ch.resolution)
+        pp = ss.get("probe_pair") if ss.get("probe_on") else None
+        if pp is not None and pp[0] != pp[1] and 0 <= min(pp) and max(pp) < hi - lo:
+            xs = [(g_lo + pp[0] + 0.5) * ch.resolution / 1e6, (g_lo + pp[1] + 0.5) * ch.resolution / 1e6]
+            viz.mark_pair(fig_m, xs[0], xs[1])
+        fig_m.update_layout(dragmode="zoom")                 # keep the zoom drag when clicks are listened to
+        st.plotly_chart(fig_m, theme=None, width="stretch", config=T.PLOT_CONFIG, key="matrix",
+                        on_select="rerun" if ss.get("pick_on") else "ignore", selection_mode="points")
         html(f'<p class="cc-note">{"Native" if k == 1 else f"{k * kb:g} kb"} pixels'
              f'{"" if k == 1 else " (window block-averaged)"}.</p>')
         if s_p is not None:
@@ -1143,8 +1244,16 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
         if ss.pop("ens_running", None):
             html('<p class="cc-note"><b>The last population fit was stopped before it finished; nothing was saved.</b></p>')
         n_win_ctc = int(((ds.ci >= lo) & (ds.ci < hi) & (ds.cj >= lo) & (ds.cj < hi)).sum()) if ds.has_contacts else 0
+        pop_input = "Contact data"
+        if TORCH:
+            pop_input = st.segmented_control(
+                "Input", ["Contact data", "Sequence + CTCF (predicted)"], default="Contact data", required=True,
+                key="pop_input", help="Contact data: the validated population model (default). Sequence + CTCF: a "
+                                      "prediction for windows without contact data (Gate 5), labelled predicted.")
         if not TORCH:
             html('<p class="cc-note">Needs PyTorch (<code>pip install torch</code>).</p>')
+        elif pop_input != "Contact data":
+            predict_view.render(ds, lo, hi, fit_key, float(b0))
         elif not ds.has_contacts:
             html('<p class="cc-note">Needs contacts (Data → Graph).</p>')
         elif n_win > POP.MAX_BEADS:
@@ -1185,6 +1294,7 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                     c_fit = ACC.spearman(res_e.contact_probability[wci, wcj], wcm)
                     res_e.config["window_contact_fit"] = c_fit
                     ss.ensembles[fit_key] = res_e
+                    ss.setdefault("contact_ensembles", {})[fit_key] = res_e   # for the side-by-side view
                     model_name = "v4 population" if big else "v3.3 population"
                     frames, reps = res_e.trajectories_nm.shape[:2]
                     for sname, secs, loss in (("ensemble fit", res_e.config["fit_seconds"], res_e.history["best_loss"][0]),
@@ -1194,7 +1304,7 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
                                                           res_e.spread_cv if loss is None else None))
                     ss.pop("ens_running", None)
                     ss.show_fit = True
-                    ss[f"structure_{fit_key}"] = "Population model"
+                    ss.structure_pending = (fit_key, "Population model")
                     st.rerun()
                 except (ValueError, FloatingPointError) as exc:
                     ss.pop("ens_running", None)
@@ -1212,6 +1322,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             readout(rows_e)
             st.plotly_chart(viz.ensemble_loss_chart(ens.history), theme=None, width="stretch", config=T.PLOT_CONFIG,
                             key="ens_loss")
+        if TORCH:
+            predict_view.render_comparison(ds, lo, hi, fit_key)      # only when both models exist for this window
 
         # ---- the two accuracy scores, never mixed ----
         html('<p class="cc-eyebrow" style="margin-top:14px">Accuracy · two separate scores</p>')
@@ -1221,8 +1333,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             readout([
                 ("Contact-map fit<small>this window · model vs the contacts it was built from · shows convergence, "
                  "not correctness</small>", "—" if cf is None else f"{cf:.3f}", "Spearman ρ"),
-                ("Microscopy accuracy<small>method benchmark on held-out imaging (Bintu 2018) · not measured on this "
-                 "window</small>", "—" if mic is None else f"{mic['overall_percent_of_ceiling']:.1f} %",
+                ("Microscopy accuracy<small>method benchmark on held-out imaging (validation/RESULTS.md) · not measured "
+                 "on this window</small>", "—" if mic is None else f"{mic['overall_percent_of_ceiling']:.1f} %",
                  "of reproducible structure" if mic else "no benchmark for this structure"),
             ])
             if mic:
@@ -1345,7 +1457,8 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             software=f"{VERSION}", method=method,
             parameters=report["parameters"] | ({"population_model": {k: ens.config.get(k) for k in (
                 "model", "rank", "local_term", "iterations", "learning_rate", "weighting", "p_adjacent_assumed",
-                "r_c_nm", "anchor_b0_nm", "seed")}} if model_kind == "ensemble" else {})
+                "r_c_nm", "anchor_b0_nm", "seed", "input", "predictor", "prediction_inputs") if k in ens.config}}
+                if model_kind == "ensemble" else {})
             | ({"single_structure_fit": {k: fit.config.get(k) for k in (
                 "prefit_epochs", "refine_epochs", "alpha", "d_min", "lambda_smooth", "lambda_steric", "seed")}}
                if model_kind == "egnn" else {}),
@@ -1403,6 +1516,17 @@ with main_r, st.container(height=int(ss.get("disp_height", 720)) + 120, key="ins
             html('<p class="cc-note">Colour the fold by <b>A/B compartment</b> or <b>TAD domains</b> under Display.</p>')
         except Exception as exc:
             warning_card("Neighbourhoods could not be computed for this window", str(exc))
+
+    # ---- 06 Analysis suite (Phase B3) ------------------------------------------------------
+    with st.expander("06   Analysis suite (loops, domains, compartments · exports)", expanded=False):
+        from ui import analysis_view
+        analysis_view.render(ds, lo, hi)
+
+    # ---- 07 Quantum (experimental, Research mode) ------------------------------------------
+    if research:
+        with st.expander("07   Quantum (simulated) · domain walls and lattice fold", expanded=False):
+            from ui import quantum_lab
+            quantum_lab.structure_hooks(ds, lo, hi, sub)
 
 # ======================================================================================
 # ChronoAgent (fragment: questions and analyses re-render only the panel)

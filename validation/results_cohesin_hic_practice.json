@@ -1,0 +1,46 @@
+{
+ "mode": "practice (the Gate 4 practice region; nothing fitted)",
+ "rows": [
+  {
+   "pairs": 12450,
+   "model": 0.21856238398406672,
+   "trend_only": 0.22721394152566338,
+   "difference": -0.00865155754159666,
+   "difference_ci95": [
+    -0.11537574175746916,
+    0.10409417276612207
+   ],
+   "region": "chr21:28-30 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9388226478785677,
+   "reads_untreated": 1234427.0,
+   "reads_auxin": 911860.0,
+   "device": "cuda"
+  },
+  {
+   "pairs": 6934,
+   "model": 0.41001548632357027,
+   "trend_only": 0.053386873396762916,
+   "difference": 0.35662861292680736,
+   "difference_ci95": [
+    0.24981573230988627,
+    0.4594894841201591
+   ],
+   "region": "chr21:28-30 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8919087839946006,
+   "reads_untreated": 789733.0,
+   "reads_auxin": 871011.0,
+   "device": "cuda"
+  }
+ ],
+ "settings": {
+  "res": 10000,
+  "window": 2000000,
+  "min_reads": 10,
+  "min_sep_bins": 2,
+  "boot": 200,
+  "r_c_nm": 150.0
+ },
+ "run_utc": "2026-10-05T01:52:54+00:00"
+}

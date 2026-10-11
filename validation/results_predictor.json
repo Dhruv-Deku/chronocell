@@ -1,0 +1,1471 @@
+{
+ "model": {
+  "beta": [
+   -0.023592380244001145,
+   0.02165171823938873,
+   -0.009697148828800812,
+   0.026704901161726368,
+   0.08398505683458615,
+   -0.03429464966554989,
+   0.014872623675200631,
+   -0.013901469930266778,
+   0.005149931600241634,
+   -0.033178873822439926,
+   -0.07093348767275877,
+   0.028173950049428426
+  ],
+  "mu": [
+   0.024534009228039964,
+   0.03118169170754073,
+   0.05519765016850173,
+   0.6854090022118703,
+   3.2978757478463714,
+   -6.233024241091812e-06,
+   0.1551163987114433,
+   0.1939947530960978,
+   0.3457168570706535,
+   4.261652207001747,
+   22.514909291099702,
+   -9.646947959113292e-05
+  ],
+  "sd": [
+   0.1411451620493761,
+   0.15314426209318252,
+   0.21205496567527984,
+   0.7642468011967721,
+   2.15488965666276,
+   0.001138827285026011,
+   0.8908230983250162,
+   0.9529539244699378,
+   1.33161406220384,
+   4.761147036606343,
+   18.02820623740884,
+   0.008465045223814338
+  ],
+  "trend": [
+   2.719683802893223,
+   0.6103337860969236
+  ],
+  "ridge_lambda": 0.01,
+  "names": [
+   "conv",
+   "div",
+   "tandem",
+   "anchor",
+   "between",
+   "gc",
+   "conv x log10 s",
+   "div x log10 s",
+   "tandem x log10 s",
+   "anchor x log10 s",
+   "between x log10 s",
+   "gc x log10 s"
+  ],
+  "trained_on": [
+   "bintu_k562_28_30",
+   "bintu_hct116_28_30",
+   "bintu_hct116_34_37",
+   "su_chr2"
+  ],
+  "motif": "JASPAR MA0139.1",
+  "notes": "Fitted 2026-10-04T11:45:26+00:00 on practice data only (validation/predictor.py --practice)."
+ },
+ "settings": {
+  "train": [
+   "bintu_k562_28_30",
+   "bintu_hct116_28_30",
+   "bintu_hct116_34_37",
+   "su_chr2"
+  ],
+  "test": [
+   "bintu_imr90_28_30",
+   "bintu_imr90_18_20",
+   "bintu_a549_28_30",
+   "su_chr21",
+   "su_chr21_rep"
+  ],
+  "control": [
+   "bintu_hct116_34_37_auxin"
+  ],
+  "motif": "JASPAR MA0139.1",
+  "motif_min_relative_score": 0.8,
+  "pseudocount": 0.25,
+  "summit_half_width_bp": 100,
+  "ridge_grid": [
+   0.0001,
+   0.001,
+   0.01,
+   0.1,
+   1.0
+  ],
+  "pass_min_datasets": 3
+ },
+ "summary": {
+  "bintu_imr90_28_30": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 26.73772985173883,
+      "raw_spearman": 0.9330368421487082,
+      "lin_ccc_nm": 0.8558732742006147,
+      "median_scale": 0.9367974585429885,
+      "ceiling": 0.9837416816779467,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        25.9207,
+        28.679
+       ],
+       "raw_spearman": [
+        0.929,
+        0.9342
+       ],
+       "lin_ccc_nm": [
+        0.8424,
+        0.8629
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.22482030389370047,
+      "raw_spearman": 0.9299469072950926,
+      "lin_ccc_nm": 0.8402138231402444,
+      "median_scale": 0.939242031013638,
+      "ceiling": 0.9837416816779467,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.5663,
+        -0.0072
+       ],
+       "raw_spearman": [
+        0.9257,
+        0.9311
+       ],
+       "lin_ccc_nm": [
+        0.8262,
+        0.8476
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "bintu_imr90_18_20": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 0.5450894687825425,
+      "raw_spearman": 0.9614400670008538,
+      "lin_ccc_nm": 0.865011877249764,
+      "median_scale": 0.9909988757675884,
+      "ceiling": 0.25071532764072607,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -13.4361,
+        14.4916
+       ],
+       "raw_spearman": [
+        0.9193,
+        0.945
+       ],
+       "lin_ccc_nm": [
+        0.8293,
+        0.8739
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.5620540109960318,
+      "raw_spearman": 0.961707535888929,
+      "lin_ccc_nm": 0.8506599792528583,
+      "median_scale": 1.0239613237975531,
+      "ceiling": 0.25071532764072607,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -3.5798,
+        9.3593
+       ],
+       "raw_spearman": [
+        0.9197,
+        0.9452
+       ],
+       "lin_ccc_nm": [
+        0.8014,
+        0.8663
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "bintu_a549_28_30": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 12.162721244455724,
+      "raw_spearman": 0.9149644585028603,
+      "lin_ccc_nm": 0.8841744547356073,
+      "median_scale": 0.9662621004862354,
+      "ceiling": 0.9487050542555777,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        9.0409,
+        15.1462
+       ],
+       "raw_spearman": [
+        0.9094,
+        0.9259
+       ],
+       "lin_ccc_nm": [
+        0.8686,
+        0.8937
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.7082923360440588,
+      "raw_spearman": 0.9148403690215342,
+      "lin_ccc_nm": 0.8760695462770408,
+      "median_scale": 0.9657646988477637,
+      "ceiling": 0.9487050542555777,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -1.0005,
+        -0.0058
+       ],
+       "raw_spearman": [
+        0.9093,
+        0.9256
+       ],
+       "lin_ccc_nm": [
+        0.8602,
+        0.8855
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "su_chr21": {
+   "sequence + CTCF": {
+    "within_tiles": {
+     "predictor": {
+      "percent_of_ceiling": 18.42010645736633,
+      "raw_spearman": 0.7309715681597523,
+      "lin_ccc_nm": 0.7438141905270095,
+      "median_scale": 0.9332010782308928,
+      "ceiling": 0.994850382269989,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        17.6875,
+        18.8996
+       ],
+       "raw_spearman": [
+        0.7256,
+        0.7364
+       ],
+       "lin_ccc_nm": [
+        0.7387,
+        0.7516
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.21395261305411487,
+      "raw_spearman": 0.7320926871263993,
+      "lin_ccc_nm": 0.74752521922362,
+      "median_scale": 0.9423920111096525,
+      "ceiling": 0.994850382269989,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.0964,
+        0.2074
+       ],
+       "raw_spearman": [
+        0.7269,
+        0.738
+       ],
+       "lin_ccc_nm": [
+        0.7424,
+        0.7557
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    },
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 20.239825356270433,
+      "raw_spearman": 0.7504800200203632,
+      "lin_ccc_nm": 0.8051714590935944,
+      "median_scale": 0.9876135223508303,
+      "ceiling": 0.9940162427766758,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        18.6656,
+        20.0262
+       ],
+       "raw_spearman": [
+        0.7421,
+        0.7565
+       ],
+       "lin_ccc_nm": [
+        0.7982,
+        0.8081
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.169434222913736,
+      "raw_spearman": 0.7476417767465423,
+      "lin_ccc_nm": 0.8033731593910656,
+      "median_scale": 0.9780516350315452,
+      "ceiling": 0.9940162427766758,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.1498,
+        -0.0689
+       ],
+       "raw_spearman": [
+        0.739,
+        0.7538
+       ],
+       "lin_ccc_nm": [
+        0.7957,
+        0.8071
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    }
+   }
+  },
+  "su_chr21_rep": {
+   "sequence + CTCF": {
+    "within_tiles": {
+     "predictor": {
+      "percent_of_ceiling": 18.768520134440642,
+      "raw_spearman": 0.6843504279486596,
+      "lin_ccc_nm": 0.687569412354511,
+      "median_scale": 0.9129897576956351,
+      "ceiling": 0.9921725579747103,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        18.0564,
+        19.2605
+       ],
+       "raw_spearman": [
+        0.6789,
+        0.6935
+       ],
+       "lin_ccc_nm": [
+        0.6817,
+        0.6963
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.11566987527158523,
+      "raw_spearman": 0.6843313284968608,
+      "lin_ccc_nm": 0.6936665843385001,
+      "median_scale": 0.919340120116703,
+      "ceiling": 0.9921725579747103,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.061,
+        0.1828
+       ],
+       "raw_spearman": [
+        0.6794,
+        0.6941
+       ],
+       "lin_ccc_nm": [
+        0.688,
+        0.7026
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    },
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 22.565361958010516,
+      "raw_spearman": 0.7104882549412613,
+      "lin_ccc_nm": 0.7641191492923912,
+      "median_scale": 0.9877718851279179,
+      "ceiling": 0.9914755635052036,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        21.1305,
+        22.775
+       ],
+       "raw_spearman": [
+        0.6964,
+        0.7156
+       ],
+       "lin_ccc_nm": [
+        0.7505,
+        0.767
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.14551245711233382,
+      "raw_spearman": 0.705383974385671,
+      "lin_ccc_nm": 0.7636508466170637,
+      "median_scale": 0.976291429827533,
+      "ceiling": 0.9914755635052036,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.0034,
+        0.0799
+       ],
+       "raw_spearman": [
+        0.6913,
+        0.7102
+       ],
+       "lin_ccc_nm": [
+        0.7517,
+        0.766
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    }
+   }
+  },
+  "bintu_hct116_34_37_auxin": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 26.848524210372336,
+      "raw_spearman": 0.9727975149465998,
+      "lin_ccc_nm": 0.769382179925841,
+      "median_scale": 0.846876376168798,
+      "ceiling": 0.9511249376404404,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        23.7872,
+        28.6441
+       ],
+       "raw_spearman": [
+        0.9675,
+        0.9755
+       ],
+       "lin_ccc_nm": [
+        0.7568,
+        0.7824
+       ],
+       "reps": 100,
+       "pairs_sampled": 3403
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 0.16732942572961207,
+      "raw_spearman": 0.9732447214116228,
+      "lin_ccc_nm": 0.744222578654457,
+      "median_scale": 0.8412006326608577,
+      "ceiling": 0.9511249376404404,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.0621,
+        0.5328
+       ],
+       "raw_spearman": [
+        0.967,
+        0.9762
+       ],
+       "lin_ccc_nm": [
+        0.731,
+        0.7576
+       ],
+       "reps": 100,
+       "pairs_sampled": 3403
+      }
+     }
+    }
+   }
+  }
+ },
+ "gate5": {
+  "bintu_imr90_28_30": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 26.73772985173883,
+   "ci95": [
+    25.9207,
+    28.679
+   ],
+   "raw_spearman": 0.9330368421487082,
+   "baseline_raw_spearman": 0.9299469072950926
+  },
+  "bintu_imr90_18_20": {
+   "i": false,
+   "ii": false,
+   "percent_of_ceiling": 0.5450894687825425,
+   "ci95": [
+    -13.4361,
+    14.4916
+   ],
+   "raw_spearman": 0.9614400670008538,
+   "baseline_raw_spearman": 0.961707535888929
+  },
+  "bintu_a549_28_30": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 12.162721244455724,
+   "ci95": [
+    9.0409,
+    15.1462
+   ],
+   "raw_spearman": 0.9149644585028603,
+   "baseline_raw_spearman": 0.9148403690215342
+  },
+  "su_chr21": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 20.239825356270433,
+   "ci95": [
+    18.6656,
+    20.0262
+   ],
+   "raw_spearman": 0.7504800200203632,
+   "baseline_raw_spearman": 0.7476417767465423
+  },
+  "su_chr21_rep": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 22.565361958010516,
+   "ci95": [
+    21.1305,
+    22.775
+   ],
+   "raw_spearman": 0.7104882549412613,
+   "baseline_raw_spearman": 0.705383974385671
+  }
+ },
+ "datasets_passing": 4,
+ "verdict": "pass",
+ "rows": [
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 27.234401624232294,
+    "trend_removed_rho": 0.26857345094971236,
+    "ceiling": 0.9861551381057124,
+    "raw_spearman": 0.9325052726377937,
+    "lin_ccc_nm": 0.8550115826966234,
+    "median_scale": 0.9356764770923299,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      25.9207,
+      28.679
+     ],
+     "raw_spearman": [
+      0.929,
+      0.9342
+     ],
+     "lin_ccc_nm": [
+      0.8424,
+      0.8629
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.2823235546507715,
+    "trend_removed_rho": -0.0027841482402712722,
+    "ceiling": 0.9861551381057124,
+    "raw_spearman": 0.9293721366736286,
+    "lin_ccc_nm": 0.8393185369458266,
+    "median_scale": 0.9362320333431168,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.5663,
+      -0.0072
+     ],
+     "raw_spearman": [
+      0.9257,
+      0.9311
+     ],
+     "lin_ccc_nm": [
+      0.8262,
+      0.8476
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 26.086528842045738,
+    "trend_removed_rho": 0.2561873000724514,
+    "ceiling": 0.9820674173389212,
+    "raw_spearman": 0.9316125662473569,
+    "lin_ccc_nm": 0.8595453399991356,
+    "median_scale": 0.9398490414233934,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.056428084061064164,
+    "trend_removed_rho": -0.0005541618277923283,
+    "ceiling": 0.9820674173389212,
+    "raw_spearman": 0.9285622747360576,
+    "lin_ccc_nm": 0.8441842224479109,
+    "median_scale": 0.9424332452201372,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 26.892259088938463,
+    "trend_removed_rho": 0.2643515763510448,
+    "ceiling": 0.9830024895892066,
+    "raw_spearman": 0.9349926875609742,
+    "lin_ccc_nm": 0.8530628999060853,
+    "median_scale": 0.9348668571132419,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.3357092729692658,
+    "trend_removed_rho": -0.003300030511069708,
+    "ceiling": 0.9830024895892066,
+    "raw_spearman": 0.9319063104755915,
+    "lin_ccc_nm": 0.8371387100269958,
+    "median_scale": 0.93906081447766,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.508026727872752,
+    "trend_removed_rho": 0.010319827270812374,
+    "ceiling": 0.22892116426474904,
+    "raw_spearman": 0.9604164245713713,
+    "lin_ccc_nm": 0.8658293689167027,
+    "median_scale": 0.9916243268956537,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -13.4361,
+      14.4916
+     ],
+     "raw_spearman": [
+      0.9193,
+      0.945
+     ],
+     "lin_ccc_nm": [
+      0.8293,
+      0.8739
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.10164735740800472,
+    "trend_removed_rho": 0.00023269231402275504,
+    "ceiling": 0.22892116426474904,
+    "raw_spearman": 0.9607239978922725,
+    "lin_ccc_nm": 0.8497665104556051,
+    "median_scale": 1.0253241129754467,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -3.5798,
+      9.3593
+     ],
+     "raw_spearman": [
+      0.9197,
+      0.9452
+     ],
+     "lin_ccc_nm": [
+      0.8014,
+      0.8663
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 1,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 5.555232601589902,
+    "trend_removed_rho": 0.013303552659631466,
+    "ceiling": 0.23947786913232044,
+    "raw_spearman": 0.9630279252263406,
+    "lin_ccc_nm": 0.86400287505671,
+    "median_scale": 0.989799713848466,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.23303568571327057,
+    "trend_removed_rho": -0.0005580688944640317,
+    "ceiling": 0.23947786913232044,
+    "raw_spearman": 0.9631945774153388,
+    "lin_ccc_nm": 0.851698460092782,
+    "median_scale": 1.022766570162026,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 2,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -8.427990923115026,
+    "trend_removed_rho": -0.023914167150591942,
+    "ceiling": 0.28374694952510876,
+    "raw_spearman": 0.9608758512048495,
+    "lin_ccc_nm": 0.8652033877758794,
+    "median_scale": 0.9915725865586454,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -1.5547737046828294,
+    "trend_removed_rho": -0.004411622959056051,
+    "ceiling": 0.28374694952510876,
+    "raw_spearman": 0.961204032359176,
+    "lin_ccc_nm": 0.850514967210188,
+    "median_scale": 1.0237932882551861,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 11.743058272702708,
+    "trend_removed_rho": 0.11086886447382134,
+    "ceiling": 0.9441225777746607,
+    "raw_spearman": 0.9195891972566311,
+    "lin_ccc_nm": 0.8839677195497249,
+    "median_scale": 0.9625396805256052,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      9.0409,
+      15.1462
+     ],
+     "raw_spearman": [
+      0.9094,
+      0.9259
+     ],
+     "lin_ccc_nm": [
+      0.8686,
+      0.8937
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.7879435806303906,
+    "trend_removed_rho": -0.007439153244857606,
+    "ceiling": 0.9441225777746607,
+    "raw_spearman": 0.9194967708433847,
+    "lin_ccc_nm": 0.8757608766302575,
+    "median_scale": 0.9615908390585606,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -1.0005,
+      -0.0058
+     ],
+     "raw_spearman": [
+      0.9093,
+      0.9256
+     ],
+     "lin_ccc_nm": [
+      0.8602,
+      0.8855
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 12.069393128702416,
+    "trend_removed_rho": 0.11472378204938975,
+    "ceiling": 0.9505348017587006,
+    "raw_spearman": 0.9179096277165949,
+    "lin_ccc_nm": 0.8850582539654723,
+    "median_scale": 0.9616701369095478,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.7020828560780809,
+    "trend_removed_rho": -0.00667354188420361,
+    "ceiling": 0.9505348017587006,
+    "raw_spearman": 0.9178020766220709,
+    "lin_ccc_nm": 0.8770493966424172,
+    "median_scale": 0.9619366644212353,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "predictor",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 12.67571233196205,
+    "trend_removed_rho": 0.12060405156272526,
+    "ceiling": 0.9514577832333718,
+    "raw_spearman": 0.9073945505353551,
+    "lin_ccc_nm": 0.8834973906916247,
+    "median_scale": 0.9745764840235533,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.6348505714237049,
+    "trend_removed_rho": -0.006040335173712377,
+    "ceiling": 0.9514577832333718,
+    "raw_spearman": 0.907222259599147,
+    "lin_ccc_nm": 0.8753983655584479,
+    "median_scale": 0.9737665930634953,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "su_chr21",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": 18.42010645736633,
+    "trend_removed_rho": 0.18325249950564787,
+    "ceiling": 0.994850382269989,
+    "raw_spearman": 0.7309715681597523,
+    "lin_ccc_nm": 0.7438141905270095,
+    "median_scale": 0.9332010782308928,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      17.6875,
+      18.8996
+     ],
+     "raw_spearman": [
+      0.7256,
+      0.7364
+     ],
+     "lin_ccc_nm": [
+      0.7387,
+      0.7516
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": 20.239825356270433,
+    "trend_removed_rho": 0.20118715155096029,
+    "ceiling": 0.9940162427766758,
+    "raw_spearman": 0.7504800200203632,
+    "lin_ccc_nm": 0.8051714590935944,
+    "median_scale": 0.9876135223508303,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      18.6656,
+      20.0262
+     ],
+     "raw_spearman": [
+      0.7421,
+      0.7565
+     ],
+     "lin_ccc_nm": [
+      0.7982,
+      0.8081
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "su_chr21",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": -0.21395261305411487,
+    "trend_removed_rho": -0.002128508388845492,
+    "ceiling": 0.994850382269989,
+    "raw_spearman": 0.7320926871263993,
+    "lin_ccc_nm": 0.74752521922362,
+    "median_scale": 0.9423920111096525,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.0964,
+      0.2074
+     ],
+     "raw_spearman": [
+      0.7269,
+      0.738
+     ],
+     "lin_ccc_nm": [
+      0.7424,
+      0.7557
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": -0.169434222913736,
+    "trend_removed_rho": -0.0016842036965849761,
+    "ceiling": 0.9940162427766758,
+    "raw_spearman": 0.7476417767465423,
+    "lin_ccc_nm": 0.8033731593910656,
+    "median_scale": 0.9780516350315452,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.1498,
+      -0.0689
+     ],
+     "raw_spearman": [
+      0.739,
+      0.7538
+     ],
+     "lin_ccc_nm": [
+      0.7957,
+      0.8071
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "su_chr21_rep",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": 18.768520134440642,
+    "trend_removed_rho": 0.18621610631187824,
+    "ceiling": 0.9921725579747103,
+    "raw_spearman": 0.6843504279486596,
+    "lin_ccc_nm": 0.687569412354511,
+    "median_scale": 0.9129897576956351,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      18.0564,
+      19.2605
+     ],
+     "raw_spearman": [
+      0.6789,
+      0.6935
+     ],
+     "lin_ccc_nm": [
+      0.6817,
+      0.6963
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": 22.565361958010516,
+    "trend_removed_rho": 0.22373004963017362,
+    "ceiling": 0.9914755635052036,
+    "raw_spearman": 0.7104882549412613,
+    "lin_ccc_nm": 0.7641191492923912,
+    "median_scale": 0.9877718851279179,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      21.1305,
+      22.775
+     ],
+     "raw_spearman": [
+      0.6964,
+      0.7156
+     ],
+     "lin_ccc_nm": [
+      0.7505,
+      0.767
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "su_chr21_rep",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": -0.11566987527158523,
+    "trend_removed_rho": -0.001147644760288244,
+    "ceiling": 0.9921725579747103,
+    "raw_spearman": 0.6843313284968608,
+    "lin_ccc_nm": 0.6936665843385001,
+    "median_scale": 0.919340120116703,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.061,
+      0.1828
+     ],
+     "raw_spearman": [
+      0.6794,
+      0.6941
+     ],
+     "lin_ccc_nm": [
+      0.688,
+      0.7026
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": -0.14551245711233382,
+    "trend_removed_rho": -0.0014427204541247796,
+    "ceiling": 0.9914755635052036,
+    "raw_spearman": 0.705383974385671,
+    "lin_ccc_nm": 0.7636508466170637,
+    "median_scale": 0.976291429827533,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.0034,
+      0.0799
+     ],
+     "raw_spearman": [
+      0.6913,
+      0.7102
+     ],
+     "lin_ccc_nm": [
+      0.7517,
+      0.766
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 0,
+   "method": "predictor",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 26.136260755041864,
+    "trend_removed_rho": 0.24745556479671424,
+    "ceiling": 0.9467902356651319,
+    "raw_spearman": 0.9730452352881239,
+    "lin_ccc_nm": 0.7703428131678295,
+    "median_scale": 0.8469954476949856,
+    "pairs": 3403,
+    "ci95": {
+     "percent_of_ceiling": [
+      23.7872,
+      28.6441
+     ],
+     "raw_spearman": [
+      0.9675,
+      0.9755
+     ],
+     "lin_ccc_nm": [
+      0.7568,
+      0.7824
+     ],
+     "reps": 100,
+     "pairs_sampled": 3403
+    }
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.2517269084932994,
+    "trend_removed_rho": 0.00238332579015626,
+    "ceiling": 0.9467902356651319,
+    "raw_spearman": 0.9734862139512465,
+    "lin_ccc_nm": 0.7452509624905658,
+    "median_scale": 0.8410767865902572,
+    "pairs": 3403,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.0621,
+      0.5328
+     ],
+     "raw_spearman": [
+      0.967,
+      0.9762
+     ],
+     "lin_ccc_nm": [
+      0.731,
+      0.7576
+     ],
+     "reps": 100,
+     "pairs_sampled": 3403
+    }
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 1,
+   "method": "predictor",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 27.935114858090234,
+    "trend_removed_rho": 0.2667639653142641,
+    "ceiling": 0.9549413584637798,
+    "raw_spearman": 0.97170189077464,
+    "lin_ccc_nm": 0.7648293768296581,
+    "median_scale": 0.8455376015105399,
+    "pairs": 3403
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.1044154104248813,
+    "trend_removed_rho": 0.0009971059387568926,
+    "ceiling": 0.9549413584637798,
+    "raw_spearman": 0.9718099943420744,
+    "lin_ccc_nm": 0.7393811067890076,
+    "median_scale": 0.8402014694150737,
+    "pairs": 3403
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 2,
+   "method": "predictor",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 26.47419701798491,
+    "trend_removed_rho": 0.2519399006513957,
+    "ceiling": 0.9516432187924095,
+    "raw_spearman": 0.9736454187770357,
+    "lin_ccc_nm": 0.7729743497800352,
+    "median_scale": 0.8480960793008685,
+    "pairs": 3403
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.14584595827065555,
+    "trend_removed_rho": 0.0013879331717655007,
+    "ceiling": 0.9516432187924095,
+    "raw_spearman": 0.9744379559415479,
+    "lin_ccc_nm": 0.7480356666837974,
+    "median_scale": 0.8423236419772421,
+    "pairs": 3403
+   }
+  }
+ ],
+ "run_utc": "2026-10-04T12:16:42+00:00"
+}

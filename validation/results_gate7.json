@@ -1,0 +1,427 @@
+{
+ "mode": "test (run once; settings frozen)",
+ "rule": {
+  "fdr": 0.05,
+  "setting": {
+   "min_count": 5.0,
+   "distance_normalise": true
+  },
+  "spike": 100,
+  "folds": [
+   2.0,
+   4.0
+  ],
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "res": 10000,
+  "window": 2000000,
+  "regions": [
+   [
+    "chr3",
+    180000000
+   ],
+   [
+    "chr8",
+    126000000
+   ],
+   [
+    "chr11",
+    65000000
+   ],
+   [
+    "chr14",
+    90000000
+   ],
+   [
+    "chr19",
+    12000000
+   ]
+  ],
+  "not_run": {
+   "diffHic": "R / Bioconductor not installed on this machine",
+   "multiHiCcompare": "R / Bioconductor not installed on this machine",
+   "CHESS": "pip install chess-hic fails: its dependency pysam (via FAN-C) does not build on Windows"
+  }
+ },
+ "summary": {
+  "mean_fdp": 0.0018241776997537367,
+  "mean_fdp_ci95": [
+   0.0,
+   0.004291977543705646
+  ],
+  "recall": {
+   "2.0": 0.014666666666666666,
+   "4.0": 0.6286666666666668
+  },
+  "null_discoveries": {
+   "chr3:180-182 Mb": 0,
+   "chr8:126-128 Mb": 0,
+   "chr11:65-67 Mb": 0,
+   "chr14:90-92 Mb": 0,
+   "chr19:12-14 Mb": 0
+  },
+  "runs": 30
+ },
+ "rows": [
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 1.0,
+   "seed": null,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 0,
+   "found": 0,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 2.0,
+   "seed": 0,
+   "discoveries": 1,
+   "false": 0,
+   "planted": 100,
+   "found": 1,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 2.0,
+   "seed": 1,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 2.0,
+   "seed": 2,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 4.0,
+   "seed": 0,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 4.0,
+   "seed": 1,
+   "discoveries": 21,
+   "false": 0,
+   "planted": 100,
+   "found": 21,
+   "tested": 8758
+  },
+  {
+   "region": "chr3:180-182 Mb",
+   "fold": 4.0,
+   "seed": 2,
+   "discoveries": 34,
+   "false": 0,
+   "planted": 100,
+   "found": 34,
+   "tested": 8758
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 1.0,
+   "seed": null,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 0,
+   "found": 0,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 2.0,
+   "seed": 0,
+   "discoveries": 1,
+   "false": 0,
+   "planted": 100,
+   "found": 1,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 2.0,
+   "seed": 1,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 2.0,
+   "seed": 2,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 4.0,
+   "seed": 0,
+   "discoveries": 61,
+   "false": 0,
+   "planted": 100,
+   "found": 61,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 4.0,
+   "seed": 1,
+   "discoveries": 69,
+   "false": 0,
+   "planted": 100,
+   "found": 69,
+   "tested": 9310
+  },
+  {
+   "region": "chr8:126-128 Mb",
+   "fold": 4.0,
+   "seed": 2,
+   "discoveries": 80,
+   "false": 0,
+   "planted": 100,
+   "found": 80,
+   "tested": 9310
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 1.0,
+   "seed": null,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 0,
+   "found": 0,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 2.0,
+   "seed": 0,
+   "discoveries": 1,
+   "false": 0,
+   "planted": 100,
+   "found": 1,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 2.0,
+   "seed": 1,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 2.0,
+   "seed": 2,
+   "discoveries": 9,
+   "false": 0,
+   "planted": 100,
+   "found": 9,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 4.0,
+   "seed": 0,
+   "discoveries": 84,
+   "false": 1,
+   "planted": 100,
+   "found": 83,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 4.0,
+   "seed": 1,
+   "discoveries": 71,
+   "false": 0,
+   "planted": 100,
+   "found": 71,
+   "tested": 4051
+  },
+  {
+   "region": "chr11:65-67 Mb",
+   "fold": 4.0,
+   "seed": 2,
+   "discoveries": 69,
+   "false": 0,
+   "planted": 100,
+   "found": 69,
+   "tested": 4051
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 1.0,
+   "seed": null,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 0,
+   "found": 0,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 2.0,
+   "seed": 0,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 2.0,
+   "seed": 1,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 2.0,
+   "seed": 2,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 4.0,
+   "seed": 0,
+   "discoveries": 64,
+   "false": 0,
+   "planted": 100,
+   "found": 64,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 4.0,
+   "seed": 1,
+   "discoveries": 53,
+   "false": 0,
+   "planted": 100,
+   "found": 53,
+   "tested": 5764
+  },
+  {
+   "region": "chr14:90-92 Mb",
+   "fold": 4.0,
+   "seed": 2,
+   "discoveries": 61,
+   "false": 0,
+   "planted": 100,
+   "found": 61,
+   "tested": 5764
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 1.0,
+   "seed": null,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 0,
+   "found": 0,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 2.0,
+   "seed": 0,
+   "discoveries": 7,
+   "false": 0,
+   "planted": 100,
+   "found": 7,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 2.0,
+   "seed": 1,
+   "discoveries": 3,
+   "false": 0,
+   "planted": 100,
+   "found": 3,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 2.0,
+   "seed": 2,
+   "discoveries": 0,
+   "false": 0,
+   "planted": 100,
+   "found": 0,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 4.0,
+   "seed": 0,
+   "discoveries": 93,
+   "false": 2,
+   "planted": 100,
+   "found": 91,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 4.0,
+   "seed": 1,
+   "discoveries": 98,
+   "false": 1,
+   "planted": 100,
+   "found": 97,
+   "tested": 3964
+  },
+  {
+   "region": "chr19:12-14 Mb",
+   "fold": 4.0,
+   "seed": 2,
+   "discoveries": 90,
+   "false": 1,
+   "planted": 100,
+   "found": 89,
+   "tested": 3964
+  }
+ ],
+ "verdict": "pass",
+ "not_run": {
+  "diffHic": "R / Bioconductor not installed on this machine",
+  "multiHiCcompare": "R / Bioconductor not installed on this machine",
+  "CHESS": "pip install chess-hic fails: its dependency pysam (via FAN-C) does not build on Windows"
+ },
+ "run_utc": "2026-10-05T11:11:50+00:00"
+}

@@ -1,0 +1,2380 @@
+{
+ "mode": "test (run once; human model unchanged)",
+ "rule": {
+  "status": "pre-registered, not run (4DN access key needed)",
+  "test": [
+   "4DNESD28H8O7",
+   "4DNESWDXDZSE"
+  ],
+  "secondary": [
+   "4DNESJ3TXVIR",
+   "4DNESQ49IXDU",
+   "4DNESTNG39BO",
+   "4DNESLRTOSQT"
+  ],
+  "control": [
+   "4DNES2KX6HQ5",
+   "4DNESMN7RCSB",
+   "4DNESG62SAVA",
+   "4DNESBH54BG2"
+  ],
+  "peaks": [
+   "ENCFF533APC",
+   "ENCSR000CCB",
+   "d2c0c0c2ed1d8e11989362580ca85af7"
+  ],
+  "assembly": "mm10",
+  "model": "validation/predictor_model.json",
+  "splits": 3,
+  "pass": "both test loci meet Gate 5 (i) and (ii)"
+ },
+ "sets": {
+  "4DNESD28H8O7": {
+   "role": "test",
+   "description": "chr6 locus, untreated",
+   "loci": 76,
+   "copies": 877,
+   "chrom": "chr6",
+   "region": "chr6:50,500,001-52,780,076",
+   "ctcf_peaks_on_chrom": 1828,
+   "motif_rate": 0.9606126914660832,
+   "copies_total": 1957,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFILYJ6RJ7.csv"
+   ]
+  },
+  "4DNESWDXDZSE": {
+   "role": "test",
+   "description": "chr3 locus, untreated",
+   "loci": 96,
+   "copies": 2270,
+   "chrom": "chr3",
+   "region": "chr3:33,300,001-36,180,096",
+   "ctcf_peaks_on_chrom": 1491,
+   "motif_rate": 0.9510395707578806,
+   "copies_total": 2355,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFIA63SK83.csv"
+   ]
+  },
+  "4DNESJ3TXVIR": {
+   "role": "secondary",
+   "description": "chr6 locus, CTCF-AID untreated",
+   "loci": 76,
+   "copies": 5171,
+   "chrom": "chr6",
+   "region": "chr6:50,500,001-52,780,076",
+   "ctcf_peaks_on_chrom": 1828,
+   "motif_rate": 0.9606126914660832,
+   "copies_total": 7831,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFIZWUQTXF.csv",
+    "4DNFIKVZTN9K.csv",
+    "4DNFID7HZ8LX.csv"
+   ]
+  },
+  "4DNESQ49IXDU": {
+   "role": "secondary",
+   "description": "chr6 locus, RAD21-AID untreated",
+   "loci": 76,
+   "copies": 4233,
+   "chrom": "chr6",
+   "region": "chr6:50,500,001-52,780,076",
+   "ctcf_peaks_on_chrom": 1828,
+   "motif_rate": 0.9606126914660832,
+   "copies_total": 5504,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFIRKSEW93.csv",
+    "4DNFIJIZ3RQH.csv",
+    "4DNFIFW72AJF.csv"
+   ]
+  },
+  "4DNESTNG39BO": {
+   "role": "secondary",
+   "description": "chr3 locus, CTCF-AID untreated",
+   "loci": 96,
+   "copies": 5203,
+   "chrom": "chr3",
+   "region": "chr3:33,300,001-36,180,096",
+   "ctcf_peaks_on_chrom": 1491,
+   "motif_rate": 0.9510395707578806,
+   "copies_total": 5450,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFI2OG3IPB.csv",
+    "4DNFIU5X9MXT.csv",
+    "4DNFIIQ8YIG4.csv"
+   ]
+  },
+  "4DNESLRTOSQT": {
+   "role": "secondary",
+   "description": "chr3 locus, RAD21-AID untreated",
+   "loci": 96,
+   "copies": 3897,
+   "chrom": "chr3",
+   "region": "chr3:33,300,001-36,180,096",
+   "ctcf_peaks_on_chrom": 1491,
+   "motif_rate": 0.9510395707578806,
+   "copies_total": 4094,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFI4SYERQD.csv",
+    "4DNFILHN6ZHZ.csv",
+    "4DNFIPUTK6GO.csv"
+   ]
+  },
+  "4DNES2KX6HQ5": {
+   "role": "control",
+   "description": "chr6 locus, CTCF-AID + auxin",
+   "loci": 76,
+   "copies": 6088,
+   "chrom": "chr6",
+   "region": "chr6:50,500,001-52,780,076",
+   "ctcf_peaks_on_chrom": 1828,
+   "motif_rate": 0.9606126914660832,
+   "copies_total": 8734,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFIJYFR8FT.csv",
+    "4DNFIIOVHG1I.csv",
+    "4DNFI4VLY3WU.csv"
+   ]
+  },
+  "4DNESMN7RCSB": {
+   "role": "control",
+   "description": "chr6 locus, RAD21-AID + auxin",
+   "loci": 76,
+   "copies": 4658,
+   "chrom": "chr6",
+   "region": "chr6:50,500,001-52,780,076",
+   "ctcf_peaks_on_chrom": 1828,
+   "motif_rate": 0.9606126914660832,
+   "copies_total": 7459,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFICN9NE8U.csv",
+    "4DNFIBI4PIOM.csv",
+    "4DNFI4AKVCVH.csv"
+   ]
+  },
+  "4DNESG62SAVA": {
+   "role": "control",
+   "description": "chr3 locus, CTCF-AID + auxin",
+   "loci": 96,
+   "copies": 7600,
+   "chrom": "chr3",
+   "region": "chr3:33,300,001-36,180,096",
+   "ctcf_peaks_on_chrom": 1491,
+   "motif_rate": 0.9510395707578806,
+   "copies_total": 7901,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFILD6TDR6.csv",
+    "4DNFIKXR227H.csv",
+    "4DNFIW3V9CRO.csv"
+   ]
+  },
+  "4DNESBH54BG2": {
+   "role": "control",
+   "description": "chr3 locus, RAD21-AID + auxin",
+   "loci": 96,
+   "copies": 7735,
+   "chrom": "chr3",
+   "region": "chr3:33,300,001-36,180,096",
+   "ctcf_peaks_on_chrom": 1491,
+   "motif_rate": 0.9510395707578806,
+   "copies_total": 8088,
+   "min_detected": 0.5,
+   "xyz_unit_header": "micron",
+   "scale_to_nm": 1.0,
+   "locus_bp": 30000,
+   "files": [
+    "4DNFI1MBPSTC.csv",
+    "4DNFIHA5PA9U.csv",
+    "4DNFIDNY8W7L.csv"
+   ]
+  }
+ },
+ "gate5m": {
+  "4DNESD28H8O7": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 17.033446036483024,
+   "ci95": [
+    13.7306,
+    24.1421
+   ],
+   "raw_spearman": 0.8692048715981224,
+   "baseline_raw_spearman": 0.8659912978802945
+  },
+  "4DNESWDXDZSE": {
+   "i": true,
+   "ii": true,
+   "percent_of_ceiling": 7.236852719075057,
+   "ci95": [
+    5.4176,
+    9.5065
+   ],
+   "raw_spearman": 0.9177551673469221,
+   "baseline_raw_spearman": 0.9164541257794897
+  }
+ },
+ "verdict": "pass",
+ "summary": {
+  "4DNESD28H8O7": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 17.033446036483024,
+      "raw_spearman": 0.8692048715981224,
+      "lin_ccc_nm": 0.7583184722277542,
+      "median_scale": 1.1436993629991745,
+      "ceiling": 0.7439394861891125,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        13.7306,
+        24.1421
+       ],
+       "raw_spearman": [
+        0.8313,
+        0.8654
+       ],
+       "lin_ccc_nm": [
+        0.7205,
+        0.7826
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 1.1808593630233784,
+      "raw_spearman": 0.8659912978802945,
+      "lin_ccc_nm": 0.761211068004933,
+      "median_scale": 1.1388802701553964,
+      "ceiling": 0.7439394861891125,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.8864,
+        1.9632
+       ],
+       "raw_spearman": [
+        0.8262,
+        0.8619
+       ],
+       "lin_ccc_nm": [
+        0.7223,
+        0.7836
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     }
+    }
+   }
+  },
+  "4DNESWDXDZSE": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 7.236852719075057,
+      "raw_spearman": 0.9177551673469221,
+      "lin_ccc_nm": 0.6909520671110153,
+      "median_scale": 1.201667080560868,
+      "ceiling": 0.927004930531325,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        5.4176,
+        9.5065
+       ],
+       "raw_spearman": [
+        0.901,
+        0.9172
+       ],
+       "lin_ccc_nm": [
+        0.6632,
+        0.7117
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 0.4175820862641741,
+      "raw_spearman": 0.9164541257794897,
+      "lin_ccc_nm": 0.6861532992416958,
+      "median_scale": 1.2045492839254976,
+      "ceiling": 0.927004930531325,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.1133,
+        0.806
+       ],
+       "raw_spearman": [
+        0.8996,
+        0.916
+       ],
+       "lin_ccc_nm": [
+        0.6582,
+        0.7068
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     }
+    }
+   }
+  },
+  "4DNESJ3TXVIR": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 17.570456678564607,
+      "raw_spearman": 0.9031624253539317,
+      "lin_ccc_nm": 0.7740777784256118,
+      "median_scale": 1.1521141598427802,
+      "ceiling": 0.9294275087200828,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        16.9143,
+        20.2698
+       ],
+       "raw_spearman": [
+        0.8808,
+        0.8996
+       ],
+       "lin_ccc_nm": [
+        0.7496,
+        0.7777
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 2.4204501404703342,
+      "raw_spearman": 0.8987613631243175,
+      "lin_ccc_nm": 0.7757273473372962,
+      "median_scale": 1.1433166236087273,
+      "ceiling": 0.9294275087200828,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        1.6618,
+        3.0535
+       ],
+       "raw_spearman": [
+        0.8762,
+        0.895
+       ],
+       "lin_ccc_nm": [
+        0.751,
+        0.7792
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     }
+    }
+   }
+  },
+  "4DNESQ49IXDU": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 13.69821691589713,
+      "raw_spearman": 0.8898241346918635,
+      "lin_ccc_nm": 0.8086192450846528,
+      "median_scale": 1.110952196538561,
+      "ceiling": 0.908494700132722,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        11.3782,
+        16.1158
+       ],
+       "raw_spearman": [
+        0.8698,
+        0.889
+       ],
+       "lin_ccc_nm": [
+        0.781,
+        0.8131
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 2.699659045517242,
+      "raw_spearman": 0.8858061167222359,
+      "lin_ccc_nm": 0.8121876551772206,
+      "median_scale": 1.1041966576043631,
+      "ceiling": 0.908494700132722,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        1.4955,
+        2.9264
+       ],
+       "raw_spearman": [
+        0.8656,
+        0.8856
+       ],
+       "lin_ccc_nm": [
+        0.7845,
+        0.8169
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     }
+    }
+   }
+  },
+  "4DNESTNG39BO": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 7.965297504874454,
+      "raw_spearman": 0.9237027138540931,
+      "lin_ccc_nm": 0.7126328871746582,
+      "median_scale": 1.1830993872859672,
+      "ceiling": 0.9558992048466455,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        6.6844,
+        9.9291
+       ],
+       "raw_spearman": [
+        0.9182,
+        0.9283
+       ],
+       "lin_ccc_nm": [
+        0.7015,
+        0.7313
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 0.7093636016294352,
+      "raw_spearman": 0.92242916925768,
+      "lin_ccc_nm": 0.7087586002410161,
+      "median_scale": 1.1865497789592998,
+      "ceiling": 0.9558992048466455,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.3545,
+        0.913
+       ],
+       "raw_spearman": [
+        0.917,
+        0.927
+       ],
+       "lin_ccc_nm": [
+        0.6972,
+        0.7271
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     }
+    }
+   }
+  },
+  "4DNESLRTOSQT": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 8.277691872326143,
+      "raw_spearman": 0.9094176697974424,
+      "lin_ccc_nm": 0.6966356022191361,
+      "median_scale": 1.181190818969442,
+      "ceiling": 0.9372927116286158,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        6.2155,
+        10.9004
+       ],
+       "raw_spearman": [
+        0.8985,
+        0.9123
+       ],
+       "lin_ccc_nm": [
+        0.6687,
+        0.7078
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 0.37296778759576776,
+      "raw_spearman": 0.9080663898733414,
+      "lin_ccc_nm": 0.6934586230765998,
+      "median_scale": 1.1831153820018436,
+      "ceiling": 0.9372927116286158,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.0797,
+        0.588
+       ],
+       "raw_spearman": [
+        0.897,
+        0.9111
+       ],
+       "lin_ccc_nm": [
+        0.6653,
+        0.705
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     }
+    }
+   }
+  },
+  "4DNES2KX6HQ5": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 15.314174257630796,
+      "raw_spearman": 0.9169004777142273,
+      "lin_ccc_nm": 0.8198515481398999,
+      "median_scale": 1.115956962590288,
+      "ceiling": 0.9125027652074489,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        13.8839,
+        17.6333
+       ],
+       "raw_spearman": [
+        0.9013,
+        0.9128
+       ],
+       "lin_ccc_nm": [
+        0.7993,
+        0.8242
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 1.8069539923281466,
+      "raw_spearman": 0.9134189310174717,
+      "lin_ccc_nm": 0.8254017011790967,
+      "median_scale": 1.1075413528426108,
+      "ceiling": 0.9125027652074489,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.8675,
+        2.3491
+       ],
+       "raw_spearman": [
+        0.8974,
+        0.9091
+       ],
+       "lin_ccc_nm": [
+        0.8042,
+        0.8293
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     }
+    }
+   }
+  },
+  "4DNESMN7RCSB": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": -0.07022090339699101,
+      "raw_spearman": 0.8880780187452695,
+      "lin_ccc_nm": 0.7086892140864984,
+      "median_scale": 0.843803845488995,
+      "ceiling": 0.7736296999063527,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -3.8932,
+        3.3743
+       ],
+       "raw_spearman": [
+        0.8519,
+        0.8802
+       ],
+       "lin_ccc_nm": [
+        0.6783,
+        0.711
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 1.2275562156156843,
+      "raw_spearman": 0.8890037012336044,
+      "lin_ccc_nm": 0.6982497506039874,
+      "median_scale": 0.8415124985386221,
+      "ceiling": 0.7736296999063527,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.1703,
+        2.2774
+       ],
+       "raw_spearman": [
+        0.8531,
+        0.8814
+       ],
+       "lin_ccc_nm": [
+        0.6679,
+        0.7011
+       ],
+       "reps": 100,
+       "pairs_sampled": 2850
+      }
+     }
+    }
+   }
+  },
+  "4DNESG62SAVA": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 0.2780715444754762,
+      "raw_spearman": 0.94470859281404,
+      "lin_ccc_nm": 0.7002154894651468,
+      "median_scale": 1.1953479763072583,
+      "ceiling": 0.952605195870403,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.9791,
+        2.4486
+       ],
+       "raw_spearman": [
+        0.9384,
+        0.9456
+       ],
+       "lin_ccc_nm": [
+        0.6805,
+        0.7061
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": 0.7170872762736501,
+      "raw_spearman": 0.9451099145018717,
+      "lin_ccc_nm": 0.6980785311177312,
+      "median_scale": 1.1948230722860957,
+      "ceiling": 0.952605195870403,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.403,
+        0.9663
+       ],
+       "raw_spearman": [
+        0.9387,
+        0.946
+       ],
+       "lin_ccc_nm": [
+        0.678,
+        0.7039
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     }
+    }
+   }
+  },
+  "4DNESBH54BG2": {
+   "sequence + CTCF": {
+    "all_pairs": {
+     "predictor": {
+      "percent_of_ceiling": 4.433485509445041,
+      "raw_spearman": 0.9373738293059167,
+      "lin_ccc_nm": 0.8476649829844328,
+      "median_scale": 0.9226366334134527,
+      "ceiling": 0.8974717967514958,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        2.2281,
+        8.0133
+       ],
+       "raw_spearman": [
+        0.9265,
+        0.9388
+       ],
+       "lin_ccc_nm": [
+        0.8364,
+        0.8517
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     },
+     "genomic_trend_no_data": {
+      "percent_of_ceiling": -0.12133915919129144,
+      "raw_spearman": 0.9378298871624798,
+      "lin_ccc_nm": 0.8545486345801011,
+      "median_scale": 0.9228690333696017,
+      "ceiling": 0.8974717967514958,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -0.4971,
+        0.3404
+       ],
+       "raw_spearman": [
+        0.9268,
+        0.9391
+       ],
+       "lin_ccc_nm": [
+        0.8431,
+        0.8589
+       ],
+       "reps": 100,
+       "pairs_sampled": 4560
+      }
+     }
+    }
+   }
+  }
+ },
+ "rows": [
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 18.476514910136498,
+    "trend_removed_rho": 0.13799067063111073,
+    "ceiling": 0.7468436082359177,
+    "raw_spearman": 0.8750855972307356,
+    "lin_ccc_nm": 0.7754048285363939,
+    "median_scale": 1.1343110818632012,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      13.7306,
+      24.1421
+     ],
+     "raw_spearman": [
+      0.8313,
+      0.8654
+     ],
+     "lin_ccc_nm": [
+      0.7205,
+      0.7826
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.8913744477758441,
+    "trend_removed_rho": 0.0066571730886621,
+    "ceiling": 0.7468436082359177,
+    "raw_spearman": 0.8709268484592178,
+    "lin_ccc_nm": 0.7777970301753441,
+    "median_scale": 1.1290760845911687,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.8864,
+      1.9632
+     ],
+     "raw_spearman": [
+      0.8262,
+      0.8619
+     ],
+     "lin_ccc_nm": [
+      0.7223,
+      0.7836
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 1,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 16.636242369902558,
+    "trend_removed_rho": 0.12147952703251862,
+    "ceiling": 0.7302101299767861,
+    "raw_spearman": 0.8618077852252382,
+    "lin_ccc_nm": 0.7423192906224,
+    "median_scale": 1.1510219305558416,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.1968108112172686,
+    "trend_removed_rho": 0.008739233780165846,
+    "ceiling": 0.7302101299767861,
+    "raw_spearman": 0.8587740742572089,
+    "lin_ccc_nm": 0.745397658527144,
+    "median_scale": 1.146429419975977,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 2,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 15.987580829410017,
+    "trend_removed_rho": 0.12066861973856752,
+    "ceiling": 0.7547647203546335,
+    "raw_spearman": 0.8707212323383936,
+    "lin_ccc_nm": 0.7572312975244688,
+    "median_scale": 1.1457650765784808,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESD28H8O7",
+   "role": "test",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.4543928300770226,
+    "trend_removed_rho": 0.01097724397678868,
+    "ceiling": 0.7547647203546335,
+    "raw_spearman": 0.8682729709244572,
+    "lin_ccc_nm": 0.7604385153123105,
+    "median_scale": 1.1411353058990437,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 0,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 7.246388680721873,
+    "trend_removed_rho": 0.0670872193333201,
+    "ceiling": 0.9258021103918618,
+    "raw_spearman": 0.9137288233445505,
+    "lin_ccc_nm": 0.6902541902060321,
+    "median_scale": 1.2023220773655923,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      5.4176,
+      9.5065
+     ],
+     "raw_spearman": [
+      0.901,
+      0.9172
+     ],
+     "lin_ccc_nm": [
+      0.6632,
+      0.7117
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.505043921800903,
+    "trend_removed_rho": 0.004675707286438583,
+    "ceiling": 0.9258021103918618,
+    "raw_spearman": 0.9123669987957662,
+    "lin_ccc_nm": 0.6854011614609964,
+    "median_scale": 1.204976954257364,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.1133,
+      0.806
+     ],
+     "raw_spearman": [
+      0.8996,
+      0.916
+     ],
+     "lin_ccc_nm": [
+      0.6582,
+      0.7068
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 1,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 6.902407493656463,
+    "trend_removed_rho": 0.06372807235433114,
+    "ceiling": 0.9232731103299728,
+    "raw_spearman": 0.921721285478286,
+    "lin_ccc_nm": 0.6934477511624298,
+    "median_scale": 1.2007691373483629,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.20586861775468357,
+    "trend_removed_rho": 0.0019007295903369897,
+    "ceiling": 0.9232731103299728,
+    "raw_spearman": 0.9205825700497254,
+    "lin_ccc_nm": 0.6887515164641446,
+    "median_scale": 1.204095300481832,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 2,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 7.561761982846835,
+    "trend_removed_rho": 0.07047105217331547,
+    "ceiling": 0.9319395708721406,
+    "raw_spearman": 0.9178153932179298,
+    "lin_ccc_nm": 0.6891542599645842,
+    "median_scale": 1.201910026968649,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESWDXDZSE",
+   "role": "test",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.5418337192369357,
+    "trend_removed_rho": 0.005049562837897258,
+    "ceiling": 0.9319395708721406,
+    "raw_spearman": 0.9164128084929771,
+    "lin_ccc_nm": 0.6843072197999465,
+    "median_scale": 1.204575597037297,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 0,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 18.32854029090687,
+    "trend_removed_rho": 0.17070972734541162,
+    "ceiling": 0.9313874680467811,
+    "raw_spearman": 0.8978307134939667,
+    "lin_ccc_nm": 0.7701127177970157,
+    "median_scale": 1.152670348048572,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      16.9143,
+      20.2698
+     ],
+     "raw_spearman": [
+      0.8808,
+      0.8996
+     ],
+     "lin_ccc_nm": [
+      0.7496,
+      0.7777
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.297387524017052,
+    "trend_removed_rho": 0.021397579491165056,
+    "ceiling": 0.9313874680467811,
+    "raw_spearman": 0.8930601632615813,
+    "lin_ccc_nm": 0.7713914328214202,
+    "median_scale": 1.1441676842745598,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      1.6618,
+      3.0535
+     ],
+     "raw_spearman": [
+      0.8762,
+      0.895
+     ],
+     "lin_ccc_nm": [
+      0.751,
+      0.7792
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 1,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 16.594964370276823,
+    "trend_removed_rho": 0.1545245331905599,
+    "ceiling": 0.9311531482847181,
+    "raw_spearman": 0.9010678934103773,
+    "lin_ccc_nm": 0.7752199176364336,
+    "median_scale": 1.1509784723152001,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.3049438137030336,
+    "trend_removed_rho": 0.021462556887489645,
+    "ceiling": 0.9311531482847181,
+    "raw_spearman": 0.8969333364439044,
+    "lin_ccc_nm": 0.7770119369364488,
+    "median_scale": 1.1427825534910772,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 2,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 17.78786537451013,
+    "trend_removed_rho": 0.16466972463575688,
+    "ceiling": 0.9257419098287493,
+    "raw_spearman": 0.9105886691574507,
+    "lin_ccc_nm": 0.7769006998433862,
+    "median_scale": 1.1526936591645685,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESJ3TXVIR",
+   "role": "secondary",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.6590190836909167,
+    "trend_removed_rho": 0.0246156540480712,
+    "ceiling": 0.9257419098287493,
+    "raw_spearman": 0.9062905896674667,
+    "lin_ccc_nm": 0.7787786722540195,
+    "median_scale": 1.142999633060545,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 0,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 13.324464312477101,
+    "trend_removed_rho": 0.1219113635373858,
+    "ceiling": 0.9149438257208384,
+    "raw_spearman": 0.8891787310388355,
+    "lin_ccc_nm": 0.8062098122629643,
+    "median_scale": 1.1139268318963413,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      11.3782,
+      16.1158
+     ],
+     "raw_spearman": [
+      0.8698,
+      0.889
+     ],
+     "lin_ccc_nm": [
+      0.781,
+      0.8131
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.4029450296103145,
+    "trend_removed_rho": 0.021985597183885344,
+    "ceiling": 0.9149438257208384,
+    "raw_spearman": 0.8853190795298046,
+    "lin_ccc_nm": 0.8100790044320029,
+    "median_scale": 1.1071485323752048,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      1.4955,
+      2.9264
+     ],
+     "raw_spearman": [
+      0.8656,
+      0.8856
+     ],
+     "lin_ccc_nm": [
+      0.7845,
+      0.8169
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 1,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 13.943777791422379,
+    "trend_removed_rho": 0.1256971452803017,
+    "ceiling": 0.9014568875131189,
+    "raw_spearman": 0.888650871713509,
+    "lin_ccc_nm": 0.8027396402859269,
+    "median_scale": 1.1143628442831475,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.7690410053723604,
+    "trend_removed_rho": 0.024961710860991655,
+    "ceiling": 0.9014568875131189,
+    "raw_spearman": 0.8845360218726539,
+    "lin_ccc_nm": 0.8061508009759564,
+    "median_scale": 1.1060850476437056,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 2,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 13.826408643791906,
+    "trend_removed_rho": 0.12569358402214834,
+    "ceiling": 0.9090833871642083,
+    "raw_spearman": 0.891642801323246,
+    "lin_ccc_nm": 0.8169082827050672,
+    "median_scale": 1.1045669134361946,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESQ49IXDU",
+   "role": "secondary",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 2.926991101569051,
+    "trend_removed_rho": 0.026608789848138904,
+    "ceiling": 0.9090833871642083,
+    "raw_spearman": 0.8875632487642489,
+    "lin_ccc_nm": 0.8203331601237026,
+    "median_scale": 1.0993563927941792,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 0,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 7.950589264490764,
+    "trend_removed_rho": 0.07589599505319426,
+    "ceiling": 0.9545958485387234,
+    "raw_spearman": 0.9251402085656732,
+    "lin_ccc_nm": 0.7164479216216153,
+    "median_scale": 1.1834453494574604,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      6.6844,
+      9.9291
+     ],
+     "raw_spearman": [
+      0.9182,
+      0.9283
+     ],
+     "lin_ccc_nm": [
+      0.7015,
+      0.7313
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.706294183119259,
+    "trend_removed_rho": 0.0067422549505269345,
+    "ceiling": 0.9545958485387234,
+    "raw_spearman": 0.9239050479548444,
+    "lin_ccc_nm": 0.7124956456860011,
+    "median_scale": 1.1873105036196634,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.3545,
+      0.913
+     ],
+     "raw_spearman": [
+      0.917,
+      0.927
+     ],
+     "lin_ccc_nm": [
+      0.6972,
+      0.7271
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 1,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 7.821796864839912,
+    "trend_removed_rho": 0.074836661082703,
+    "ceiling": 0.9567707059627747,
+    "raw_spearman": 0.9243089990697706,
+    "lin_ccc_nm": 0.7070632161477992,
+    "median_scale": 1.185887578252303,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.6860552528964061,
+    "trend_removed_rho": 0.006563975686431645,
+    "ceiling": 0.9567707059627747,
+    "raw_spearman": 0.9231201337422525,
+    "lin_ccc_nm": 0.70323181559983,
+    "median_scale": 1.1893928258242616,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 2,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 8.123506385292686,
+    "trend_removed_rho": 0.07768761472675977,
+    "ceiling": 0.9563310600384384,
+    "raw_spearman": 0.9216589339268354,
+    "lin_ccc_nm": 0.71438752375456,
+    "median_scale": 1.1799652341481384,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESTNG39BO",
+   "role": "secondary",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.7357413688726406,
+    "trend_removed_rho": 0.007036123232081041,
+    "ceiling": 0.9563310600384384,
+    "raw_spearman": 0.9202623260759432,
+    "lin_ccc_nm": 0.7105483394372174,
+    "median_scale": 1.1829460074339746,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 0,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 8.036042222920894,
+    "trend_removed_rho": 0.07521858276522604,
+    "ceiling": 0.9360152756624769,
+    "raw_spearman": 0.9083553177261806,
+    "lin_ccc_nm": 0.6902465857029183,
+    "median_scale": 1.1834959428915082,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      6.2155,
+      10.9004
+     ],
+     "raw_spearman": [
+      0.8985,
+      0.9123
+     ],
+     "lin_ccc_nm": [
+      0.6687,
+      0.7078
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.2751137396384442,
+    "trend_removed_rho": 0.0025751066284621328,
+    "ceiling": 0.9360152756624769,
+    "raw_spearman": 0.9069739723991281,
+    "lin_ccc_nm": 0.6871253040989345,
+    "median_scale": 1.1861490778539046,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.0797,
+      0.588
+     ],
+     "raw_spearman": [
+      0.897,
+      0.9111
+     ],
+     "lin_ccc_nm": [
+      0.6653,
+      0.705
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 1,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 7.916675617453542,
+    "trend_removed_rho": 0.07426649637404484,
+    "ceiling": 0.9381020514508994,
+    "raw_spearman": 0.9119162641840404,
+    "lin_ccc_nm": 0.6985659227019065,
+    "median_scale": 1.1811389680813733,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.41525440915375805,
+    "trend_removed_rho": 0.003895510131011716,
+    "ceiling": 0.9381020514508994,
+    "raw_spearman": 0.9107098243663583,
+    "lin_ccc_nm": 0.6953422883784762,
+    "median_scale": 1.1832964998103224,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 2,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 8.880357776603994,
+    "trend_removed_rho": 0.08327651481896704,
+    "ceiling": 0.937760807772471,
+    "raw_spearman": 0.9079814274821065,
+    "lin_ccc_nm": 0.7010942982525836,
+    "median_scale": 1.1789375459354443,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESLRTOSQT",
+   "role": "secondary",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.4285352139951012,
+    "trend_removed_rho": 0.004018635284349948,
+    "ceiling": 0.937760807772471,
+    "raw_spearman": 0.9065153728545381,
+    "lin_ccc_nm": 0.6979082767523888,
+    "median_scale": 1.1799005683413044,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 0,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 15.442918149443717,
+    "trend_removed_rho": 0.1403425820188175,
+    "ceiling": 0.9087827874285075,
+    "raw_spearman": 0.9143645790473313,
+    "lin_ccc_nm": 0.8167411477957834,
+    "median_scale": 1.117728691827103,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      13.8839,
+      17.6333
+     ],
+     "raw_spearman": [
+      0.9013,
+      0.9128
+     ],
+     "lin_ccc_nm": [
+      0.7993,
+      0.8242
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.6539052434804198,
+    "trend_removed_rho": 0.015030406173127602,
+    "ceiling": 0.9087827874285075,
+    "raw_spearman": 0.9106591288581287,
+    "lin_ccc_nm": 0.8222100127907157,
+    "median_scale": 1.1090568188371766,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.8675,
+      2.3491
+     ],
+     "raw_spearman": [
+      0.8974,
+      0.9091
+     ],
+     "lin_ccc_nm": [
+      0.8042,
+      0.8293
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 1,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 15.675403982991453,
+    "trend_removed_rho": 0.14380256203365363,
+    "ceiling": 0.9173770716830402,
+    "raw_spearman": 0.9194807939617702,
+    "lin_ccc_nm": 0.8194064533355265,
+    "median_scale": 1.1172204613478267,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.8076132968845022,
+    "trend_removed_rho": 0.016582629930312304,
+    "ceiling": 0.9173770716830402,
+    "raw_spearman": 0.916224318364766,
+    "lin_ccc_nm": 0.8250904329046017,
+    "median_scale": 1.1083458902072059,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 2,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 14.824200640457219,
+    "trend_removed_rho": 0.1351001207620307,
+    "ceiling": 0.9113484365107989,
+    "raw_spearman": 0.9168560601335806,
+    "lin_ccc_nm": 0.8234070432883897,
+    "median_scale": 1.1129217345959344,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNES2KX6HQ5",
+   "role": "control",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.9593434366195175,
+    "trend_removed_rho": 0.01785644577550893,
+    "ceiling": 0.9113484365107989,
+    "raw_spearman": 0.9133733458295206,
+    "lin_ccc_nm": 0.8289046578419728,
+    "median_scale": 1.1052213494834506,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 0,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.47662613936744275,
+    "trend_removed_rho": -0.0036778639573596095,
+    "ceiling": 0.7716454582706498,
+    "raw_spearman": 0.8797078595327694,
+    "lin_ccc_nm": 0.7036366215852685,
+    "median_scale": 0.842854536268199,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      -3.8932,
+      3.3743
+     ],
+     "raw_spearman": [
+      0.8519,
+      0.8802
+     ],
+     "lin_ccc_nm": [
+      0.6783,
+      0.711
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.0051349131864862,
+    "trend_removed_rho": 0.00775607790709616,
+    "ceiling": 0.7716454582706498,
+    "raw_spearman": 0.8808728098893964,
+    "lin_ccc_nm": 0.6934218628801228,
+    "median_scale": 0.8410233877223863,
+    "pairs": 2850,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.1703,
+      2.2774
+     ],
+     "raw_spearman": [
+      0.8531,
+      0.8814
+     ],
+     "lin_ccc_nm": [
+      0.6679,
+      0.7011
+     ],
+     "reps": 100,
+     "pairs_sampled": 2850
+    }
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 1,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.2069052417730384,
+    "trend_removed_rho": 0.009351739759168363,
+    "ceiling": 0.7748528579948766,
+    "raw_spearman": 0.8889894715366979,
+    "lin_ccc_nm": 0.7126853511983418,
+    "median_scale": 0.8442792263399586,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 1.8036196899658252,
+    "trend_removed_rho": 0.01397539871505853,
+    "ceiling": 0.7748528579948766,
+    "raw_spearman": 0.8893632925370215,
+    "lin_ccc_nm": 0.702161363829941,
+    "median_scale": 0.84252042406216,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 2,
+   "method": "predictor",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.9409418125965687,
+    "trend_removed_rho": -0.00728656667440843,
+    "ceiling": 0.7743907834535316,
+    "raw_spearman": 0.8955367251663412,
+    "lin_ccc_nm": 0.7097456694758849,
+    "median_scale": 0.8442777738588276,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESMN7RCSB",
+   "role": "control",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 76,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.873914043694741,
+    "trend_removed_rho": 0.006767509809678144,
+    "ceiling": 0.7743907834535316,
+    "raw_spearman": 0.8967750012743954,
+    "lin_ccc_nm": 0.6991660251018984,
+    "median_scale": 0.84099368383132,
+    "pairs": 2850
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 0,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.7055699957594087,
+    "trend_removed_rho": 0.006708288221926272,
+    "ceiling": 0.9507615491367524,
+    "raw_spearman": 0.9443235337060978,
+    "lin_ccc_nm": 0.6947511988367331,
+    "median_scale": 1.1986101529016544,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.9791,
+      2.4486
+     ],
+     "raw_spearman": [
+      0.9384,
+      0.9456
+     ],
+     "lin_ccc_nm": [
+      0.6805,
+      0.7061
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.7345721768427428,
+    "trend_removed_rho": 0.006984029808077626,
+    "ceiling": 0.9507615491367524,
+    "raw_spearman": 0.9446985520674892,
+    "lin_ccc_nm": 0.6924093440419151,
+    "median_scale": 1.1978333669701118,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.403,
+      0.9663
+     ],
+     "raw_spearman": [
+      0.9387,
+      0.946
+     ],
+     "lin_ccc_nm": [
+      0.678,
+      0.7039
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 1,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.5598966656380445,
+    "trend_removed_rho": 0.005351605913359254,
+    "ceiling": 0.9558202864560186,
+    "raw_spearman": 0.9438514986726142,
+    "lin_ccc_nm": 0.7045609821029178,
+    "median_scale": 1.1929561391037957,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.6796609631091717,
+    "trend_removed_rho": 0.006496337364519819,
+    "ceiling": 0.9558202864560186,
+    "raw_spearman": 0.9442131088378103,
+    "lin_ccc_nm": 0.7024822736023243,
+    "median_scale": 1.193300541879869,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 2,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.4312520279710245,
+    "trend_removed_rho": -0.004102214846324381,
+    "ceiling": 0.9512337520184382,
+    "raw_spearman": 0.9459507460634077,
+    "lin_ccc_nm": 0.7013342874557896,
+    "median_scale": 1.194477636916325,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESG62SAVA",
+   "role": "control",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 0.7370286888690362,
+    "trend_removed_rho": 0.007010865650581234,
+    "ceiling": 0.9512337520184382,
+    "raw_spearman": 0.9464180826003153,
+    "lin_ccc_nm": 0.6993439757089542,
+    "median_scale": 1.193335308008306,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 0,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.633849387435155,
+    "trend_removed_rho": 0.0416153675858062,
+    "ceiling": 0.8980733749924573,
+    "raw_spearman": 0.9368592056969848,
+    "lin_ccc_nm": 0.84599998573295,
+    "median_scale": 0.9227631548524815,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      2.2281,
+      8.0133
+     ],
+     "raw_spearman": [
+      0.9265,
+      0.9388
+     ],
+     "lin_ccc_nm": [
+      0.8364,
+      0.8517
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 0,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.05831213242430968,
+    "trend_removed_rho": -0.0005236857356930689,
+    "ceiling": 0.8980733749924573,
+    "raw_spearman": 0.9373126889555508,
+    "lin_ccc_nm": 0.8528936833492711,
+    "median_scale": 0.9235010639911753,
+    "pairs": 4560,
+    "ci95": {
+     "percent_of_ceiling": [
+      -0.4971,
+      0.3404
+     ],
+     "raw_spearman": [
+      0.9268,
+      0.9391
+     ],
+     "lin_ccc_nm": [
+      0.8431,
+      0.8589
+     ],
+     "reps": 100,
+     "pairs_sampled": 4560
+    }
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 1,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 3.789410643755208,
+    "trend_removed_rho": 0.03420073787839077,
+    "ceiling": 0.9025344860618939,
+    "raw_spearman": 0.9389301124192281,
+    "lin_ccc_nm": 0.849094764602584,
+    "median_scale": 0.9219532551043625,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 1,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.2709410778318623,
+    "trend_removed_rho": -0.002445336664340354,
+    "ceiling": 0.9025344860618939,
+    "raw_spearman": 0.9395011275456457,
+    "lin_ccc_nm": 0.8560996879962292,
+    "median_scale": 0.922363375996041,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 2,
+   "method": "predictor",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.877196497144759,
+    "trend_removed_rho": 0.04349520557542227,
+    "ceiling": 0.8918075292001362,
+    "raw_spearman": 0.936332169801537,
+    "lin_ccc_nm": 0.8479001986177641,
+    "median_scale": 0.923193490283514,
+    "pairs": 4560
+   }
+  },
+  {
+   "dataset": "4DNESBH54BG2",
+   "role": "control",
+   "split": 2,
+   "method": "genomic_trend_no_data",
+   "loci": 96,
+   "status": "ok",
+   "input": "sequence + CTCF",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -0.0347642673177024,
+    "trend_removed_rho": -0.00031003035341053227,
+    "ceiling": 0.8918075292001362,
+    "raw_spearman": 0.9366758449862433,
+    "lin_ccc_nm": 0.8546525323948033,
+    "median_scale": 0.9227426601215887,
+    "pairs": 4560
+   }
+  }
+ ],
+ "citation": "Hafner A, Park M, Berger SE, Murphy SE, Nora EP, Boettiger AN. Loop stacking organizes genome folding from TADs to chromosomes. Mol Cell 83, 1377-1392 (2023). 4DN Data Portal (4DN Open Data on AWS).",
+ "run_utc": "2026-10-05T07:14:23+00:00"
+}

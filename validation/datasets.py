@@ -129,6 +129,17 @@ REGISTRY: dict[str, Entry] = {e.key: e for e in (
     Entry("su_genome", "su_genome", "test", "IMR90", "1,041 loci on every chromosome (DNA-MERFISH, 3 replicates)",
           ("genomic-scale.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000, locus_bp=100_000,
           paired_hic="su_hic_genome", notes="chr2 loci overlap the practice set and are reported separately."),
+    # ---- Phase A (October 2026): two genome-scale sets never used before; roles fixed before download ----
+    Entry("su_genome_tx", "su_genome", "practice", "IMR90",
+          "1,041 loci on every chromosome, DNA-MERFISH with transcription and nuclear bodies (2 replicates)",
+          ("genomic-scale-with transcription and nuclear bodies.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000,
+          locus_bp=100_000, paired_hic="su_hic_genome",
+          notes="Untreated, separate experiments from su_genome. Practice: genome-scale spacing for Phase A choices."),
+    Entry("su_genome_amanitin", "su_genome", "test", "IMR90",
+          "1,041 loci on every chromosome, DNA-MERFISH after alpha-amanitin (transcription inhibited; 2 replicates)",
+          ("genomic-scale-amanitin.tsv",), SU_BASE, SU_CITE, SU_LICENSE, step_bp=3_000_000, locus_bp=100_000,
+          paired_hic="su_hic_genome",
+          notes="Test only, untouched by every earlier gate. Hi-C is from untreated IMR-90 (Rao 2014)."),
     # ---- Hi-C binned onto the imaged loci by Su et al. from Rao et al. 2014 (IMR-90 in situ Hi-C) ----
     Entry("su_hic_chr21", "su_hic", "input", "IMR90", "Hi-C, chr21 loci (50 kb bins)", ("Hi-C_contacts_chromosome21.tsv",),
           SU_BASE, SU_CITE + " Hi-C reads: " + RAO2014_CITE, SU_LICENSE),
@@ -205,6 +216,107 @@ def bintu_hic(key: str) -> tuple[np.ndarray, str]:
 # ======================================================================================
 # Download with integrity record
 # ======================================================================================
+# ======================================================================================
+# Pillar 5 inputs (sequence + CTCF): ENCODE CTCF peaks, UCSC hg38 sequence, JASPAR CTCF motif
+# ======================================================================================
+ENCODE_CITE = ("ENCODE Project Consortium. Expanded encyclopaedias of DNA elements in the human and mouse genomes. "
+               "Nature 583, 699-710 (2020).")
+ENCODE_LICENSE = ("Public ENCODE portal data; the consortium asks that the project and experiment be cited. "
+                  "Downloaded on demand; not redistributed.")
+CTCF_PEAKS = {   # cell line -> (file accession, experiment, MD5 published by the ENCODE portal); GRCh38 IDR thresholded
+    "IMR90": ("ENCFF670ULH", "ENCSR000EFI", "f0bb4b9b1c16409cf9cc397e91edad0f"),
+    "A549": ("ENCFF624ZSR", "ENCSR035OXA", "28df1622fd35c6caacfe9351815c7c9e"),
+    "K562": ("ENCFF582SNT", "ENCSR000BPJ", "e5d29f1be4f8bf69ce79686a3b6d13b7"),
+    "HCT116": ("ENCFF470EAN", "ENCSR048RGR", "7899f33fb47d856bdc6531bc2665e08d"),
+}
+UCSC_HG38 = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/"
+HG38_FASTA_MD5 = {"chr21": "184df2bd9b812b6e6b6da16c6021369e", "chr2": "609cc41e8a44eb99f87839456c6ed333"}  # UCSC md5sum.txt
+UCSC_LICENSE = "UCSC hg38 (GRCh38) sequence, freely available for download and use; downloaded on demand."
+UCSC_CITE = "Genome Reference Consortium GRCh38 via the UCSC Genome Browser (Kent WJ et al., Genome Res 12, 996-1006, 2002)."
+JASPAR_URL = "https://jaspar.elixir.no/api/v1/matrix/MA0139.1/?format=jaspar"
+JASPAR_CITE = ("Rauluseviciute I et al. JASPAR 2024: 20th anniversary of the open-access database of transcription "
+               "factor binding profiles. Nucleic Acids Res 52, D174-D182 (2024). Matrix MA0139.1 (CTCF).")
+JASPAR_LICENSE = "CC BY 4.0 (JASPAR)."
+
+
+def fetch_url(url: str, path: Path, md5: str | None = None, retries: int = 6) -> Path:
+    """Download one file (resuming), verify the MD5 its source publishes when there is one, and record its
+    SHA-256 in the manifest."""
+    try:
+        import truststore                  # the system certificate store (UCSC / ENCODE behind TLS inspection)
+        truststore.inject_into_ssl()
+    except ImportError:
+        pass
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".part")
+        for attempt in range(1, retries + 1):
+            have = tmp.stat().st_size if tmp.exists() else 0
+            headers = dict(UA, **({"Range": f"bytes={have}-"} if have else {}))
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
+                    resumed = bool(have) and r.status == 206
+                    total = r.headers.get("Content-Range", "").rpartition("/")[2] if resumed else r.headers.get("Content-Length")
+                    total = int(total) if total and total.isdigit() else None
+                    with tmp.open("ab" if resumed else "wb") as fh:
+                        while chunk := r.read(1 << 20):
+                            fh.write(chunk)
+                if total is not None and tmp.stat().st_size < total:      # the server closed early: resume
+                    raise OSError(f"short read ({tmp.stat().st_size:,} of {total:,} bytes)")
+                break
+            except OSError as exc:
+                if attempt == retries:
+                    raise
+                print(f"retry {attempt} for {path.name}: {exc}", flush=True)
+                time.sleep(min(60, 3 * 2 ** attempt))
+        if md5:
+            _verify(tmp, {"md5": md5})
+        tmp.replace(path)
+    man = _load_manifest().get(path.relative_to(ROOT).as_posix())
+    if not man or man.get("bytes") != path.stat().st_size:
+        if md5:
+            _verify(path, {"md5": md5})
+        record(path, url)
+    return path
+
+
+MARK_PEAKS = {   # (mark, cell line) -> (file accession, experiment, MD5 published by the ENCODE portal); GRCh38 narrowPeak
+    ("atac", "IMR90"): ("ENCFF243NTP", "ENCSR200OML", "c8d2e9227aaa1d44fbc6ca93584234e4"),
+    ("atac", "K562"): ("ENCFF558BLC", "ENCSR483RKN", "3cd5e262b185a5459cfeaa5a2f1a2f18"),
+    ("atac", "HCT116"): ("ENCFF296ZZB", "ENCSR872WGW", "4fc13ef6b70a40921ce7907999cd40f8"),
+    ("atac", "A549"): ("ENCFF899OMR", "ENCSR032RGS", "feed36997c097111e6dd09cd4c29109c"),
+    ("h3k27ac", "IMR90"): ("ENCFF730BVO", "ENCSR002YRE", "568f9b5d553717209d81b8cd1faf8369"),
+    ("h3k27ac", "K562"): ("ENCFF038DDS", "ENCSR000AKP", "b24e283c2be89cbc2679eeb1688e4962"),
+    ("h3k27ac", "HCT116"): ("ENCFF853VVI", "ENCSR000EUT", "4070ce453b98442d67955779a2e240f2"),
+    ("h3k27ac", "A549"): ("ENCFF932ORM", "ENCSR778NQS", "223dd13cc80497a7410421cbce56b1e8"),
+    ("rad21", "IMR90"): ("ENCFF895JAW", "ENCSR000EFJ", "b504932fded0f25a013dadcafb1bb4c9"),
+    ("rad21", "K562"): ("ENCFF930WPG", "ENCSR000BKV", "b21e4e3e0b4afb82902692db97d35bfc"),
+    ("rad21", "HCT116"): ("ENCFF391AAM", "ENCSR000BSB", "66f1c23ae099104ebeadb25e9257d6da"),
+    ("rad21", "A549"): ("ENCFF178CSM", "ENCSR193NSH", "193707fabd2939c67f979d4611843fab"),
+}
+
+
+def mark_peaks_path(mark: str, cell_line: str) -> Path:
+    """ENCODE peaks of one mark (ATAC-seq, H3K27ac or RAD21 ChIP-seq) in one cell line, MD5-checked (Phase A5)."""
+    acc, _, md5 = MARK_PEAKS[(mark, cell_line)]
+    return fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz",
+                     DATA / "encode" / f"{acc}.bed.gz", md5)
+
+
+def ctcf_peaks_path(cell_line: str) -> Path:
+    acc, _, md5 = CTCF_PEAKS[cell_line]
+    return fetch_url(f"https://www.encodeproject.org/files/{acc}/@@download/{acc}.bed.gz",
+                     DATA / "encode" / f"{acc}.bed.gz", md5)
+
+
+def hg38_fasta_path(chrom: str) -> Path:
+    return fetch_url(UCSC_HG38 + f"{chrom}.fa.gz", DATA / "hg38" / f"{chrom}.fa.gz", HG38_FASTA_MD5[chrom])
+
+
+def jaspar_ctcf_path() -> Path:
+    return fetch_url(JASPAR_URL, DATA / "jaspar" / "MA0139.1.jaspar")
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:
@@ -412,8 +524,7 @@ def load_su_genome(entry: Entry, min_detected: float = 0.5) -> Traces:
     locus list (loci of other chromosomes are NaN for that copy)."""
     import pandas as pd
     path = fetch(entry, verbose=False)[0]
-    df = pd.read_csv(path, sep="\t", usecols=[0, 1, 2, 3, 4, 5, 6], low_memory=False)
-    df.columns = ["z", "x", "y", "locus", "homolog", "cell", "exp"]
+    df = _read_genome_columns(path)
     loci = df["locus"].to_numpy()
     uniq, first = np.unique(loci, return_index=True)
     names, starts = _parse_loci(uniq)
@@ -439,6 +550,23 @@ def load_su_genome(entry: Entry, min_detected: float = 0.5) -> Traces:
         keep |= own & (has.mean(axis=1) >= min_detected)
     return Traces(entry.key, xyz[keep], starts, names, exp[keep],
                   {"copies_total": int(len(xyz)), "min_detected": min_detected, "loci": len(uniq)})
+
+
+GENOME_COLUMNS = {"z": "Z(nm)", "x": "x(nm)", "y": "y(nm)", "locus": "genomic coordinate", "homolog": "homolog number",
+                  "cell": "cell number", "exp": "experiment number"}
+
+
+def _read_genome_columns(path: Path):
+    """The seven columns the genome-scale loader needs, found by header name (the three Su et al. genome-scale
+    files carry different extra columns), falling back to the first seven columns if a name is missing."""
+    import pandas as pd
+    head = pd.read_csv(path, sep="\t", nrows=0).columns.tolist()
+    norm = {h.strip().lower(): h for h in head}
+    want = [norm.get(v.lower()) for v in GENOME_COLUMNS.values()]
+    usecols = want if all(want) else head[:7]
+    df = pd.read_csv(path, sep="\t", usecols=usecols, low_memory=False)[usecols]
+    df.columns = list(GENOME_COLUMNS)
+    return df
 
 
 def _chrom_rank(names: np.ndarray) -> np.ndarray:

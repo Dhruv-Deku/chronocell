@@ -38,9 +38,12 @@ Physics, stated plainly
 
 from __future__ import annotations
 
+import json
 import math
 import time
 from dataclasses import asdict, dataclass, field
+from functools import lru_cache
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
@@ -91,10 +94,44 @@ class PairSummary:
         return asdict(self)
 
 
-def summarise_sigma(sigma_nm: np.ndarray, r_c_nm: float, level: float = 0.8) -> dict[str, np.ndarray]:
-    """Mean, sd, median and central `level` interval of the pair distance for per-axis sd sigma (nm)."""
+CALIBRATION_PATH = Path(__file__).with_name("data") / "calibration.json"
+CALIBRATION_HIC_PATH = Path(__file__).with_name("data") / "calibration_hic.json"
+
+
+@lru_cache(maxsize=2)
+def _recalibration_cdf(kind: str = "imaging") -> tuple[np.ndarray, np.ndarray] | None:
+    path = CALIBRATION_HIC_PATH if kind == "hic" else CALIBRATION_PATH
+    try:
+        h = np.asarray(json.loads(path.read_text(encoding="utf-8"))["pit_histogram"], dtype=np.float64)
+    except (OSError, ValueError, KeyError):
+        return None
+    return np.linspace(0.0, 1.0, len(h) + 1), np.concatenate([[0.0], np.cumsum(h) / h.sum()])
+
+
+def recalibrated_interval(level: float, kind: str = "imaging") -> tuple[float, float] | None:
+    """(lower, upper) multipliers of sigma for a stated central `level`, after the quantile recalibration
+    (Kuleshov et al., ICML 2018) fitted on practice data and frozen in data/calibration.json (imaging-
+    derived contacts, kind "imaging") or data/calibration_hic.json (sequencing Hi-C, kind "hic"): the
+    interval runs between model quantiles G^-1((1 - level)/2) and G^-1((1 + level)/2), with G the
+    empirical CDF of practice PIT values. None if the calibration file is missing. Held-out tests:
+    Gate 2 (imaging) and Gate 2b (Hi-C) in validation/RESULTS.md."""
+    if not 0.0 < level < 1.0:
+        raise ValueError("level must be in (0, 1)")
+    r = _recalibration_cdf(kind)
+    if r is None:
+        return None
+    edges, cdf = r
+    u_lo, u_hi = np.interp((1 - level) / 2, cdf, edges), np.interp((1 + level) / 2, cdf, edges)
+    return float(maxwell_quantile(u_lo)), float(maxwell_quantile(u_hi))
+
+
+def summarise_sigma(sigma_nm: np.ndarray, r_c_nm: float, level: float = 0.8,
+                    recalibrated: bool = False, kind: str = "imaging") -> dict[str, np.ndarray]:
+    """Mean, sd, median and central `level` interval of the pair distance for per-axis sd sigma (nm);
+    with `recalibrated`, the interval bounds use the practice-fitted recalibration for input `kind`
+    ("imaging" or "hic"), if available."""
     s = np.asarray(sigma_nm, dtype=np.float64)
-    lo, hi = central_interval(level)
+    lo, hi = (recalibrated and recalibrated_interval(level, kind)) or central_interval(level)
     return {"mean": MAXWELL_MEAN * s, "sd": MAXWELL_SD * s, "median": MAXWELL_MEDIAN * s, "lower": lo * s,
             "upper": hi * s, "contact_probability": ENS.contact_probability_from_sigma(s / r_c_nm)}
 
@@ -408,9 +445,14 @@ def fit_population(freq: np.ndarray, n_observed: np.ndarray | float | None = Non
     """Fit a population of chains to a dense contact-frequency matrix of any size.
 
     Same inputs and outputs as ensemble.fit_ensemble (an EnsembleResult), plus `result.model`, the
-    fitted GaussianChain, from which any per-pair statistic is exact.
+    fitted GaussianChain, from which any per-pair statistic is exact. With device "auto" a CUDA
+    out-of-memory error refits on the CPU (recorded in result.config["device_fallback"]).
     """
     cfg = cfg or PopulationConfig()
+    return ENS.with_cpu_fallback(lambda c: _fit_population(freq, n_observed, r_c_nm, c, progress), cfg)
+
+
+def _fit_population(freq, n_observed, r_c_nm, cfg: PopulationConfig, progress) -> ENS.EnsembleResult:
     t0 = time.time()
     dev = _device(cfg.device)
     dtype = torch.float32 if cfg.dtype == "float32" else torch.float64
@@ -561,6 +603,35 @@ def fit_population_from_counts(ci: np.ndarray, cj: np.ndarray, cm: np.ndarray, n
     return res
 
 
+def fit_population_from_medians(median_nm: np.ndarray, p_adjacent: float = 0.5, n_observed: float = 1000.0,
+                                cfg: PopulationConfig | None = None,
+                                progress: Callable[[int, int, dict[str, float]], None] | None = None) -> ENS.EnsembleResult:
+    """Population model whose pair medians follow a given distance map, e.g. a prediction made without
+    contact data (chronocell.predict). Each median d_ij gives a per-axis spread sigma_ij = d_ij / MAXWELL_MEDIAN
+    and a contact frequency at the radius r_c where adjacent beads touch with probability p_adjacent; the
+    frequencies are then fitted like measured ones (v3.3 up to V33_MAX_BEADS beads, v4 above), which projects
+    the map onto a valid 3D Gaussian ensemble. n_observed only sets the fit weights (no sampling noise here)."""
+    d = np.asarray(median_nm, dtype=np.float64)
+    n = len(d)
+    if n < 3 or d.shape != (n, n):
+        raise ValueError("Need a square distance map of at least 3 beads.")
+    adj = np.diag(d, 1)
+    adj = adj[np.isfinite(adj) & (adj > 0)]
+    if adj.size == 0:
+        raise ValueError("No adjacent distances to anchor the contact radius.")
+    r_c = float(np.median(adj)) / float(ENS.gaussian_median_distance(p_adjacent, 1.0))
+    sig = np.where(np.isfinite(d) & (d > 0), d / MAXWELL_MEDIAN, np.nan)
+    freq = np.where(np.isfinite(sig), ENS.contact_probability_from_sigma(np.nan_to_num(sig, nan=1.0) / r_c), np.nan)
+    np.fill_diagonal(freq, np.nan)
+    if n > V33_MAX_BEADS:
+        res = fit_population(freq, n_observed, r_c_nm=r_c, cfg=cfg or config_for(n), progress=progress)
+    else:
+        res = ENS.fit_ensemble(freq, n_observed, r_c_nm=r_c, progress=progress)
+    res.config.update({"input": "distance map (no contact data)", "p_adjacent_assumed": p_adjacent,
+                       "n_observed_weight": n_observed})
+    return res
+
+
 # ======================================================================================
 # Uncertainty read-outs (any EnsembleResult: v3.3 dense covariance or v4 model)
 # ======================================================================================
@@ -573,10 +644,12 @@ def pair_sigma_nm(res: ENS.EnsembleResult, i: np.ndarray, j: np.ndarray) -> np.n
     return np.asarray(res.median_distance_nm, dtype=np.float64)[i, j] / MAXWELL_MEDIAN
 
 
-def pair_summary(res: ENS.EnsembleResult, i: int, j: int, level: float = 0.8) -> PairSummary:
-    """Mean, sd, median and central `level` interval (nm) of one pair's distance across the population."""
+def pair_summary(res: ENS.EnsembleResult, i: int, j: int, level: float = 0.8, recalibrated: bool = False,
+                 kind: str = "imaging") -> PairSummary:
+    """Mean, sd, median and central `level` interval (nm) of one pair's distance across the population
+    (interval recalibrated on practice data for input `kind` if `recalibrated`)."""
     sig = pair_sigma_nm(res, np.array([i]), np.array([j]))
-    s = summarise_sigma(sig, float(res.config.get("r_c_nm", 150.0)), level)
+    s = summarise_sigma(sig, float(res.config.get("r_c_nm", 150.0)), level, recalibrated, kind)
     return PairSummary(*(float(s[k][0]) for k in ("mean", "sd", "median", "lower", "upper")), level,
                        float(s["contact_probability"][0]))
 

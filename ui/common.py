@@ -344,8 +344,46 @@ def fmt(x, nd: int = 1) -> str:
     return "—" if not math.isfinite(x) else f"{x:,.{nd}f}"
 
 
+def telemetry_row(model: str, g_lo: int, g_hi: int, n: int, stage: str, seconds: float, device: str,
+                  energy: float | None, contact_fit: float | None, consistency: float | None = None) -> dict:
+    """One measured row of the execution-telemetry table. Microscopy accuracy needs imaging ground truth,
+    which a user's window does not have, so it is never filled in here (the method's held-out benchmark is
+    shown separately under Accuracy)."""
+    ok = lambda v: v is not None and np.isfinite(v)  # noqa: E731
+    return {"Model": model, "Window": f"{g_lo:,}–{g_hi - 1:,}", "Beads": n, "Stage": stage,
+            "Time (s)": round(float(seconds), 2), "ms / bead": round(1000 * float(seconds) / max(n, 1), 2),
+            "Device": device, "Contact-map fit": round(float(contact_fit), 3) if ok(contact_fit) else None,
+            "Microscopy accuracy": None,
+            "Ensemble consistency (CV)": round(float(consistency), 3) if ok(consistency) else None,
+            "Energy (final objective)": round(float(energy), 5) if ok(energy) else None}
+
+
 def banner(text: str, kind: str = "warn") -> None:
     html(f'<div class="cc-banner {kind}">{text}</div>')
+
+
+SYNTHETIC_PREFIX = "SYNTHETIC · "
+
+
+def is_synthetic(ds: "Dataset | None" = None, label: str = "") -> bool:
+    """True for the built-in reference model, the demo patients, and anything labelled synthetic."""
+    if label.startswith(SYNTHETIC_PREFIX):
+        return True
+    if ds is None:
+        return False
+    names = " ".join([ds.structure_label] + [str(i[1]) for i in ds.inputs if len(i) > 1]).lower()
+    return bool(ds.is_reference or "synthetic" in names or "demo/" in names)
+
+
+def contacts_are_synthetic(ds: "Dataset") -> bool:
+    """True when the contacts in view are the reference model's simulated Micro-C (not a measured map)."""
+    return "simulated Micro-C" in ds.tracks_label
+
+
+def synthetic_warning(what: str = "This result") -> None:
+    """Shown above any result computed on synthetic data (Phase B8)."""
+    banner(f"<b>{esc(what)} is computed on SYNTHETIC data</b> (the built-in reference model or the demo patients), "
+           "not on a measurement. Use it to learn the app, never as a finding.")
 
 
 def esc(text) -> str:

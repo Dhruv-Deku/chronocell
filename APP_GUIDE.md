@@ -7,7 +7,7 @@ It runs locally with Streamlit. Heavy reconstruction runs on a Google Colab T4 G
 ```bash
 pip install -r requirements.txt
 streamlit run app.py              # opens http://localhost:8501
-python -m pytest                  # 101 tests
+python -m pytest                  # 227 tests: 226 passed, 1 skipped (the FastAPI wrapper) on the reference machine
 python -m chronocell.demo_states demo_states   # optional: synthetic Healthy / Disease / Senescent files to try the states
 ```
 
@@ -112,7 +112,7 @@ chronocell/                    numerics — never imports Streamlit
 colab/ChronoCell5D_Colab.ipynb Colab notebook (T4 GPU)
 colab/pack_code.py             zips chronocell/ for upload -> colab/chronocell_code.zip
 coordinates/                   THE SLOT: put coordinates here (see §4)
-tests/                         101 tests (pytest); test_v31.py / test_v32.py include end-to-end AppTests of every page
+tests/                         227 tests (pytest); test_v31.py / test_v32.py / test_v4_ui.py include end-to-end AppTests
 chronocell/genes.py            gene annotation (RefSeq Select), 3D accessibility, RNA-seq agreement      (v3.2)
 chronocell/domains.py          TADs (insulation), A/B compartments, loops, contact decay                 (v3.2)
 chronocell/therapy.py          drug lab: drug classes, targeting, dose simulation, ranking                (v3.2)
@@ -813,3 +813,267 @@ with:
 - the software version, run time and outcome.
 
 It is a reproducibility log, not a compliance audit trail.
+
+## 21. v4: prediction without contacts, predicted vs measured, interval coverage per input
+
+Every number behind this section is in `validation/RESULTS.md` (Gates 2, 2b, 2c, 5); the app reads
+them from the result files, so none is repeated here.
+
+**Prediction without contact data** (3D structure → 03 Model & convergence → **Input: Sequence + CTCF
+(predicted)**; human hg38 only):
+1. Choose the CTCF peaks:
+   - **Upload or paste**: narrowPeak or BED of the same cell type (`.gz` accepted); or
+   - **ENCODE, by cell type**: IMR-90, A549, K562 or HCT116 GRCh38 IDR peaks, downloaded once into
+     `.chronocell_cache/encode/` and checked against the MD5 the ENCODE portal publishes.
+2. The chromosome sequence is downloaded once from UCSC into `.chronocell_cache/fasta/` and checked
+   against UCSC's `md5sum.txt`. Without a published MD5 nothing is downloaded.
+3. **Predict and build population model** predicts every pair's median distance with the frozen
+   Gate 5 model, then fits a population to that map so every page can use it.
+
+What you see:
+- the label "predicted from sequence + CTCF (no contact data)" wherever the model appears;
+- the held-out result (Gate 5) in a banner, and the cohesin-control caveat: the signal is
+  compartment / insulation level, not CTCF loops;
+- the accession, experiment, MD5 and SHA-256 of the peaks in the export's `prediction_inputs`.
+
+**Predicted next to built from contacts.** When one window has both, 03 shows both distance maps side
+by side with their Spearman ρ (raw, and beyond the separation trend) and their size ratio. This is
+agreement between two models, not accuracy. The maps are never blended (that was not tested). On the
+built-in reference chr22 the contacts are synthetic, and the panel says so.
+
+**Interval coverage under the probe** depends on what the population was built from:
+
+| Built from | What the probe shows under the interval |
+|---|---|
+| Imaging-derived contacts | the Gate 2 recalibrated interval and its held-out coverage |
+| Sequencing counts (Hi-C, Micro-C; the app's usual input) | the model's interval and the measured Gate 2b shortfall: read it as the model's spread, not as a range for real cells |
+| A prediction | "coverage not tested" |
+
+**No reliability score.** Neither a per-bead (Gate 2) nor a per-pair (Gate 2c) score computed from the
+input reached the pre-registered bar, so none is shown.
+
+**Command line:**
+```bash
+python -m chronocell.predict --chrom chr21 --start 28000000 --end 30000000 --peaks ctcf.narrowPeak --out map.npy
+```
+This writes `map.npy` (median distance, nm) and `map.json`. The JSON holds the inputs with SHA-256,
+the model, the validation reference and "predicted, not measured". `--fasta` uses a local sequence;
+`--bin` sets the locus size (30 and 50 kb were tested; other sizes add a warning). Assemblies other
+than hg38 are refused.
+
+## 22. Phase B: analyses for your own maps, variant engine v2, platform
+
+Every measured standing quoted by the app on these panels is read from `validation/RESULTS.md`'s result files
+(Gates 4c, 4d, 6, 7 and 5m); none is repeated here. All of it runs on this computer; nothing is uploaded.
+
+**Research mode** (sidebar, on by default). Off: the Drug lab workspace and the PDB State Evaluator's
+Normal / Diseased / Senescent label, its criteria table and the per-member state counts are hidden; the measured
+geometry stays. *Open the app this way next time* saves the choice in `.chronocell_cache/settings.json`.
+Synthetic inputs are named "SYNTHETIC · …" in every dropdown, and results computed on them carry a banner.
+
+**01 · 3D structure → 06 Analysis suite.** Runs on the measured contacts of the current window:
+loops (HiCCUPS-like: local expected counts from four neighbourhoods, Poisson test, false-discovery rate),
+boundaries (insulation and a TopDom-like caller), domains (an Arrowhead-like corner score), compartments
+(eigenvector, signed by GC) and P(s). Balancing: none (raw), KR or ICE. Downloads: loops as BEDPE and as Juicebox 2D
+annotations, boundaries (BED), insulation (bedGraph) and an HTML report with the run record. Standing: Gate 6.
+
+**03 · Compare → Differential analysis.** Give each condition its replicate maps (.hic, .mcool, .cool, .pairs),
+uploaded, or as local paths / URLs for large files (read region by region). Choose the region, resolution and FDR,
+and press *Run*. With two or more replicates per condition, each pixel gets a moderated t-test (empirical Bayes
+variance, distance-normalised) and a Benjamini–Hochberg q-value; loops gained / lost, boundaries changed and
+compartment switches are listed beside it. With one replicate per condition the panel says no statistics are
+possible and shows fold changes only. Downloads: significant pixels (BEDPE), all pixels (TSV), loops (CSV), report.
+Standing: Gate 7.
+
+**02 · 4D dynamics → 05 Variant impact engine v2.** Needs a population model of the window (built in 01, or in the
+04 panel above it). Describe the variant by:
+- **Joins**: `A:40:L-A:60:R` (a deletion of beads 40–59), `A:40:L-A:60:L, A:40:R-A:60:R` (an inversion),
+  `chr9:130700000:L-chr22:23290000:R` (genomic positions). Side L is the piece that ends at the cut, R the piece that
+  starts there; the derivative chromosomes are found by walking the joins.
+- **Segments**: a derivative typed piece by piece, `A:0-40 + A:60-120(-) + A:40-60`, one per line (complex events).
+- **Copy number**: a CNV BED file, or an estimate from Hi-C coverage (labelled not validated).
+- **Variant file**: VCF (genotype and CN used when present) or BEDPE with strands; every variant is applied on its
+  own and the variants are ranked.
+A second chromosome (for translocations) comes from a contact file region fitted on the spot, or, with no data, a
+homogeneous chain. Outputs: derivative chromosomes and lost pieces, genes affected (copy number, broken, inverted,
+next to a new junction, contacts changed; ClinVar counts after a one-click download), domain boundaries lost /
+gained and domains that span a junction, enhancer–promoter pairs (needs a measured activity track), a contact-change
+map, optional 90 % intervals from 8 refits, and a ranking score (a transparent heuristic). Standing: mechanism
+simulator, not validated (Gate 4d is blocked for lack of events); the cohesin-loss model it shares the ensemble with
+passed Gate 4c.
+
+**05 · Genes → Reference annotations.** GTEx median expression per tissue and ClinVar pathogenic-allele counts
+(both downloaded on demand and checked against the checksum their sources publish), and your own COSMIC Cancer Gene
+Census export. Information only.
+
+**Mouse prediction without contacts.** 01 → 03 Model & convergence → Input *Sequence + CTCF (predicted)* now also
+works on mouse assemblies, because the pre-registered mouse test (Gate 5m) passed; the banner shows its numbers.
+Upload the CTCF peaks of your mouse cells (the ENCODE list is human only).
+
+**Sidebar → Projects.** *Save this session* stores the settings, the population models and telemetry built in the
+session, and the last analysis / differential / variant reports under `.chronocell_cache/projects/<name>/`; *Open*
+restores them after a restart.
+
+**Sidebar → Jobs.** Type a `chronocell` command (for example `impact data.mcool --region chr9:130000000-131000000
+--res 10000 --variants sv.vcf --out results/sv`), pick GPU or CPU, *Submit*. The worker runs one GPU job at a time and
+CPU jobs in parallel up to a limit; *Stop* ends a job; jobs left running when the app stopped are resumed when the
+worker starts again. The panel shows the last lines of the newest job's log.
+
+**Command line** (after `pip install -e .`): `chronocell analyze`, `chronocell diff`, `chronocell impact`,
+`chronocell batch SHEET.csv` (resumable), `chronocell report FOLDER [--pdf]`, `chronocell predict` (the existing
+`python -m chronocell.predict`). REST: `POST /api/v1/analyze`, `/diff`, `/impact`, with the same run log as the
+existing endpoints.
+
+## 23. Quantum lab (experimental, Research mode)
+
+The quantum lab writes ChronoCell questions in the forms a quantum computer takes, runs the quantum algorithm on a
+**statevector simulator on this computer** (on the GPU when there is one), and shows the classical answer to the
+same question next to it. It is not quantum hardware and claims no speed-up; its measured standing is Gate Q in
+`validation/RESULTS.md`, shown on every panel. Nothing runs until you press a panel's Run button. With Research mode
+off, the lab and every Quantum section are hidden.
+
+**Where.** *06 Quantum lab* collects everything (pick a problem at the top), plus *How big can these problems get?*
+(qubits against problem size, and the simulator's memory wall) and *Run a circuit on a real quantum computer*.
+Each workspace also has a Quantum section that uses that workspace's data:
+01 → *07 Quantum (simulated)* (domain walls, lattice fold), 02 → *06 Quantum (simulated)* (quantum walk, variant
+set), 03 → *Quantum similarity (swap test)* tab, 04 → *Quantum (simulated)* (drug combination, molecule energy),
+05 → *Quantum (simulated)* (gene classifier, gene group).
+
+**Domain walls (QAOA).** One qubit per gap between neighbouring bins of a window (bins of about 40 kb by default; 21
+bins = 20 qubits at most). The cost keeps enriched contacts inside domains and forbids domains below the minimum
+size; QAOA (depth p) searches all wall patterns at once. The race table compares it with exact search over every
+pattern, simulated annealing and simulated quantum annealing (a classical imitation of a quantum annealer). Tabs:
+the contact map with the walls (blue: QAOA; dotted: exact optimum), the puzzle as a matrix, the circuit (with its
+gate count, two-qubit gates and the share of runs today's hardware would get through), and the most likely
+measurement outcomes.
+
+**Lattice fold.** A short stretch cut into 5–11 segments is folded on a square (2D) or cubic (3D) grid so that
+segments that touch in the contact map sit next to each other. The cost involves many qubits at once, so it compiles
+to far more gates than a QUBO; the panel says how many. A lattice fold is a cartoon of the contact pattern, not a
+structure.
+
+**Quantum walk.** A walker starts on one bin and moves along the contacts of the first and last frame of the 4D
+trajectory (or of the loaded structure). The quantum walk spreads as a wave; the classical random walk diffuses.
+Heat maps show where each walk is over time, before and after the change; the readout gives how far the change moves
+where each walk spends its time.
+
+**Variant set.** From the variants ranked by *05 Variant impact engine v2* (run it first on a file with at least three
+variants), pick k to follow up: high ranking score, little overlap in the genes they touch.
+
+**Quantum similarity (swap test).** Each fold becomes a profile (how far each stretch sits from the fold's centre)
+written into the amplitudes of a few qubits; the swap test estimates their overlap from shots. For such profiles the
+overlap is the squared cosine similarity, so the circuit measures a classical quantity; it is there to show how a
+quantum computer compares two states, and how shot noise limits it.
+
+**Drug combination.** Needs a healthy baseline (as the Drug lab). The Drug lab simulator is run on each drug class
+alone at four doses and on each pair at full dose; a quadratic model of restoration is fitted, and the dose mix that
+maximises restoration minus the dose cost is found by QAOA and exact search (8 qubits). *Check the chosen mix* runs
+the simulator on the combination. Simulation, not a treatment recommendation.
+
+**Molecule energy (VQE).** H2 or HeH+ at any bond length: integrals, Hartree–Fock and the qubit Hamiltonian are
+computed from scratch; VQE with the UCCSD circuit (from the chemistry) or a hardware-efficient one (generic layers)
+finds the energy; the exact energy (FCI), chemical accuracy and the number of electrons in the final state are shown
+(the hardware-efficient circuit does not conserve that number by itself, so a penalty keeps it at two). *Compute the curve* draws the dissociation
+curve. Drug-sized molecules are far beyond any quantum computer today.
+
+**Gene classifier.** Needs measured expression for at least 30 genes in view (05 Genes → *Add measured expression*).
+Each gene's features (accessibility score, crowding, signal) set the angles of a small circuit; the overlap of two
+genes' circuit states is the kernel of a support-vector machine. Trained on 70 % of the genes and tested on the rest,
+next to a classical RBF-kernel SVM and logistic regression (AUC: 0.5 = guessing).
+
+**Gene group.** Choose k genes that are active and close together in 3D (a candidate transcription hub), one qubit per
+candidate gene.
+
+**Noise.** *Add hardware noise* applies an approximate model of today's superconducting devices: each one-qubit gate
+fails with probability 0.1 %, each two-qubit gate with 1 %, each read-out bit flips with 2 % (all-to-all connectivity
+assumed). It is not an emulation of a particular machine.
+
+**Running a circuit on a real quantum computer.** Every circuit panel has *Circuit (OpenQASM 2.0)*. Open it in Qiskit
+(`QuantumCircuit.from_qasm_str`) or import it into IBM Quantum Platform's Composer with your own (free) account and
+submit it to a device. The app never asks for or stores account details. The simulator was checked against Qiskit on
+every circuit type the lab builds (`validation/quantum_crosscheck.py`).
+
+## 24. Drug lab additions and the quantum drug tabs (October 2026)
+
+**Drug set.** *Core (4)*, the default, is the original Drug lab, unchanged. *Extended (12)* adds eight classes, each
+reduced to where it acts and which way it pushes, from its mechanism in the literature: DNMT inhibitor (opens packed
+chromatin), JmjC demethylase blocker (compacts quiet chromatin), LSD1 inhibitor (opens poised enhancers), DOT1L
+inhibitor, p300/CBP inhibitor and transcription inhibitor (settle the most active stretches), menin inhibitor and BET
+degrader (shut hyper-active hubs). A strength factor says how far a full dose moves the targets relative to the core
+classes. The ranking ("best match for this fold") covers the set chosen.
+
+**Drug guide** (expander under the dose table): *Drug classes*, a landscape chart (where each acts, which way, how far
+along in development) and a card per class (the protein it acts on, its normal job, regulatory status as of 2025,
+example compounds, safety themes; general information, not medical advice). *Where they act*, a heat map of how
+strongly each class reaches each stretch of the region treated, over the activity signal. *All classes at full dose*,
+restoration for all twelve (needs a healthy baseline). *Pairs*, every pair of core classes given one after the other:
+green cells restore more than either drug alone. *Molecule (PubChem)*, look up a compound: formula, weight, XLogP,
+polar surface, donors and acceptors, rule-of-five and Veber checks, PubChem's 2D drawing and 3D conformer. Only the
+name is sent to PubChem; answers are cached on this computer with their SHA-256. Measured standing: Gate 8 (the
+simulator against chromatin tracing of cells treated with real drugs), shown at the top of the guide.
+
+**Quantum (simulated) section of the Drug lab**, three new tabs next to *Drug combination* and *Molecule energy*:
+- *Drug molecules (active-space VQE)*: water, ammonia, methane, hydrogen fluoride, nitrogen, carbon monoxide, hydrogen
+  cyanide, formaldehyde or lithium hydride (the chemical groups of drugs: O-H, amines, carbonyls, nitriles). Choose a
+  bond stretch and an active space (2, 4 or 6 electrons in as many orbitals = 4, 8 or 12 qubits); *Run VQE* gives the
+  Hartree-Fock, exact (active space) and VQE energies, chemical accuracy, the HOMO-LUMO gap, a 3D model and an
+  orbital-energy diagram; *Stretch the bond* draws an 8-point curve. Standing: Gate Q6.
+- *Heart safety (quantum kernel)*: pick a drug (its SMILES is fetched from PubChem) or type a SMILES; *Screen for hERG
+  blocking* runs a quantum-kernel SVM next to an RBF-SVM and logistic regression, trained on 655 measured compounds (TDC
+  hERG, downloaded on demand, MD5-checked), and lists the most similar training compounds. A screen, not a safety
+  assessment. Standing: Gate Q5.
+- *Docking (QAOA max clique)*: *Load the PoseBusters examples* (37 MB, MD5-checked, once), pick a complex, *Dock*: the
+  drug's donors, acceptors and greasy carbons are matched to pocket hot-spots, the best consistent set of matches (a
+  clique, 20 qubits) is found by QAOA, poses are built and scored, and the error against the crystal pose is shown for
+  the quantum route, the classical clique route and a random search; the 3D view shows the pocket, the hot-spots and the
+  docked drug. Standing: Gate Q7.
+
+The same three tools are in *06 Quantum lab* (problem picker: *Drug molecules (VQE)*, *Heart safety*, *Docking*).
+
+## 25. Round 2 of the quantum tools (October 2026)
+
+- *Drug molecules*: a **Circuit** switch. *UCCSD (fixed circuit)*, the default, is unchanged; *ADAPT-VQE* grows the
+  circuit one excitation at a time (the one that lowers the energy most, re-optimising every angle) and draws how the
+  error falls as operators are added. It takes longer (up to a few minutes at 12 qubits) and reached chemical accuracy
+  on stretched bonds where the fixed circuit did not (Gate Q6b). When the exact lowest state of the active space is not
+  a singlet (unpaired electrons, as when a bond is stretched to breaking), a note gives the lowest singlet, the state a
+  VQE started from paired electrons aims for, and the error against it.
+- *Docking*: after a run, **Polish the poses** scores the quantum route's poses with an AutoDock Vina-style function
+  (steric, hydrophobic and H-bond terms), refines the best by small rigid moves, and gives random search the same score
+  and refinement; the polished pose is drawn in the 3D view (red squares). Standing: Gate Q7b.
+- *Analysis* page: a **Loop calling** switch. *FDR 0.1*, the default, is unchanged; *FDR 0.01 (Gate 6b)* is the
+  setting chosen on three cell lines that then beat chromosight and Mustache on two new cell lines (with *kr*
+  balancing selected, as in that test). The page shows Gate 6b's standing under Gate 6's.
+- *06 Quantum lab → Domain walls*: a **Settings** switch. *Gate Q (original)*, the default, is unchanged; *Round 2
+  (Q2b)* loads the settings chosen on three cell lines (60 kb bins, minimum 3 bins, gamma 5, boundary cost 0.25, log
+  weights) that passed on two new cell lines.
+
+## 26. Scoreboard, ADMET profile, noise and error mitigation (October 2026)
+
+**07 Scoreboard** (both modes; needs no data). Every pre-registered accuracy test on held-out real data in one list:
+what it asks in plain words, what was measured, and a PASS / FAIL / OTHER chip (other: blocked, a baseline, or a mixed
+verdict; the verdict text says which). Filters by area (structure and imaging, analysis and perturbations, Drug lab,
+quantum lab) and by passed / failed / open failures / retests. A failed test whose later retest (a new method on new
+data) passed keeps its FAIL chip and says "Later passed as …" underneath; the counts at the top give failed tests and,
+separately, the open failures that no retest has fixed yet. Tabs chart the molecule-energy errors of every quantum chemistry round
+against chemical accuracy, the loop callers' F1 against the ENCODE reference, the ADMET endpoints, error mitigation and
+docking. Everything is read from `validation/results_*.json` through `validation/report.py`, as `RESULTS.md` is.
+
+**ADMET profile** (06 Quantum lab → *ADMET profile*; Drug lab → Quantum → *ADMET profile*). Pick a drug (its SMILES is
+fetched from PubChem) or type a SMILES; *Build the ADMET profile* predicts 21 properties grouped as Absorption
+(gut-cell permeability, intestinal absorption, P-gp pump inhibition, oral bioavailability, lipophilicity, solubility),
+Distribution (blood-brain barrier, plasma protein binding, volume of distribution), Metabolism (inhibition of and
+breakdown by the liver enzymes CYP2C9, CYP2D6, CYP3A4), Excretion (half-life, two clearances) and Toxicity (acute
+toxicity, Ames mutagenicity, liver injury). The quantum-kernel model's call is shown next to the classical model on
+all 17 descriptors, with their agreement; for measured values, the percentile within the training compounds. The first
+use downloads the TDC ADMET benchmark (1.5 MB, MD5-checked) and trains 21 models (about a minute). A screen for
+teaching and triage, not a safety assessment. Standing: Gate Q8 (fail, 16 of 21); its retest Gate Q8b passed (17 of 19
+new properties) after the quantum model's input scaling was fixed, and the panel uses the fixed scaling.
+
+**Noise & mitigation** (06 Quantum lab → *Noise & mitigation*). Choose a molecule, a bond stretch and the chip's
+two-qubit error rate (0.003 is about today's best superconducting devices); *Run on the noisy simulated chip* runs the
+molecule's 4-qubit VQE circuit gate by gate on a density-matrix simulator with local noise, at the chip's noise and
+with the noise tripled and quintupled by folding, and shows the raw noisy energy, the symmetry-verified one (results
+with the wrong electron number discarded) and the zero-noise extrapolation, against the noise-free answer and chemical
+accuracy, with the extrapolation drawn. *Sweep the chip's error rate* draws raw and mitigated error from 0.0005 to 0.01.
+The circuit downloads as OpenQASM 2.0. Standing: Gate Q9.

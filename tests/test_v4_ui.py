@@ -71,6 +71,12 @@ def test_population_probe_interval_overlay_and_telemetry(app):
     at.toggle(key="probe_on").set_value(True).run()
     txt = _text(at)
     assert "Middle 50 % of cells (model)" in txt and "Mean ± SD across cells (model)" in txt
+    tip = next(d for d in _chart(at, "viewport")[1]["data"] if d["type"] == "mesh3d")["hovertemplate"]
+    assert "(population model)" in tip and "middle 50 %" in tip            # hover: distance to bead A with interval
+    # the window's population is built from sequencing counts: the imaging recalibration (Gate 2) does not apply,
+    # and the measured Hi-C shortfall (Gate 2b, read from its result file) is stated instead
+    assert "Middle 50 % of cells, recalibrated" not in txt
+    assert "below nominal with sequencing Hi-C input" in txt and "Gate 2b" in txt
     at.select_slider(key="probe_level").set_value("90 %").run()
     assert "Middle 90 % of cells (model)" in _text(at)
     at.toggle(key="unc_on").set_value(True).run()
@@ -89,3 +95,164 @@ def test_whole_window_population_uses_v4_above_400_beads(app):
     ens = list(at.session_state["ensembles"].values())[0]
     assert ens.config["model"] == "population_v4" and ens.representative_nm.shape == (450, 3)
     assert any(r["Model"] == "v4 population" for r in at.session_state["telemetry"])
+
+
+VCF_TEXT = ("chr22\t20000000\td1\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=20100000\n"
+            "chr9\t100\tx\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=5000\n")
+
+
+def _table(at, column: str):
+    """The first dataframe on the page with this column (AppTest does not index dataframes by key)."""
+    return next((d.value for d in at.dataframe if column in d.value.columns), None)
+
+
+def test_variant_file_scenario_and_impact_panel(app, monkeypatch):
+    import ui.variant_impact as VI
+    monkeypatch.setattr(VI, "BOOT_REPS", 2)                        # two refits keep the test short
+    at = app
+    at.segmented_control(key="workspace").set_value("4D dynamics").run()
+    assert _ok(at), [e.value for e in at.exception]
+    sel = at.selectbox(key="sc_choice_chr22")
+    assert sel.value == "22q11del"                                 # default scenario unchanged
+    assert "From a variant file (VCF / BEDPE)" in sel.options
+    assert "vi_cache" not in at.session_state                      # nothing computed before it is asked for
+    sel.set_value("file").run()
+    at.text_area(key="sc_vtext").input(VCF_TEXT).run()
+    assert _ok(at), [e.value for e in at.exception]
+    txt = _text(at)
+    assert "2 variants read, 1 on the loaded window" in txt and "on chr9, not chr22" in txt
+    assert "Mechanism simulator, not validated" in txt             # the measured SV-test verdict, read from JSON
+    assert "synthetic" in txt                                      # reference input is labelled
+    at.button(key="vi_fit").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert any(r["Stage"] == "ensemble fit (variant impact)" for r in at.session_state["telemetry"])
+    txt = _text(at)
+    assert "Pairs gaining ≥ 2×" in txt and "Uncertainty" in txt
+    genes = _table(at, "Effect")
+    assert genes is not None
+    pairs = _table(at, "Locus A (Mb)")
+    assert len(pairs) > 0 and (pairs["log₂ change"].abs() >= 1).any()
+    assert "90 % interval" not in pairs.columns
+    at.button(key="vi_boot").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert "90 % interval" in _table(at, "Locus A (Mb)").columns
+    assert "Of those, 90 % interval excludes no change" in _text(at)
+    assert any("bootstrap" in r["Stage"] for r in at.session_state["telemetry"])
+
+
+def _chart(at, key: str):
+    import json
+    for c in at.get("plotly_chart"):
+        if c.proto.id.endswith(f"-{key}"):
+            return c.proto, json.loads(c.proto.spec)
+    return None, None
+
+
+def test_bead_tooltips_click_to_pick_and_linked_gene(app):
+    at = app
+    proto, spec = _chart(at, "viewport")
+    assert proto is not None and list(proto.selection_mode) == []            # default: clicks do nothing, as before
+    mesh = next(d for d in spec["data"] if d["type"] == "mesh3d")
+    assert "bead %{customdata[5]" in mesh["hovertemplate"]                    # bead number in the tooltip
+    assert any(t for t in mesh["text"])                                       # gene names at the beads
+    assert "to bead" not in mesh["hovertemplate"]
+    at.toggle(key="pick_on").set_value(True).run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert list(_chart(at, "viewport")[0].selection_mode)                     # 3D view now reports clicked beads
+    assert list(_chart(at, "matrix")[0].selection_mode)                       # and so does the map
+    at.toggle(key="probe_on").set_value(True).run()
+    _, spec = _chart(at, "viewport")
+    mesh = next(d for d in spec["data"] if d["type"] == "mesh3d")
+    assert "to bead 1 (this structure)" in mesh["hovertemplate"]
+    heat = _chart(at, "matrix")[1]["data"]
+    assert len(heat) == 2                                                      # the probe pair is marked on the map
+    # linked selection: a gene picked on the Genes page is marked in the 3D view
+    at.segmented_control(key="workspace").set_value("Genes").run()
+    at.selectbox(key="genes_pick_chr22").set_value("BCR").run()
+    assert _ok(at), [e.value for e in at.exception]
+    assert at.session_state["linked_gene"][0] == "BCR"
+    at.segmented_control(key="workspace").set_value("3D structure").run()
+    assert _ok(at), [e.value for e in at.exception]
+    _, spec = _chart(at, "viewport")
+    assert any(d.get("text") == ["  BCR"] for d in spec["data"])
+
+
+def test_prediction_mode_without_contact_data(app, monkeypatch):
+    import numpy as np
+    import ui.predict_view as PV
+    seq = np.random.default_rng(0).choice(np.frombuffer(b"ACGT", np.uint8), size=51_000_000).tobytes()
+    monkeypatch.setattr(PV, "_sequence", lambda ch: seq)                       # no download in tests
+    at = app
+    at.session_state["custom_window"] = (2000, 2150)
+    at.segmented_control(key="region_choice").set_value("custom").run()
+    assert at.segmented_control(key="pop_input").value == "Contact data"      # default unchanged
+    at.segmented_control(key="pop_input").set_value("Sequence + CTCF (predicted)").run()
+    assert _ok(at), [e.value for e in at.exception]
+    txt = _text(at)
+    assert "Predicted from sequence + CTCF" in txt and "Gate 5" in txt
+    assert "Control, cohesin depleted" in txt and "not CTCF loops" in txt      # read from the Gate 5 result file
+    peaks = "\n".join(f"chr22\t{20_005_000 + k * 100_000}\t{20_005_400 + k * 100_000}\tp{k}\t0\t.\t5\t5\t5\t200"
+                      for k in range(12))
+    at.text_area(key="pred_peaks_text").input(peaks).run()
+    at.button(key="pred_go").click().run()
+    assert _ok(at), [e.value for e in at.exception]
+    ens = [r for r in at.session_state["ensembles"].values() if str(r.config.get("input", "")).startswith("predicted")]
+    assert ens and ens[0].config["prediction_inputs"]["peaks_file"] == "pasted peaks"
+    assert ens[0].config["prediction_inputs"]["peaks"] == 12
+    assert any(r["Model"] == "sequence + CTCF predictor" for r in at.session_state["telemetry"])
+    assert "predicted from sequence + CTCF (no contact data)" in _text(at)    # labelled wherever it is shown
+
+
+def test_encode_peaks_by_cell_type_and_side_by_side_with_the_contact_model(app, monkeypatch, tmp_path):
+    import gzip
+    import hashlib
+    import numpy as np
+    import ui.predict_view as PV
+    from chronocell import predict as PD
+    from test_v4_downloads import _Server
+    seq = np.random.default_rng(1).choice(np.frombuffer(b"ACGT", np.uint8), size=51_000_000).tobytes()
+    monkeypatch.setattr(PV, "_sequence", lambda ch: seq)                       # no sequence download in tests
+    body = gzip.compress("".join(f"chr22\t{20_003_000 + k * 120_000}\t{20_003_300 + k * 120_000}\t.\t0\t.\t9\t9\t9\t150\n"
+                                 for k in range(12)).encode())
+    srv = _Server({"/files/ENCFFLOCAL/@@download/ENCFFLOCAL.bed.gz": body})
+    try:
+        monkeypatch.setattr(PD, "ENCODE_DOWNLOAD", srv.url + "/files/{acc}/@@download/{acc}.bed.gz")
+        monkeypatch.setattr(PD, "encode_ctcf_sources", lambda: [
+            {"cell_line": "IMR90", "accession": "ENCFFLOCAL", "experiment": "ENCSRLOCAL", "md5": hashlib.md5(body).hexdigest(),
+             "assembly": "GRCh38", "citation": "ENCODE Project Consortium (test copy).", "license": "", "page": srv.url}])
+        monkeypatch.setattr(PV, "ENCODE_DIR", tmp_path / "encode")
+        at = app
+        at.session_state["custom_window"] = (2000, 2150)
+        at.segmented_control(key="region_choice").set_value("custom").run()
+        # 1. the population model from the window's contacts (the validated path, unchanged)
+        next(b for b in at.button if (b.label or "").startswith("Build population model")).click().run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert "Predicted vs built from measured contacts" not in _text(at)         # only one model so far
+        # 2. the prediction, with peaks fetched from ENCODE by cell type
+        at.segmented_control(key="pop_input").set_value("Sequence + CTCF (predicted)").run()
+        assert at.segmented_control(key="pred_peaks_src").value == "Upload or paste"  # default unchanged
+        at.segmented_control(key="pred_peaks_src").set_value("ENCODE, by cell type").run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert "ENCFFLOCAL" in _text(at) and at.button(key="pred_go").disabled       # nothing fetched yet
+        at.button(key="pred_encode_dl").click().run()
+        assert _ok(at), [e.value for e in at.exception]
+        assert (tmp_path / "encode" / "ENCFFLOCAL.bed.gz").read_bytes() == body
+        assert "12 peaks on chr22" in _text(at)
+        at.button(key="pred_go").click().run()
+        assert _ok(at), [e.value for e in at.exception]
+    finally:
+        srv.close()
+    pred = at.session_state["predicted_ensembles"]
+    rec = list(pred.values())[0].config["prediction_inputs"]
+    assert rec["encode_accession"] == "ENCFFLOCAL" and rec["encode_experiment"] == "ENCSRLOCAL"
+    assert rec["peaks_sha256"] == hashlib.sha256(body).hexdigest()
+    # 3. both models of this window, side by side, never blended
+    txt = _text(at)
+    assert "Predicted vs built from measured contacts" in txt and "never blended" in txt
+    assert "These contacts are the synthetic reference model" in txt     # the demo window is synthetic: said so
+    cmp = list(at.session_state["prediction_comparison"].values())[0]
+    assert -1 <= cmp["spearman"] <= 1 and -1 <= cmp["spearman_trend_removed"] <= 1 and cmp["pairs"] > 0.9 * 150 * 149 / 2
+    meas = list(at.session_state["contact_ensembles"].values())[0]
+    assert not str(meas.config.get("input", "")).startswith("predicted")
+    for key in ("cmp_measured", "cmp_predicted"):
+        assert _chart(at, key)[0] is not None

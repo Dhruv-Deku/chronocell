@@ -97,3 +97,30 @@ def test_export_offers_the_audit_record(tmp_path, monkeypatch):
     at.button(key="audit_pdf_build").click().run()
     assert not at.exception, [e.value for e in at.exception]
     assert "Audit record (PDF)" in [d.label for d in at.get("download_button")]
+
+
+def test_interval_note_follows_the_input_type():
+    from types import SimpleNamespace as NS
+    kind = ACC.interval_input_kind
+    assert kind(NS(config={"input": "sequencing counts"})) == "hic"
+    assert kind(NS(config={"input": "predicted from sequence + CTCF (no contact data)"})) == "predicted"
+    assert kind(NS(config={"input": "distance map (no contact data)"})) == "other"
+    assert kind(NS(config={})) == "imaging"
+    ev = {"imaging_raw_90": (71.2, 84.0), "imaging_recalibrated_90": (83.0, 91.0), "hic_raw_90": (30.0, 46.0),
+          "hic_recalibrated_90": (55.0, 72.0), "hic_verdict": "fail", "hic_source": "held-out test, Gate 2b"}
+    hic = ACC.interval_note(ev, "hic")
+    assert "far below nominal" in hic and "30–46 %" in hic and "55–72 %" in hic and "not met" in hic
+    assert "below nominal" in ACC.interval_note(dict(ev, hic_recalibrated_90=(80.0, 82.0)), "hic")
+    assert "far below" not in ACC.interval_note(dict(ev, hic_recalibrated_90=(80.0, 82.0)), "hic")
+    assert "passed" in ACC.interval_note(dict(ev, hic_verdict="pass"), "hic")
+    assert "not tested" in ACC.interval_note(ev, "predicted")
+    img = ACC.interval_note(ev, "imaging")
+    assert "Gate 2" in img and "71–84 %" in img and "83–91 % recalibrated" in img
+    assert ACC.interval_note(None, "hic") is None and ACC.interval_note(ev, "other") is None
+
+
+def test_hic_recalibration_is_read_separately_from_the_imaging_one():
+    from chronocell import population as P
+    img, hic = P.recalibrated_interval(0.9), P.recalibrated_interval(0.9, kind="hic")
+    assert img is not None and hic is not None and img != hic
+    assert P.pair_summary.__defaults__[-1] == "imaging"                  # the default stays the imaging recalibration

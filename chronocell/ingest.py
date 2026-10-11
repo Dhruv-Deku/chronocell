@@ -125,6 +125,25 @@ def _bin_intervals(chrom: genome.Chrom, starts: np.ndarray, ends: np.ndarray, va
     return acc / res
 
 
+def _read_bigwig_builtin(data: bytes, chrom: genome.Chrom) -> tuple[np.ndarray, str]:
+    """bigWig means per bin with the built-in reader (chronocell.bigwig), when pyBigWig is not installed."""
+    from . import bigwig
+    with tempfile.NamedTemporaryFile(suffix=".bw", delete=False) as fh:
+        fh.write(data)
+        path = fh.name
+    try:
+        bw = bigwig.BigWig(path)
+        try:
+            vals = bw.bin_means(chrom.name, 0, chrom.n_bins * chrom.resolution, chrom.resolution)[:chrom.n_bins]
+        except KeyError as exc:
+            raise ValueError(str(exc)) from exc
+        finally:
+            bw.f.close()
+    finally:
+        os.unlink(path)
+    return vals, f"bigWig means over {chrom.n_bins:,} bins (built-in reader)"
+
+
 def read_track(data: bytes, name: str, chrom: genome.Chrom) -> tuple[np.ndarray, str]:
     """A per-bin (or per-bead for .npy) signal array and a description."""
     ext = os.path.splitext(name.lower())[1]
@@ -135,9 +154,8 @@ def read_track(data: bytes, name: str, chrom: genome.Chrom) -> tuple[np.ndarray,
     if ext in (".bw", ".bigwig"):
         try:
             import pyBigWig  # optional
-        except ImportError as exc:
-            raise ValueError("Reading bigWig needs the optional package pyBigWig (pip install pyBigWig), or convert "
-                             "it to bedGraph (bigWigToBedGraph).") from exc
+        except ImportError:
+            return _read_bigwig_builtin(data, chrom)
         with tempfile.NamedTemporaryFile(suffix=".bw", delete=False) as fh:
             fh.write(data)
             path = fh.name

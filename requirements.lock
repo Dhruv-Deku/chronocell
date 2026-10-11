@@ -1,0 +1,25 @@
+# Exact versions ChronoCell-5D 4.0 was tested with (python -m pytest, Python 3.10.11).
+# CPU PyTorch:  pip install --index-url https://download.pytorch.org/whl/cpu torch==2.11.0
+# NVIDIA GPU:   pip install --index-url https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128
+#               (tested on an RTX 5050 Laptop GPU, driver 592.82, CUDA 12.8; same results as the CPU
+#               within the tolerance in tests/test_phaseA.py)
+#               pip install -r requirements.lock
+# The Docker image records the full resolved environment in /app/pip-freeze.txt.
+streamlit==1.64.0
+plotly==7.1.0
+numpy==2.2.6
+pandas==2.3.3
+torch==2.11.0
+fpdf2==2.8.9
+h5py==3.16.0
+scipy==1.15.3
+scikit-learn==1.7.2
+joblib==1.6.0
+threadpoolctl==3.7.0
+pillow==12.2.0
+requests==2.34.2
+pytest==9.1.1
+# Optional, also tested (REST API, python -m chronocell.api; its test is skipped without them):
+#   fastapi==0.141.1  uvicorn==0.52.1  httpx==0.28.1
+# Optional, installed when the suite ran (downloads use it when present, for TLS-inspecting proxies):
+#   truststore==0.10.4

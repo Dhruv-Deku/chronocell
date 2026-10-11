@@ -1,0 +1,360 @@
+{
+ "mode": "practice (leave-one-dataset-out; in-sample choice)",
+ "forms": {
+  "global": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.9047713423976405,
+     "trend_removed_rho": 0.6536024670266724,
+     "raw_spearman": 0.919271922773705,
+     "size_ratio": 0.9728191682447564,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.7865388016070664,
+     "trend_removed_rho": 0.7329226662110672,
+     "raw_spearman": 0.9168095104986639,
+     "size_ratio": 1.1014329331064037,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.7513512433427293,
+     "trend_removed_rho": 0.45538043600755157,
+     "raw_spearman": 0.8980981618824107,
+     "size_ratio": 1.094034666660117,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": 0.34438978760916433,
+     "trend_removed_rho": 0.07657620174410627,
+     "raw_spearman": 0.33709516645035437,
+     "size_ratio": 0.9644218985247184,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.6506993034252315,
+     "trend_removed_rho": 0.5567482358635355,
+     "raw_spearman": 0.8516800530351205,
+     "size_ratio": 0.9906896072825915,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.6875500956763664,
+   "min_ccc": 0.34438978760916433
+  },
+  "sep": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.8907365904283692,
+     "trend_removed_rho": 0.6536024670266724,
+     "raw_spearman": 0.9154102989661647,
+     "size_ratio": 1.0163068626927148,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.7064949046944828,
+     "trend_removed_rho": 0.7329226662110672,
+     "raw_spearman": 0.9106470447656518,
+     "size_ratio": 1.186884542576336,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.689335231508529,
+     "trend_removed_rho": 0.45538043600755157,
+     "raw_spearman": 0.8913689791805451,
+     "size_ratio": 1.172187806923636,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": 0.3132588072988558,
+     "trend_removed_rho": 0.07657620174410627,
+     "raw_spearman": 0.2996202746854181,
+     "size_ratio": 0.9448424712767163,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.642788848240562,
+     "trend_removed_rho": 0.5567482358635355,
+     "raw_spearman": 0.8525174310708551,
+     "size_ratio": 1.0023020636298514,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.6485228764341598,
+   "min_ccc": 0.3132588072988558
+  },
+  "sep2": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.8795478240469583,
+     "trend_removed_rho": 0.6536024670266724,
+     "raw_spearman": 0.9324373973240258,
+     "size_ratio": 0.9958116453226831,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.6932617227204128,
+     "trend_removed_rho": 0.7329226662110672,
+     "raw_spearman": 0.9240919076704588,
+     "size_ratio": 1.187999819020407,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.686638833916016,
+     "trend_removed_rho": 0.45538043600755157,
+     "raw_spearman": 0.9126632040368893,
+     "size_ratio": 1.1370024643822247,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": 0.1333606271475846,
+     "trend_removed_rho": 0.07657620174410627,
+     "raw_spearman": 0.04016125279490551,
+     "size_ratio": 0.9354835009897141,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.5674084879843088,
+     "trend_removed_rho": 0.5567482358635355,
+     "raw_spearman": 0.8643228779468912,
+     "size_ratio": 1.029654803818289,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.5920434991630561,
+   "min_ccc": 0.1333606271475846
+  },
+  "sep2+step": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.8944255640717018,
+     "trend_removed_rho": 0.6536024670266724,
+     "raw_spearman": 0.9099223430408405,
+     "size_ratio": 0.9188437726609605,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.8065493239184405,
+     "trend_removed_rho": 0.7329226662110672,
+     "raw_spearman": 0.9072506657442967,
+     "size_ratio": 1.0856643589305102,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.777428573906681,
+     "trend_removed_rho": 0.45538043600755157,
+     "raw_spearman": 0.8910235450314792,
+     "size_ratio": 1.0704996179366022,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": -0.027622570950453312,
+     "trend_removed_rho": 0.07657620174410627,
+     "raw_spearman": -0.1246565055434341,
+     "size_ratio": 0.6852477503487991,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.576428218033438,
+     "trend_removed_rho": 0.5567482358635355,
+     "raw_spearman": 0.8683794674303403,
+     "size_ratio": 0.8190488732657748,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.6054418217959616,
+   "min_ccc": -0.027622570950453312
+  },
+  "sep2+step+depth": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.8834134581906385,
+     "trend_removed_rho": 0.615102525929979,
+     "raw_spearman": 0.8945768903809267,
+     "size_ratio": 0.9273076731744656,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.8417097353298217,
+     "trend_removed_rho": 0.6838802049516829,
+     "raw_spearman": 0.8802633247895688,
+     "size_ratio": 1.0591447757922632,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.8253939547551793,
+     "trend_removed_rho": 0.49217500322440855,
+     "raw_spearman": 0.9054833858095441,
+     "size_ratio": 1.0865180613730245,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": -0.0389705618742255,
+     "trend_removed_rho": 0.0873833479175084,
+     "raw_spearman": -0.13767817816893813,
+     "size_ratio": 0.7107491859427646,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.44221425863422614,
+     "trend_removed_rho": 0.5357350892553481,
+     "raw_spearman": 0.8644070470993976,
+     "size_ratio": 0.6827612805527332,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.5907521690071281,
+   "min_ccc": -0.0389705618742255
+  },
+  "sep2+step+depth+protocol": {
+   "per_group": {
+    "bintu_hct116_28_30": {
+     "lin_ccc_nm": 0.8852991095019207,
+     "trend_removed_rho": 0.6526234000147064,
+     "raw_spearman": 0.9051432482644567,
+     "size_ratio": 0.9183340824279178,
+     "pairs": 12480
+    },
+    "bintu_hct116_34_37": {
+     "lin_ccc_nm": 0.9176037154089056,
+     "trend_removed_rho": 0.8111276899430114,
+     "raw_spearman": 0.9285874281197456,
+     "size_ratio": 1.065967701498183,
+     "pairs": 20418
+    },
+    "bintu_k562_28_30": {
+     "lin_ccc_nm": 0.8680776157626425,
+     "trend_removed_rho": 0.5376675254299939,
+     "raw_spearman": 0.9193573661737252,
+     "size_ratio": 1.0814864181690276,
+     "pairs": 12474
+    },
+    "su_chr2": {
+     "lin_ccc_nm": -0.045848125173702105,
+     "trend_removed_rho": 0.08844913092907473,
+     "raw_spearman": -0.13914015557321155,
+     "size_ratio": 0.7460609859002711,
+     "pairs": 1373481
+    },
+    "su_genome_tx": {
+     "lin_ccc_nm": 0.3431083518682899,
+     "trend_removed_rho": 0.5324792096654607,
+     "raw_spearman": 0.8636610874901594,
+     "size_ratio": 0.607341246318853,
+     "pairs": 44928
+    }
+   },
+   "mean_ccc": 0.5936481334736115,
+   "min_ccc": -0.045848125173702105
+  }
+ },
+ "uncalibrated": {
+  "bintu_hct116_28_30": {
+   "lin_ccc_nm": 0.16662272882778895,
+   "trend_removed_rho": 0.6536024670266724,
+   "raw_spearman": 0.919271922773705,
+   "size_ratio": 0.3982448785673867,
+   "pairs": 12480
+  },
+  "bintu_hct116_34_37": {
+   "lin_ccc_nm": 0.25268266824452046,
+   "trend_removed_rho": 0.7329226662110672,
+   "raw_spearman": 0.9168095104986639,
+   "size_ratio": 0.444627942781631,
+   "pairs": 20418
+  },
+  "bintu_k562_28_30": {
+   "lin_ccc_nm": 0.24445930955838208,
+   "trend_removed_rho": 0.45538043600755157,
+   "raw_spearman": 0.8980981618824107,
+   "size_ratio": 0.44362023430627273,
+   "pairs": 12474
+  },
+  "su_chr2": {
+   "lin_ccc_nm": 0.051726203777649825,
+   "trend_removed_rho": 0.07657620174410627,
+   "raw_spearman": 0.33709516645035437,
+   "size_ratio": 0.3936222361099317,
+   "pairs": 1373481
+  },
+  "su_genome_tx": {
+   "lin_ccc_nm": 0.11767647153996533,
+   "trend_removed_rho": 0.5567482358635355,
+   "raw_spearman": 0.8516800530351205,
+   "size_ratio": 0.4249490431697163,
+   "pairs": 44928
+  }
+ },
+ "chosen": "global",
+ "beta": [
+  0.8952923172859366
+ ],
+ "units": [
+  "bintu_k562_28_30__hic__rao2014__t1__s0",
+  "bintu_k562_28_30__hic__rao2014__t0.25__s0",
+  "bintu_k562_28_30__hic__rao2014__t0.0625__s0",
+  "bintu_k562_28_30__hic__encode_k562_intact__t1__s0",
+  "bintu_k562_28_30__hic__encode_k562_intact__t0.25__s0",
+  "bintu_k562_28_30__hic__encode_k562_intact__t0.0625__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_insitu__t1__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_insitu__t0.25__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_insitu__t0.0625__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_intact__t1__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_intact__t0.25__s0",
+  "bintu_hct116_28_30__hic__encode_hct116_intact__t0.0625__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_insitu__t1__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_insitu__t0.25__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_insitu__t0.0625__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_intact__t1__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_intact__t0.25__s0",
+  "bintu_hct116_34_37__hic__encode_hct116_intact__t0.0625__s0",
+  "su_chr2__hic__rao2014__t1__s0",
+  "su_chr2__hic__rao2014__t0.25__s0",
+  "su_chr2__hic__rao2014__t0.0625__s0",
+  "su_chr2_parm_rep__hic__rao2014__t1__s0",
+  "su_genome_tx-chr1__hic__rao2014__t1__s0",
+  "su_genome_tx-chr3__hic__rao2014__t1__s0",
+  "su_genome_tx-chr4__hic__rao2014__t1__s0",
+  "su_genome_tx-chr5__hic__rao2014__t1__s0",
+  "su_genome_tx-chr6__hic__rao2014__t1__s0",
+  "su_genome_tx-chr7__hic__rao2014__t1__s0",
+  "su_genome_tx-chr8__hic__rao2014__t1__s0",
+  "su_genome_tx-chr9__hic__rao2014__t1__s0",
+  "su_genome_tx-chr10__hic__rao2014__t1__s0",
+  "su_genome_tx-chr11__hic__rao2014__t1__s0",
+  "su_genome_tx-chr12__hic__rao2014__t1__s0",
+  "su_genome_tx-chr13__hic__rao2014__t1__s0",
+  "su_genome_tx-chr14__hic__rao2014__t1__s0",
+  "su_genome_tx-chr15__hic__rao2014__t1__s0",
+  "su_genome_tx-chr16__hic__rao2014__t1__s0",
+  "su_genome_tx-chr17__hic__rao2014__t1__s0",
+  "su_genome_tx-chr18__hic__rao2014__t1__s0",
+  "su_genome_tx-chr19__hic__rao2014__t1__s0",
+  "su_genome_tx-chr20__hic__rao2014__t1__s0",
+  "su_genome_tx-chr21__hic__rao2014__t1__s0",
+  "su_genome_tx-chr22__hic__rao2014__t1__s0",
+  "su_genome_tx-chrX__hic__rao2014__t1__s0",
+  "su_genome_tx-chr1__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr3__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr4__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr5__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr6__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr7__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr8__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr9__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr10__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr11__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr12__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr13__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr14__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr15__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr16__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr17__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr18__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr19__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr20__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr21__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chr22__hic__rao2014__t0.25__s0",
+  "su_genome_tx-chrX__hic__rao2014__t0.25__s0"
+ ]
+}

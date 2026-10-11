@@ -1,0 +1,841 @@
+{
+ "mode": "test (run once; model frozen)",
+ "rule": {
+  "train": [
+   "bintu_k562_28_30",
+   "bintu_hct116_28_30",
+   "bintu_hct116_34_37"
+  ],
+  "test": [
+   "bintu_imr90_28_30",
+   "bintu_imr90_18_20",
+   "bintu_a549_28_30",
+   "su_chr21",
+   "su_chr21_rep"
+  ],
+  "control": [
+   "bintu_hct116_34_37_auxin"
+  ],
+  "marks": [
+   "rad21"
+  ],
+  "min_percent": 50.0,
+  "min_sets": 3,
+  "beat_gate5": true
+ },
+ "model": {
+  "feature_set": "ctcf+rad21",
+  "marks": [
+   "rad21"
+  ],
+  "ridge_lambda": 0.01,
+  "beta": [
+   -0.005394189898249945,
+   0.016364426145552696,
+   -0.0014774693381349418,
+   0.018391111506945793,
+   0.11206451466660654,
+   0.0020396574166197316,
+   -0.003686426290819277,
+   -0.006170132231299178,
+   -0.0037109791685104895,
+   -0.036015694320998506,
+   0.04778050857863128,
+   -0.015415136087598593,
+   -0.002271551773765506,
+   0.019846791175498476,
+   -0.0014063760593279262,
+   -0.013895252090921744,
+   -0.023494007680028073,
+   -0.1182567395444378
+  ],
+  "mu": [
+   0.023518466974563494,
+   0.03149848047814624,
+   0.05436474980763407,
+   0.6917790045103045,
+   2.2673561360243224,
+   -7.57970512959522e-06,
+   0.13562214957862095,
+   0.18048027252125642,
+   0.3118375003832694,
+   3.9612278675154537,
+   13.359076858478364,
+   -0.00010250198339206357,
+   -0.0569607658831743,
+   2.8199367591655746,
+   -0.3946644289926221,
+   16.114588409319715,
+   2.038331995574692,
+   12.013695669744042
+  ],
+  "sd": [
+   0.14373687508896218,
+   0.1572103077385024,
+   0.2156721679999872,
+   0.7979886325551189,
+   1.2357344121213423,
+   0.0005788271341742674,
+   0.8377650615112017,
+   0.9021067501879696,
+   1.2444321184824354,
+   4.612427841011768,
+   7.633956688516409,
+   0.0033160379544821734,
+   4.227826404449783,
+   3.14421879692745,
+   24.141957776029603,
+   18.07833263017078,
+   1.103052803856953,
+   6.829098961895472
+  ],
+  "trend": [
+   2.0996677426489483,
+   0.7201795966210878
+  ],
+  "trained_on": [
+   "bintu_k562_28_30",
+   "bintu_hct116_28_30",
+   "bintu_hct116_34_37"
+  ],
+  "mark_files": {
+   "rad21_K562": "ENCFF930WPG",
+   "rad21_HCT116": "ENCFF391AAM",
+   "rad21_IMR90": "ENCFF895JAW",
+   "rad21_A549": "ENCFF178CSM"
+  },
+  "fitted_utc": "2026-10-05T00:35:46+00:00",
+  "note": "Practice data only (non-IMR-90 practice regions). Held-out test: Gate 5b (validation/RESULTS.md)."
+ },
+ "summary": {
+  "bintu_imr90_28_30": {
+   "sequence + CTCF + marks": {
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": -10.464363049529206,
+      "raw_spearman": 0.9244149740835517,
+      "lin_ccc_nm": 0.8126795961849038,
+      "median_scale": 0.8825166328132119,
+      "ceiling": 0.9837416816779467,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -12.6221,
+        -9.2985
+       ],
+       "raw_spearman": [
+        0.92,
+        0.9255
+       ],
+       "lin_ccc_nm": [
+        0.7969,
+        0.8207
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "bintu_imr90_18_20": {
+   "sequence + CTCF + marks": {
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": 0.15148950278488074,
+      "raw_spearman": 0.961283674725029,
+      "lin_ccc_nm": 0.7963162715614619,
+      "median_scale": 1.0102178997075206,
+      "ceiling": 0.25071532764072607,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        -13.7987,
+        13.6757
+       ],
+       "raw_spearman": [
+        0.9191,
+        0.9449
+       ],
+       "lin_ccc_nm": [
+        0.7542,
+        0.8157
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "bintu_a549_28_30": {
+   "sequence + CTCF + marks": {
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": 4.897785760106855,
+      "raw_spearman": 0.9105951750676118,
+      "lin_ccc_nm": 0.9026927818992414,
+      "median_scale": 0.9765323842200782,
+      "ceiling": 0.9487050542555777,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        0.8052,
+        7.692
+       ],
+       "raw_spearman": [
+        0.9049,
+        0.9221
+       ],
+       "lin_ccc_nm": [
+        0.8899,
+        0.911
+       ],
+       "reps": 100,
+       "pairs_sampled": 2080
+      }
+     }
+    }
+   }
+  },
+  "su_chr21": {
+   "sequence + CTCF + marks": {
+    "within_tiles": {
+     "predictor_v2": {
+      "percent_of_ceiling": -7.945039045905815,
+      "raw_spearman": 0.6602278889660169,
+      "lin_ccc_nm": 0.6850045021594466,
+      "median_scale": 0.9339712536570727,
+      "ceiling": 0.994850382269989,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        -9.0514,
+        -7.6967
+       ],
+       "raw_spearman": [
+        0.6532,
+        0.665
+       ],
+       "lin_ccc_nm": [
+        0.6782,
+        0.6915
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    },
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": 9.425493710878767,
+      "raw_spearman": 0.7319730406788112,
+      "lin_ccc_nm": 0.7307189942822555,
+      "median_scale": 1.043361198244204,
+      "ceiling": 0.9940162427766758,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        7.5971,
+        8.9896
+       ],
+       "raw_spearman": [
+        0.7219,
+        0.7362
+       ],
+       "lin_ccc_nm": [
+        0.7176,
+        0.7314
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    }
+   }
+  },
+  "su_chr21_rep": {
+   "sequence + CTCF + marks": {
+    "within_tiles": {
+     "predictor_v2": {
+      "percent_of_ceiling": -10.771444047673176,
+      "raw_spearman": 0.6073683818029123,
+      "lin_ccc_nm": 0.6177065878134693,
+      "median_scale": 0.9164289970414558,
+      "ceiling": 0.9921725579747103,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        -12.2025,
+        -11.042
+       ],
+       "raw_spearman": [
+        0.6002,
+        0.6159
+       ],
+       "lin_ccc_nm": [
+        0.6105,
+        0.6259
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    },
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": 10.785183377793171,
+      "raw_spearman": 0.6933556927551793,
+      "lin_ccc_nm": 0.6860387817070538,
+      "median_scale": 1.046654494451421,
+      "ceiling": 0.9914755635052036,
+      "splits": 1,
+      "ci95": {
+       "percent_of_ceiling": [
+        9.1737,
+        10.552
+       ],
+       "raw_spearman": [
+        0.6779,
+        0.6974
+       ],
+       "lin_ccc_nm": [
+        0.6686,
+        0.6906
+       ],
+       "reps": 30,
+       "pairs_sampled": 20000
+      }
+     }
+    }
+   }
+  },
+  "bintu_hct116_34_37_auxin": {
+   "sequence + CTCF + marks": {
+    "all_pairs": {
+     "predictor_v2": {
+      "percent_of_ceiling": 45.1142475371934,
+      "raw_spearman": 0.9711413050062884,
+      "lin_ccc_nm": 0.8591124168141427,
+      "median_scale": 0.8786328222352494,
+      "ceiling": 0.9511249376404404,
+      "splits": 3,
+      "ci95": {
+       "percent_of_ceiling": [
+        39.6001,
+        47.5282
+       ],
+       "raw_spearman": [
+        0.9675,
+        0.9717
+       ],
+       "lin_ccc_nm": [
+        0.8487,
+        0.8675
+       ],
+       "reps": 100,
+       "pairs_sampled": 3403
+      }
+     }
+    }
+   }
+  }
+ },
+ "per_set": {
+  "bintu_imr90_28_30": {
+   "percent_of_ceiling": -10.464363049529206,
+   "ci95": [
+    -12.6221,
+    -9.2985
+   ],
+   "gate5_percent": 26.73772985173883,
+   "passes": false
+  },
+  "bintu_imr90_18_20": {
+   "percent_of_ceiling": 0.15148950278488074,
+   "ci95": [
+    -13.7987,
+    13.6757
+   ],
+   "gate5_percent": 0.5450894687825425,
+   "passes": false
+  },
+  "bintu_a549_28_30": {
+   "percent_of_ceiling": 4.897785760106855,
+   "ci95": [
+    0.8052,
+    7.692
+   ],
+   "gate5_percent": 12.162721244455724,
+   "passes": false
+  },
+  "su_chr21": {
+   "percent_of_ceiling": 9.425493710878767,
+   "ci95": [
+    7.5971,
+    8.9896
+   ],
+   "gate5_percent": 20.239825356270433,
+   "passes": false
+  },
+  "su_chr21_rep": {
+   "percent_of_ceiling": 10.785183377793171,
+   "ci95": [
+    9.1737,
+    10.552
+   ],
+   "gate5_percent": 22.565361958010516,
+   "passes": false
+  }
+ },
+ "datasets_passing": 0,
+ "verdict": "fail",
+ "rows": [
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -11.04863233852569,
+    "trend_removed_rho": -0.10895665549678042,
+    "ceiling": 0.9861551381057124,
+    "raw_spearman": 0.9236948061719517,
+    "lin_ccc_nm": 0.8110920644674481,
+    "median_scale": 0.8802993564878041,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -12.6221,
+      -9.2985
+     ],
+     "raw_spearman": [
+      0.92,
+      0.9255
+     ],
+     "lin_ccc_nm": [
+      0.7969,
+      0.8207
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -9.791573964359234,
+    "trend_removed_rho": -0.09615985754861295,
+    "ceiling": 0.9820674173389212,
+    "raw_spearman": 0.9230669378675145,
+    "lin_ccc_nm": 0.8172301791800627,
+    "median_scale": 0.8868984506233869,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -10.5528828457027,
+    "trend_removed_rho": -0.10373510109668985,
+    "ceiling": 0.9830024895892066,
+    "raw_spearman": 0.926483178211189,
+    "lin_ccc_nm": 0.8097165449072006,
+    "median_scale": 0.8803520913284446,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.090862007996525,
+    "trend_removed_rho": 0.009364848937169936,
+    "ceiling": 0.22892116426474904,
+    "raw_spearman": 0.9602735399316124,
+    "lin_ccc_nm": 0.7962863662116229,
+    "median_scale": 1.011588994598977,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      -13.7987,
+      13.6757
+     ],
+     "raw_spearman": [
+      0.9191,
+      0.9449
+     ],
+     "lin_ccc_nm": [
+      0.7542,
+      0.8157
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 1,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 5.217234756069161,
+    "trend_removed_rho": 0.012494122621465244,
+    "ceiling": 0.23947786913232044,
+    "raw_spearman": 0.9628583046816741,
+    "lin_ccc_nm": 0.7965354534315845,
+    "median_scale": 1.009364817190625,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_imr90_18_20",
+   "role": "test",
+   "split": 2,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": -8.853628255711044,
+    "trend_removed_rho": -0.025121900097873184,
+    "ceiling": 0.28374694952510876,
+    "raw_spearman": 0.9607191795618003,
+    "lin_ccc_nm": 0.7961269950411785,
+    "median_scale": 1.0096998873329597,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.0760014903203485,
+    "trend_removed_rho": 0.03848245034054606,
+    "ceiling": 0.9441225777746607,
+    "raw_spearman": 0.915147611955525,
+    "lin_ccc_nm": 0.9030965486238491,
+    "median_scale": 0.9743852282335941,
+    "pairs": 2080,
+    "ci95": {
+     "percent_of_ceiling": [
+      0.8052,
+      7.692
+     ],
+     "raw_spearman": [
+      0.9049,
+      0.9221
+     ],
+     "lin_ccc_nm": [
+      0.8899,
+      0.911
+     ],
+     "reps": 100,
+     "pairs_sampled": 2080
+    }
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 1,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 4.086657552484766,
+    "trend_removed_rho": 0.03884510226506804,
+    "ceiling": 0.9505348017587006,
+    "raw_spearman": 0.9132866984448225,
+    "lin_ccc_nm": 0.9036712434703156,
+    "median_scale": 0.9726649746564725,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "bintu_a549_28_30",
+   "role": "test",
+   "split": 2,
+   "method": "predictor_v2",
+   "loci": 65,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 6.53069823751545,
+    "trend_removed_rho": 0.06213683668032538,
+    "ceiling": 0.9514577832333718,
+    "raw_spearman": 0.9033512148024878,
+    "lin_ccc_nm": 0.9013105536035597,
+    "median_scale": 0.982546949770168,
+    "pairs": 2080
+   }
+  },
+  {
+   "dataset": "su_chr21",
+   "role": "test",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": -7.945039045905815,
+    "trend_removed_rho": -0.07904125131969389,
+    "ceiling": 0.994850382269989,
+    "raw_spearman": 0.6602278889660169,
+    "lin_ccc_nm": 0.6850045021594466,
+    "median_scale": 0.9339712536570727,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      -9.0514,
+      -7.6967
+     ],
+     "raw_spearman": [
+      0.6532,
+      0.665
+     ],
+     "lin_ccc_nm": [
+      0.6782,
+      0.6915
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": 9.425493710878767,
+    "trend_removed_rho": 0.09369093844802899,
+    "ceiling": 0.9940162427766758,
+    "raw_spearman": 0.7319730406788112,
+    "lin_ccc_nm": 0.7307189942822555,
+    "median_scale": 1.043361198244204,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      7.5971,
+      8.9896
+     ],
+     "raw_spearman": [
+      0.7219,
+      0.7362
+     ],
+     "lin_ccc_nm": [
+      0.7176,
+      0.7314
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "su_chr21_rep",
+   "role": "test",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 651,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "within_tiles": {
+    "percent_of_ceiling": -10.771444047673176,
+    "trend_removed_rho": -0.10687131193861361,
+    "ceiling": 0.9921725579747103,
+    "raw_spearman": 0.6073683818029123,
+    "lin_ccc_nm": 0.6177065878134693,
+    "median_scale": 0.9164289970414558,
+    "pairs": 105625,
+    "ci95": {
+     "percent_of_ceiling": [
+      -12.2025,
+      -11.042
+     ],
+     "raw_spearman": [
+      0.6002,
+      0.6159
+     ],
+     "lin_ccc_nm": [
+      0.6105,
+      0.6259
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   },
+   "all_pairs": {
+    "percent_of_ceiling": 10.785183377793171,
+    "trend_removed_rho": 0.1069324576700444,
+    "ceiling": 0.9914755635052036,
+    "raw_spearman": 0.6933556927551793,
+    "lin_ccc_nm": 0.6860387817070538,
+    "median_scale": 1.046654494451421,
+    "pairs": 211575,
+    "ci95": {
+     "percent_of_ceiling": [
+      9.1737,
+      10.552
+     ],
+     "raw_spearman": [
+      0.6779,
+      0.6974
+     ],
+     "lin_ccc_nm": [
+      0.6686,
+      0.6906
+     ],
+     "reps": 30,
+     "pairs_sampled": 20000
+    }
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 0,
+   "method": "predictor_v2",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 43.436681205634336,
+    "trend_removed_rho": 0.41125425635193735,
+    "ceiling": 0.9467902356651319,
+    "raw_spearman": 0.970661325729543,
+    "lin_ccc_nm": 0.8592290390019514,
+    "median_scale": 0.8793298281409855,
+    "pairs": 3403,
+    "ci95": {
+     "percent_of_ceiling": [
+      39.6001,
+      47.5282
+     ],
+     "raw_spearman": [
+      0.9675,
+      0.9717
+     ],
+     "lin_ccc_nm": [
+      0.8487,
+      0.8675
+     ],
+     "reps": 100,
+     "pairs_sampled": 3403
+    }
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 1,
+   "method": "predictor_v2",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 47.25363062090382,
+    "trend_removed_rho": 0.4512444621747156,
+    "ceiling": 0.9549413584637798,
+    "raw_spearman": 0.9716443011328123,
+    "lin_ccc_nm": 0.8565712284413566,
+    "median_scale": 0.8772186183813829,
+    "pairs": 3403
+   }
+  },
+  {
+   "dataset": "bintu_hct116_34_37_auxin",
+   "role": "control",
+   "split": 2,
+   "method": "predictor_v2",
+   "loci": 83,
+   "status": "ok",
+   "input": "sequence + CTCF + marks",
+   "seconds": 0.0,
+   "contact_map_fit": null,
+   "notes": [],
+   "all_pairs": {
+    "percent_of_ceiling": 44.65243078504206,
+    "trend_removed_rho": 0.424931829591827,
+    "ceiling": 0.9516432187924095,
+    "raw_spearman": 0.9711182881565098,
+    "lin_ccc_nm": 0.8615369829991202,
+    "median_scale": 0.8793500201833799,
+    "pairs": 3403
+   }
+  }
+ ],
+ "not_run": {
+  "Akita (Fudenberg et al., Nat Methods 2020)": "TensorFlow model; TensorFlow has no native GPU support on Windows, and its training data include IMR-90 and HCT116 Hi-C genome-wide, so the chr21 test regions cannot be guaranteed held out.",
+  "C.Origami (Tan et al., Nat Biotechnol 2023)": "needs pyBigWig (no Windows build here) and was trained on IMR-90 Hi-C including chr21, so an IMR-90 chr21 test would be in-sample.",
+  "Orca (Zhou, Nat Genet 2022)": "predicts H1 and HFF Micro-C only (not the imaged cell lines) and needs the Selene stack and multi-GB weights; not attempted here."
+ },
+ "run_utc": "2026-10-05T00:57:38+00:00"
+}

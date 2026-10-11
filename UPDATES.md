@@ -579,3 +579,494 @@ Made by Claude (Claude Code, Claude Opus 5.5); requested by Shivoham Pandey.
 **21:41 · Pushed** branch `feat/microscopy-accuracy-v3.3` to github.com/Sh1voham/ChronoCell-5D
 (private) at the requester's instruction. `origin` was updated from the old WolframNU13/Team-NU-13 URL.
 No licence was added; `main` was not pushed.
+
+---
+
+## 4 October 2026 — v4 (reconstructed from git history)
+
+**Reconstructed on 5 October 2026 from the commit messages of this branch, not written as the work
+happened.** Commit times are the witnesses (IST). Every commit on `feat/v4-evidence` is authored
+`DHRUV` (the machine's git identity), which does **not** record who contributed which idea; the
+`Contributors:` lines are left blank for that reason. The measured results are in
+`validation/RESULTS.md`; they are not repeated here.
+
+**11:13 · `57ffcb1` Baseline:** ChronoCell-5D v3.3 as downloaded (118 tests passing).
+**11:18 – 12:54 · Core of v4:**
+- `fb2b44a` scalable population model with exact per-pair uncertainty (Pillars 1, 2);
+- `f85444d` built-in `.hic` reader (local or remote by HTTP range) and the shared validation protocol;
+- `1d48ffb` perturbation engine, SV files, chromosome names; cohesin parameters frozen (Pillar 4);
+- `0ca6520` Gate 1 settings frozen before the Su chr21 test run;
+- `fe1b727` Self-Math PDB State Evaluator (Pillar 7);
+- `dfd8fea`, `635065d` population model beyond 400 beads in the app; exact interval in the probe;
+- `a53c21c` genome assemblies as configuration (hg38 + mm39) (Pillar 6);
+- `792dbd0` reproducibility record, JSON + PDF (Pillar 8);
+- `bf4c490` held-out results of Gate 1 and Gate 4 (cohesin); Gate 2 recalibration frozen.
+
+**16:12 – 16:32 · Structural variants and environment:** `701effa` SV test pre-registered; `9cf6e1e`
+Gate 4b measured, not validated; `e65bf12`, `6010992` variant files and the 04 Variant impact panel;
+`868b539` pinned versions, Dockerfile, CI.
+
+**17:10 – 18:15 · Prediction without contact data:** `e9275af` Gate 5 pre-registered; `deb2e91`
+predictor frozen on practice data; `fba3337`, `c8c8274`, `370b063` tuning record and protocol;
+`8ec496b` recalibrated interval in the probe; `e0a3e56` RESULTS.md v4; `fbb4af6` Gate 5 passes its
+pre-registered rule, modestly; `08dda4d` the prediction in the app.
+
+Contributors: _______________
+
+---
+
+## 4 – 5 October 2026 — remaining gates and features (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5), at the request of this machine's user (git
+identity `DHRUV`). Every commit below is on `feat/v4-evidence`, local only: nothing was pushed and no
+pull request was opened, as requested. Times are the machine clock (IST).
+
+**Rules the work followed** (set by the requester): every number in the documents comes from a result
+file through `validation/report.py`; pass rules are committed before the test that uses them; tuning
+uses practice data only; failures are reported next to successes; nothing is pushed.
+
+**Pre-registrations, each committed before its test:**
+- `a522955` Gate 2b, intervals with Hi-C input (rule + practice-fitted Hi-C recalibration);
+- `302a033` Gate 5m, the predictor on mouse (not run, see below);
+- `354c0d5` Gate 2c, a per-pair reliability score (after a practice comparison of three candidates).
+
+**Results:**
+- `52b8641` **Gate 2b fails**: with Hi-C input the stated intervals stay far below nominal even after
+  a Hi-C recalibration fitted on practice data. The probe no longer applies the imaging recalibration
+  to sequencing input; it shows the measured shortfall.
+- `d2ed6f9` **Gate 2c fails**: the chosen per-pair score ranks error weakly with imaging-derived input and
+  not at all with Hi-C input, below the pre-registered bar; no reliability score is shown in the app.
+- `c7347e7` **Gate 3 measured**: with imaging-derived input the population models are best or tied best
+  on 27 of 28 test units; with Hi-C input on 18 of 26 (the no-3D inversion or PASTIS is ahead on seven
+  genome-scale chromosomes). The full run was stopped by the machine's 2-hour job limit, so the plan
+  was run in four parts and merged (`--merge`); PASTIS PM2 on the two 651-locus sets did not finish in
+  an hour and is recorded as not finished.
+- `77b27f6` **Cost**: the scale benchmark is complete (v4 fits the whole synthetic chr22 in under nine
+  minutes on this CPU). The per-chromosome runtime is **partial**: the 2-hour job limit stopped it after
+  13 chromosomes; three were measured while the test suite ran and are kept but discarded from the
+  table; 35 remain. `python validation/chromosome_runtime.py --resume` finishes it.
+
+**Features** (`b01c03a`):
+- CTCF peaks by cell type: "ENCODE, by cell type" fetches the GRCh38 IDR peaks of IMR-90, A549, K562
+  or HCT116 (listed in `chronocell/data/validation_sources.json`) once into the cache, checks the MD5
+  the portal publishes, records the accession in the prediction's inputs and shows the citation.
+  Upload and paste remain.
+- Predicted and contact-built maps side by side, with their agreement; never blended.
+- `python -m chronocell.predict`: the predicted map (`.npy`) plus a JSON record (inputs with SHA-256,
+  model, validation reference, "predicted, not measured"); hg38 only.
+- The cohesin-control caveat (Gate 5) in the predictor's banner and in the Guide, read from the result
+  file.
+- Downloads: one routine for the UCSC sequence and ENCODE peaks; resume after interruption or short
+  reads; no file without a published MD5. Tests use a local HTTP server.
+
+**Bugs found and fixed:**
+- Building a second population model for a window that already had one (a prediction after a
+  contact model, or the reverse) crashed: Streamlit forbids setting a widget's value after it is
+  drawn. The choice is now applied before the widget on the next run.
+- The variant-impact panel could take a *predicted* population as its base without saying so; it now
+  uses populations built from contacts only. The PDB evaluator labels predicted populations.
+- Download progress lagged the bytes received (it read the file size before the buffer was flushed).
+
+**Checked by hand, not committed:** the real UCSC download of hg38 chr21 through the app's code
+(12,709,705 bytes; MD5 184df2bd9b812b6e6b6da16c6021369e, equal to UCSC's), and the real ENCODE IMR-90
+CTCF peaks (595,548 bytes; MD5 equal to the portal's; 374 peaks on chr21). The command line on those
+real inputs reproduces the Gate 5 validation map for the IMR-90 test loci exactly (now a test that runs
+when the validation data are present).
+
+**Checked in the running app** (a separate instance on port 8502, driven in Chrome; reference chr22,
+window 20.0–21.5 Mb, 150 beads): a population model built from contacts; Input "Sequence + CTCF" →
+"ENCODE, by cell type" → IMR90 fetched the real ENCODE file (724 peaks on chr22); the chr22 sequence
+downloaded from UCSC with a progress bar (12,255,678 bytes; MD5 equal to UCSC's md5sum.txt); the
+prediction was built and labelled "predicted from sequence + CTCF (no contact data)"; the banner and
+the cohesin caveat read Gate 5 from its result file; the side-by-side view showed both maps (rank
+agreement 0.519, 0.132 beyond the trend, size ratio 2.23); the probe showed "coverage not tested" for
+the predicted population and, after rebuilding from contacts (no crash), the Gate 2b shortfall for Hi-C
+input; the Guide read its numbers from the result files. Seeing the side-by-side view on the synthetic
+reference led to one change: it now says when the contacts are the synthetic reference, so the
+agreement means nothing about real folding.
+
+**Not done, with the reason:**
+- **A second structural-variant test**: none could be pre-registered and run here (RESULTS.md,
+  Gate 4b): the cleanest candidate (Firre deletion, GEO GSE98632) has raw reads only.
+- **Mouse (mm39) prediction**: the pre-registered test needs a 4DN Data Portal access key (downloads
+  answer HTTP 403 without one). Mouse stays without prediction.
+- **PASTIS PM2 on the two 651-locus sets** (Gate 3): did not finish in 60 minutes; recorded as not
+  finished.
+- **35 of 45 per-chromosome runtimes**: stopped by the job limit (above); resumable.
+
+**Housekeeping:** `truststore` listed as optional; `validation_sources.json` completed (PASTIS, UCSC
+sequences, genome bundles, published checksums); README, ARCHITECTURE (new section 11), Guide updated;
+references to a `validation/reproduce` script and a `paper/` folder, which never existed in this
+repository, removed.
+
+**Noticed, not touched:** the tracked file `AI-Powered Codon Optimization for Vaccines(1).pdf` was
+deleted from the working tree during this session by something other than these commands. It is
+left deleted-but-uncommitted for the owner to decide.
+
+**Tests:** 226 passed, 1 skipped (the FastAPI wrapper), against 201 passed, 1 skipped before this work.
+
+Contributors to the ideas behind these changes: _______________
+
+## 5 October 2026 — Phase A (accuracy core) and Phase B (product features) (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5), at the request of this machine's user (git identity
+`DHRUV`), who asked for the work to continue unattended. Every commit is on `feat/v4-evidence`, local only:
+nothing was pushed and no pull request was opened. Times are the machine clock (IST). The measured results are
+in `validation/RESULTS.md` (generated from the result files); this entry only lists what was done.
+
+**Rules followed:** everything additive (existing pages, defaults, models, commands, endpoints and result files
+unchanged); pass rules committed in `validation/frozen.py` before each test; tuning on practice data only; each
+test run once; every number in the documents from a result file through `validation/report.py`; failures
+reported next to successes.
+
+**Phase A (accuracy core).**
+- A0 `926f3a7`: PyTorch 2.11.0 with CUDA 12.8 on the RTX 5050 Laptop GPU; CPU fallback on GPU out-of-memory;
+  a GPU / CPU agreement test.
+- A6 `f76cd63`: two untouched genome-scale sets registered with fixed roles; `871cc69`, `290c7d3`: shared cached
+  units (fits + held-out truth), ENCODE Hi-C sources, depth thinning.
+- Gate 1c (sizes from Hi-C): pre-registered `7186462`, **fail** `e319970`.
+- Gate 2d (conformal ranges): pre-registered `2dbd2d8`, **fail** `e3fdc90`.
+- Gate 2e (per-pair reliability): pre-registered `8953d30`, **fail** (this entry's documentation commit).
+- Gate 3b (learned correction): practice chose no correction, **not run** `c6fa7a7`.
+- Gate 5b (prediction with cohesin peaks): pre-registered `ff19389`, **fail** `003deba`.
+- Gate 5m (the predictor on mouse): the 4DN files turned out to be public on 4DN Open Data, so the test that was
+  pre-registered in `302a033` ran unchanged: runner `0f28abc`, **pass, modestly** `38aa9b8`; the predictor is now
+  offered for mouse, labelled.
+
+**Phase B (product features).**
+- B8 `53e5d4c`: Research mode switch (default on), "SYNTHETIC ·" labels, warnings on synthetic results.
+- B1–B7 library `a2746e9`: variant engine v2 (joins, two chromosomes, copy number, ranking), analysis suite
+  (HiCCUPS-like loops, TopDom-like / Arrowhead-like domains), replicate-aware differential analysis, region-wise
+  .hic / .cool / .mcool / .pairs reading with assembly checks, KR balancing, liftover, exports for IGV / Juicebox /
+  HiGlass, offline HTML / PDF reports, the `chronocell` command, a local job queue, saved projects, three REST
+  endpoints, `pyproject.toml`.
+- App `1a58703`: new panels (01 → 06 Analysis suite, 03 → Differential analysis, 02 → 05 Variant engine v2,
+  05 Genes → reference annotations), sidebar Projects and Jobs, a built-in bigWig reader, mouse prediction.
+- Gate 4c (cohesin loss vs RAD21-degron Hi-C): pre-registered `4e8149a`, **pass** `75e2e84`.
+- Gates 6 (loops) and 7 (differential FDR), and Gate 4d recorded as blocked: pre-registered `cb2e681`; Gate 6
+  **fail**, Gate 7 **pass** (this entry's documentation commit).
+- B9: chromosight and Mustache run from an isolated environment (`.chronocell_cache/tools-venv`); every other
+  tool is recorded with the reason it could not run here (`validation/results_tools_b9.json`).
+
+**Checked in the running app** (a separate instance on port 8502, driven in Chrome, real data): ENCODE HCT116
+RAD21-mAC in situ Hi-C for chr21:28–30 Mb loaded as the contact map; the analysis suite with KR balancing gave the
+same calls as the command line on the same map (1 loop, 2 · 6 boundaries, 14 domains); the differential tab read
+four ENCODE maps by URL (two untreated, two 6 h auxin experiments) and tested 2,570 pixels (4 significant); a
+population model was built on the GPU (17 s) and the engine applied a 300 kb deletion typed in genomic coordinates;
+Research mode off hid the Drug lab; a project was saved. Three problems found this way were fixed: the analysis
+panel called uploaded contacts "synthetic" when the structure was the reference model; the engine used the
+reference model's synthetic H3K27ac as enhancers; saving a session crashed when an object could not be pickled
+(after a module reload) and left a half-written folder. GTEx and ClinVar downloads were checked against their
+published checksums.
+
+**Interruptions.** This computer was suspended twice (about 07:35–12:00 and 12:45–15:40). Runs that stalled or
+were killed (Gate 2d, the A3 practice, Gate 2e, the test suite) were completed by resumable or chunked reruns;
+Gate 4c and Gate 5m crashed once (a dropped network read; an 8-column trace file) and were completed after the
+fix. In each case the completed run reproduced the numbers the first run had printed.
+
+**Not done, with the reason:** Gate 4d (two usable SV events found, three needed); a FASTQ → contacts pipeline
+(the aligners need Linux / WSL, and no WSL distribution is installed); HiCCUPS, Arrowhead (Java), TopDom, dcHiC,
+diffHic, multiHiCcompare (R), CHESS (pysam does not build), cooltools, hic_breakfinder, HiNT, Akita and Orca;
+bigWig and beddb writing (compiled tools only; bedGraph and .mcool are written instead).
+
+**Tests:** 262 tests in 20 files (226 passed, 1 skipped before Phase A). The last complete run passed every file (15:46–16:05, GPU). The final GPU run after the browser-check fixes passed 18 of 20 files (247 passed, 1 skipped) and was then stopped by Claude Code because the computer was low on memory; the two remaining files (test_v4_trust.py, test_v4_ui.py) passed in the previous complete run. The full CPU-only run (`CUDA_VISIBLE_DEVICES=` set to empty) was not repeated for the same reason; the GPU / CPU agreement test passes.
+
+Contributors to the ideas behind these changes: _______________
+
+## 6 October 2026 — Quantum lab (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`),
+who asked for a quantum-computing lab for a competition, with a quantum section in every workspace and one separate
+tab. Local commits on `feat/v4-evidence` only; nothing pushed. The measured results are in `validation/RESULTS.md`
+(Gate Q, generated from the result files); this entry only lists what was done.
+
+**What was added (all additive, Research mode only, nothing runs until a Run button is pressed).**
+- `chronocell/quantum/`: a statevector simulator written for ChronoCell (Qiskit's conventions; GPU through PyTorch;
+  OpenQASM 2.0 export; QAOA; an approximate hardware-noise model), QUBO solvers (exact enumeration, exact dynamic
+  programming for banded problems, simulated annealing, simulated quantum annealing), problem encodings (domain
+  walls, variant set, drug combination, gene group, lattice folding), minimal-basis quantum chemistry from scratch
+  with VQE (H2, HeH+), quantum-kernel SVM and the swap test, and quantum / classical walks on contact graphs.
+- App: a new workspace **07 Quantum lab** and Quantum sections in 01 (domain walls, lattice fold), 02 (quantum walk,
+  variant set), 03 (swap-test tab), 04 (drug combination, VQE) and 05 (gene classifier, gene group); a Guide section in
+  plain words.
+- `validation/quantum_crosscheck.py`: every circuit type checked against Qiskit 2.2.1 in an isolated environment
+  (`.chronocell_cache/quantum-venv`; `requirements-quantum.txt`). The app does not need Qiskit.
+- Gate Q (`validation/quantum_gateq.py`): practice on GM12878, rules committed in `validation/frozen.py`
+  (`QUANTUM_GATEQ`) before the test, test run once on K562 / IMR-90 (Q1, Q2), the chemistry (Q3) and GM12878 → IMR-90
+  genes (Q4). Practice choices: `validation/TUNING.md` §19.
+
+**Course of the work.** The first practice grid for the domain QUBO ranked it below the classical insulation caller;
+a per-boundary cost and a wider resolution range (practice only, with the classical callers' grids widened alongside)
+brought it level on practice. A full search of every window's 2^19 states was too slow for the grid, so an exact
+dynamic programme for banded QUBOs was written (equal to enumeration on every check) and used for the grid; that it
+solves the problem in linear time is also reported as the honest classical comparison. The quantum-kernel grid was
+widened once because its first best setting sat at the grid's edge. A VQE panel that would have computed on page load
+was moved behind a button before the first commit.
+
+**Gate Q.** Pre-registered in `bc12d26` (rules, practice results, the lab itself). Test run once (this entry's
+commit): **Q1 pass** (QAOA reached the exact optimum of the held-out domain puzzles), **Q2 fail** (the domain QUBO's
+calls agreed with ENCODE's Arrowhead calls less well than the classical TopDom-like and insulation callers, on both
+cell lines), **Q3 pass** (UCCSD-VQE exact for H2 and HeH+), **Q4 fail** (the quantum-kernel gene classifier trailed
+the classical RBF-SVM by slightly more than the margin; logistic regression beat both). Numbers: `validation/RESULTS.md`.
+The test exposed one product problem, fixed afterwards and recorded there: the hardware-efficient VQE option let
+HeH+ drift to three-electron states (energies below the true one); it now carries the standard electron-number penalty
+and the panel shows the electron count.
+
+## 7 October 2026 — Drug lab additions and quantum drug tabs (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for more quantum tabs focused on drugs, new drugs with visualisations and information, accuracy tests for
+everything, a slightly enhanced UI with the same layout, and for the work to go ahead without questions. Local commits
+on `feat/v4-evidence` only; nothing pushed. Numbers: `validation/RESULTS.md` (generated); this entry lists what was done.
+
+**Added (all additive; the Drug lab's default set and every earlier page and result are unchanged).**
+- Drug lab: a *Drug set* switch (Core 4, the default, or Extended 12 with eight more chromatin drug classes) and a
+  *Drug guide* (class cards with status and safety themes, a landscape chart, where each class acts on the fold, all
+  twelve at full dose, pair synergy, PubChem molecule cards with 2D and 3D structures and drug-likeness rules).
+- Three quantum drug tabs (in the Drug lab's Quantum section and in 07 Quantum lab): *Drug molecules* (STO-3G
+  chemistry written from scratch, active-space UCCSD-VQE up to 12 qubits), *Heart safety* (a quantum-kernel hERG screen
+  from SMILES, next to classical models) and *Docking* (QAOA maximum-weight clique on 20 qubits, PoseBusters examples).
+- Accuracy tests, each pre-registered in `validation/frozen.py` before its test data were read: Gate 8 (the Drug lab
+  against MINA chromatin tracing of IMR-90 cells treated with real drugs, 4DN), Q5 (hERG, TDC Wang -> TDC Karim), Q6
+  (molecule energies against OpenFermion's independent data; stretched-molecule VQE), Q7 (re-docking, PoseBusters).
+- Independent checks run only in `.chronocell_cache/quantum-venv`: RDKit (descriptors, de-duplication), OpenFermion
+  (reference energies), the Basis Set Exchange (STO-3G exponents). New sources listed in
+  `chronocell/data/validation_sources.json`.
+
+**Course of the work.** The from-scratch chemistry matched seven textbook Hartree-Fock energies once its solver was given
+a damped warm-up (DIIS alone had locked N2 onto an excited solution); VQE was made fast enough for 12 qubits with exact
+closed-form rotations and an adjoint gradient. The first docking design (grid hot-spots) docked no practice complex;
+hot-spots along protein H-bond vectors and a 20-vertex core subgraph reached 15 % on practice against 3 % for random
+search. The hERG reader first split compound names on commas (637 of 655 rows) and was fixed before the settings were
+chosen; the kernel grids were widened on practice when a best value sat at an edge. Gate 8's practice showed that the
+simulator's agreement with alpha-amanitin came from a generic compaction pattern (shuffled targeting did as well), so its
+rule asks that the real targeting beat shuffled targeting.
+
+**Results** (pre-registered in `a3919e5`; each test run once; this entry's commit): **Gate 8 fail** (no drug met the
+rule: where predicted and measured changes agreed, shuffled targeting agreed as well), **Q5 pass** (the quantum-kernel
+hERG screen slightly ahead of the classical models on about 13,000 unseen compounds), **Q6 fail** (the chemistry matched
+OpenFermion's independent LiH reference; VQE missed chemical accuracy on stretched N2 and HCN), **Q7 pass**, modestly
+(QAOA found every best clique; the QAOA route docked more ligands than random search, but far fewer than on practice).
+
+## 7 October 2026 — Round 2 of the quantum gates (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked to improve every quantum test and to try to turn every fail into a pass. Local commits on `feat/v4-evidence`
+only; nothing pushed. A failed result is never re-run or overwritten: each failed gate gets a *new* method, developed on
+the data its test had used (now practice), a rule committed before new test data are read, and one run. Numbers:
+`validation/RESULTS.md` (generated).
+
+- **Q6b (molecules), fail by one case.** ADAPT-VQE added (Drug molecules tab: *Circuit* switch; the fixed UCCSD circuit
+  stays the default). On eleven new stretched cases it came within chemical accuracy in ten (stretched N2: 0.02 and
+  0.29 mHa, where the fixed circuit is 126 mHa off); the eleventh, LiH at 3x, missed by 2.5 mHa. Found after the test:
+  there the active space's lowest state is a triplet, and ADAPT-VQE had reached the lowest singlet exactly (the state a
+  closed-shell VQE targets). The verdict stays fail; the app now reports the spin of the exact state and the lowest
+  singlet.
+- **Q4b (genes), pass, with a plain caveat.** Labels from ENCODE RNA-seq of each cell line, two more Hi-C features,
+  training on three cell lines; on 489 genes of HMEC (a cell line never used) the quantum-kernel classifier was level
+  with the classical ones, as the rule asks. All three are only modestly better than chance on a new cell line, and
+  with a kernel estimated from 1,000 shots per entry (a real device's situation) the quantum classifier falls to chance.
+- **Gate 6b (loop calls), pass.** Gate 6 (fail, unchanged) had chosen the loop caller's settings on three GM12878
+  windows; re-chosen on all nine windows it had used, the same caller beat chromosight and Mustache on two cell lines
+  never used (HMEC, HAP-1; ENCODE HiCCUPS loops as the reference), mostly through far fewer false calls.
+- **Q2b (domains), pass.** The same domain QUBO and QAOA, settings re-chosen on all nine windows already seen: on two
+  new cell lines (HMEC, HAP-1) the quantum route's domain calls beat both classical callers on HMEC and came within
+  the margin on HAP-1. Plainly: at the new settings QAOA landed on the QUBO's exact optimum in only a minority of
+  windows (12-19 %, against 98 % in Gate Q1); its best shots scored about as well as the optimum would have.
+- **Q6c (molecules, reference corrected to the lowest singlet), fail.** The same ADAPT-VQE on twelve new cases: within
+  chemical accuracy in nine, including N2 at 1.3x and 3.0x and LiH where a triplet lies lowest. It missed three bonds
+  stretched to 2.2-2.8x (CO 168 mHa, HCN 16.5, CH2O 4.6): there the gradient-chosen circuit stops at a stationary point
+  far from the ground state. A real limit of the method; molecules are not re-tested again.
+- **App options from the passes** (defaults unchanged): the Analysis page's loop calling can use Gate 6b's setting
+  (FDR 0.01), and the Quantum lab's domain-wall panel can load Q2b's settings.
+- **Not retested, and why.** *Gate 8* (Drug lab vs drug-treated cells): a practice check of other chromatin marks
+  (ENCODE IMR-90 H3K27me3, H3K9me3, H3K4me3, H3K36me3, H3K4me1, H3K9ac) as the drugs' targets on Gate 8's data
+  (`results_gate8_marks_practice.json`) found more agreements than chance alone would give, but small ones, in
+  directions that differ by drug and would have to be fitted on these very data; no fresh tracing after these drugs
+  exists to test such a model (the only drug-treated tracing that matches a Drug lab class is one compound, A-485, a
+  p300/CBP inhibitor, at the mouse Sox2 locus, 4DN). Gate 8 stays a fail and the Drug lab stays a mechanism simulator. *Gates 1c, 2d, 2e,
+  5b* (Phase A) need new modelling (nanometre scale from Hi-C, per-band intervals, per-pair reliability, cohesin-peak
+  prediction) and new held-out imaging data; they are left for later. *Gate 4d* stays blocked (no third event).
+- **Q7b (docking), fail, as practice predicted.** With a Vina-like score and pose refinement the docking pipeline got
+  much better: on the 85 complexes of the Astex Diverse set (never used) the QAOA route placed 35 % of ligands within
+  2 A, against 5.5 % in Q7's test, and QAOA found the best clique in 95 % of graphs. But random search with the same
+  score and the same refinement placed 58 %: once the score is reasonable, poses built from clique matches are worse
+  starting points than many random placements around the site. Q7's earlier pass came from a crude score that also
+  handicapped random search. The Docking tab's *Polish* button shows both side by side.
+
+**Round 2 in one line.** Passed on new data: Q2b (domains), Q4b (genes, weakly), Gate 6b (loops). Failed: Q6b and
+Q6c (molecules: 10 of 11 and 9 of 12; ADAPT-VQE stalls on nearly broken bonds), Q7b (docking: the quantum route loses
+to random search). Not retested: Gate 8, Gates 1c / 2d / 2e / 5b, Gate 4d (reasons above). Every original verdict
+stands.
+
+## 8 October 2026 — New tabs and new methods (live log)
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for new tabs and new methods to make the labs pass, over about eight hours, without questions. Local commits on
+`feat/v4-evidence` only; nothing pushed. Same rules as round 2: every test pre-registered before its data are read,
+run once, failures kept.
+
+- **New tabs.** *08 Scoreboard*: every test in one place with charts. *ADMET profile* (07 Quantum lab and Drug lab →
+  Quantum): 21 drug properties from a quantum-kernel model next to classical ones. *Noise & mitigation* (07 Quantum
+  lab): a molecule's circuit on a simulated noisy chip, repaired by zero-noise extrapolation and symmetry
+  verification.
+- **New tests pre-registered.** Gate Q8 (ADMET, 21 official TDC scaffold test splits) and Gate Q9 (error mitigation,
+  16 new molecules).
+- **Gate Q9 (error mitigation), pass.** On 16 new molecules, symmetry verification + zero-noise extrapolation brought
+  the energy of a 4-qubit VQE circuit on a simulated chip at today's best noise level within chemical accuracy in
+  every case (median 0.41 mHa; about 29 times smaller than unmitigated).
+- **Gate Q8 (ADMET), fail by one endpoint.** On the official held-out splits of 21 drug properties the quantum-kernel
+  model was within the margin of the classical model on the same inputs for 16 (17 needed), ahead on several (P-gp,
+  CYP3A4 substrate, intestinal absorption); it fell clearly behind on the two clearance endpoints and just past the
+  margin on three more. The tab stays, with this standing shown.
+- **Docking, once more (practice only).** Splitting random search's budget between random placements and the QAOA
+  route's clique poses docked more than the clique route alone but still fewer than random search alone, so no new
+  docking test was run: with a reasonable score, the quantum step does not help this docking task.
+- **New in the app.** The Guide has a "New" section with a button to the Scoreboard; the Scoreboard downloads the whole
+  record as a web page (*Download the evidence report*).
+- **ADMET, once more (practice only).** A "projected" quantum kernel (each qubit's own state as the features) did worse
+  than the plain quantum kernel on 4 of the 6 drug properties tried, so no new ADMET test was run; Gate Q8's fail
+  stands.
+- **Gate Q6d pre-registered (molecules, once more).** Round 2 had closed the molecule tests after Q6c; this session's
+  request for new methods reopened them, with a new method on new cases. The circuit-growing method (ADAPT-VQE) now
+  steps off a flat spot instead of stopping there, and starts from four arrangements of the electrons, keeping the
+  best run that ends with the right spin. On all 38 molecule cases used so far it was within chemical accuracy every
+  time, including Q6c's three misses (CO stretched 2.8x: 0.14 mHa, was 168). Test: fourteen new cases, all must pass.
+- **Gate Q6d (molecules), pass.** On the fourteen new cases the energy was within chemical accuracy every time (worst
+  1.16 mHa, ammonia stretched to 2.1x). Plainly: both changes mattered (one stretched N2 was 6.9 mHa off from the usual
+  start and exact from another; stretched CO needed three escapes); two cases came closer to the line than in
+  practice; four nearly broken bonds ended in a mix of spin states whose energy is right (near breaking those states
+  have almost the same energy); and it is slow, up to about 26 minutes per molecule at 12 qubits. Q6b and Q6c stay
+  fails. The Quantum lab offers the method as a third circuit choice (*ADAPT-VQE + escape, 4 starts*).
+
+## 9 October 2026 — The film, and pictures in the app
+
+Made by Claude (Claude Code, model Claude Opus 5.5) at the request of this machine's user (git identity `DHRUV`), who
+asked for a vivid motion-graphics film of the app with many images, and for images in the UI. Local commits on
+`feat/v4-evidence` only; nothing pushed.
+
+- **The film** (`motion/`, 92 s, 1920 × 1080, 60 fps, motion blur, synthesised soundtrack). DNA particles form a
+  double helix, unwind, and fold bead by bead into the app's own chr22 model; a title; a tour of all eight workspaces
+  as 3D app windows with floating close-ups (real screenshots); the 22q11.2 deletion from the 4D workspace, playing;
+  a mosaic of every page; "Every claim is a test"; the Scoreboard as 37 dots that sort themselves into 14 passed, 16
+  failed and 7 mixed; three passes (DNA loops, quantum chemistry, error mitigation) and one honest fail (docking) as
+  animated charts; a feature burst; the outro. Every number on screen is read from the app and the result files
+  (`motion/build_data.py`), nothing typed in. `python motion/render.py` renders it frame by frame in Chrome (about
+  20 minutes); the video file itself is not committed.
+- **The Guide got pictures.** A banner of the chr22 model rendered by the film, "The tour in pictures" (all eight
+  workspaces, each with an Open button), and "Watch the film", which plays the video once it has been rendered.
+- **README** shows the film's title frame and the eight workspaces.
+
+## 9 October 2026 — The film, redone as a vivid reel
+
+The user found the first film looked like "AI slop" and supplied a screen recording of a reel they liked as the
+reference (bold brand colours, chunky 3D type, a cursor clicking the UI, rolling counters, confetti, a bar race, a bento
+grid, word slams, a sunburst ending), asking for the same at 100 seconds. The film was rewritten from scratch in that
+style; the first version's purple gradients, glow clouds, slogans and decorative waveform are gone.
+
+- **Colours and type.** Full-bleed scenes in the app's own palette (cobalt, terracotta, ochre, violet, paper, ink),
+  Archivo for display type with an extruded shadow, the app's Inter Tight and IBM Plex Mono for UI and numbers.
+- **3D.** chr22 is a lit tube (as the 3D workspace draws it) that draws itself bead by bead while a counter runs to
+  50.82 Mb and a ruler tracks the position; the 22q11.2 deletion plays as a moving tube coloured by displacement.
+- **New scenes from real data.** The contact map builds itself pixel by pixel from the model's own contact list; the 3D
+  workspace's measurements roll in as counters; the 37 Scoreboard tests burst out as a labelled network and sort into
+  14 / 16 / 7; Gate 6b becomes a bar race; Gate Q9 shows all 16 molecules falling from noisy to mitigated error.
+- **Accuracy kept.** Every number is still read by `motion/build_data.py` (new: the workspace's R<sub>g</sub>, ν, span and
+  contour length, the 128 × 128 contact map, per-molecule Q9 results, a short label per test); the honest fail and the
+  16 failed tests are on screen; the contact map and the fold are labelled as the app's synthetic reference model.
+- **Sound.** The synthesised soundtrack gained cursor clicks, pops, confetti sparkles, counter ticks and stamp hits on
+  the film's cue list; every scene change and word slam sits on the 120 bpm beat.
+- The Guide's film player and banner, the README and `motion/README.md` follow the new film. The unused bloom scripts
+  and the old feature-burst still were removed. The user's reference recording stays out of git.
+
+## 9 October 2026 — The explainer video
+
+The user asked for a second, longer video (4–5 minutes) that explains the project with live screen recordings, tests
+being run and accuracy being calculated, with animations, in a more conventional "telling about the app" style.
+
+- **`motion/explainer/`**, rendered by `python motion/render.py --page explainer`: 4 min 48 s, 1080p30 with motion
+  blur, captions, chapter tags, a progress bar and a calmer synthesised soundtrack (clicks land on the real clicks).
+- **01 What it is**: the chr22 fold draws itself, the contact map builds itself, 3D / 4D / 5D in plain words.
+- **02 The app, live**: nine real screen recordings (`record_app.py` drives the running app in Chrome and records it
+  with Chrome's screencast; a drawn cursor follows the mouse). The Quantum lab take computes the HeH⁺ energy live, checks
+  it against the exact answer (error 0.000 mHa, within 1.6) and then shows the same circuit 763 mHa off with hardware
+  noise. A badge states the playback speed of each take.
+- **03 How it is tested**: the four steps of a pre-registered test; the real test-suite run (307 passed, 1 skipped,
+  17 min 18 s, shown about 60× faster); and **`recheck.py`**, new: it recomputes each score it can from the per-case
+  numbers in `validation/results_*.json` (F1 from loop counts, energy errors, mitigated errors, docking success from pose
+  RMSDs, the ADMET endpoint count, the Q1 hit rate), re-applies the frozen rule and compares the verdict with the
+  Scoreboard. All match. **No accuracy test was re-run**: each ran once, by design. A new test in
+  `tests/test_round3.py` runs `recheck.py` and requires zero mismatches.
+- **04 Where it stands** and the commands to run the app. The Guide plays the explainer under the film when it has been
+  rendered. The screen recordings (about 190 MB) and the video are not committed.
+
+
+## 10 October 2026 — The Guide moves last; round 3: the failed tests revisited
+
+The user asked to put the Guide tab last and to "try to make the failed tests pass by thinking all ways".
+
+- **Tabs.** 06 Quantum lab, 07 Scoreboard, 08 Guide (the Guide was 06). Numbers updated wherever they are written;
+  the app screenshots were captured again for the Guide's tour pictures and the README gallery. The rendered film and
+  explainer still show the old tab bar until they are rendered again.
+- **The rule that does not bend.** A failed test is never re-run or re-scored: that would turn the Scoreboard into a
+  record of retries. What can pass is a *retest*: a new method, chosen on practice data, frozen in
+  `validation/frozen.py`, then run once on data no test has used (the way Gate 6 → 6b and Q6 → Q6d were done).
+- **Scoreboard.** Six of the sixteen fails already had a passing retest; each now says "Later passed as …" under its
+  FAIL chip, and an *Open failures* count and filter show the rest (ten before round 3).
+- **Q8 → Q8b (drug properties).** Diagnosed on Q8's now-seen test splits: the quantum model's angle encoding stretched
+  every principal component to the same width, so noisy minor components counted as much as the main ones. With the
+  "global" encoding the same cross-validation meets Q8's per-endpoint rule on more endpoints (`results_admet_q8b_posthoc.json`).
+  Q8b tests that on 19 TDC endpoints no test had used, scaffold-split before any model was fitted.
+  **Q8b passed: 17 of 19 endpoints** (16 needed; quantum within 0.03 of the classical model on the same inputs on 18).
+  The Scoreboard shows "Later passed as Gate Q8b" under Q8, and the app's ADMET panel now uses the fixed encoding.
+  Open failures: 9 (were 10).
+- **Studied and not retested, with the reasons in RESULTS.md (Round 3):** sizes from Hi-C (the scale is now right on
+  every held-out dataset, CCC still below 0.8 on six of ten); Hi-C distance ranges (right for one imaging method, too
+  narrow for the other); which distances will be wrong (2c/2e); prediction with cohesin peaks (5b); the Drug lab
+  against real drugs (8: no new data); docking (Q7b: random search wins in every practice variant).
+
+## 10 October 2026 — Both videos updated: the pass / fail table and the new tab order
+
+The user asked for the pass / fail table to be put into both videos.
+
+- **The film (100 s).** The Scoreboard scene now sorts the 38 tests into four rows: 15 passed; 7 failed, then passed
+  as a retest (each with a green ring); 9 failed and still open; 7 mixed. The outro adds "7 fails later passed as a
+  retest · 9 still open". Tab numbers follow the app (06 Quantum lab, 07 Scoreboard, 08 Guide), and the Scoreboard
+  screenshot was taken again.
+- **The explainer (now 5 min 0 s).** New scene, *The pass / fail table*: all 38 tests in four columns, each fail
+  lighting up together with the retest that later passed. *Where it stands* shows the 7 fixed / 9 open split and the
+  drug-property fail fixed by Q8b. The nine app clips were recorded again in the new tab order (the Scoreboard take
+  shows the fails with their "Later passed as" notes); the test suite and the re-check were recorded again
+  (`recheck.py` now marks each fixed fail with its retest and splits the fails into fixed and open).
+- **The table's text.** Each test has a short name and result in `motion/build_data.py` (`TABLE`);
+  `tests/test_round3.py` checks that every number in a short result is copied from that test's Scoreboard row, and
+  the verdict always comes from the row itself.
+- **Scoreboard.** The "Before → after" chart now includes Q8 → Q8b (endpoints met minus endpoints needed, as a share).
+- **Fonts kept locally.** Google Fonts timed out on this computer, which would have rendered both videos in fallback
+  fonts; the three typefaces (SIL Open Font License) now ship in `motion/vendor/fonts/`. Also fixed: the explainer's
+  terminal colouring could colour the word "ok" inside its own markup (it showed `ok">` on summary lines).
+
+## 10 October 2026 — Published: both videos come with the download
+
+The user asked for everything to be committed and published, so that anyone who downloads the GitHub ZIP gets the new
+version.
+
+- **The videos are now committed.** `.gitignore` keeps `motion/out/` ignored except the two compact copies
+  (`ChronoCell-5D_film_share.mp4`, about 35 MB; `ChronoCell-5D_explainer_share.mp4`, about 70 MB), so a fresh download
+  plays both videos in the Guide without rendering. The full-size renders, soundtracks and previews stay local.
+- **Published to `main`.** The work on `feat/v4-evidence` was pushed and merged into `main` (pull request #1), the
+  branch GitHub's "Download ZIP" uses.
+- **GitHub's test runs fixed.** The automated tests on GitHub (`.github/workflows/ci.yml`) had been failing since
+  9 October for two reasons, neither a wrong result: scikit-learn, which the Quantum lab's classifiers use, was missing
+  from `requirements.txt`, `requirements.lock` and `pyproject.toml` (so a fresh install could not load them, and three
+  tests failed); and the test helper `_population` in `tests/test_v33.py` built every pair distance at once, about
+  17 GB for the 420-bead test, so GitHub's 16 GB machine was shut down near the end of the suite. scikit-learn 1.7.2
+  (the version the suite ran with) is now listed, and the helper works in chunks of 250 cells, giving byte-identical
+  distances.
+- **The second copy of the brief removed.** `AI-Powered Codon Optimization for Vaccines(1).pdf` (the file noted on
+  4 – 5 October as deleted but left for the owner to decide) is removed from the repository at the owner's request;
+  the first copy, `AI-Powered Codon Optimization for Vaccines.pdf`, stays.
+- **Co-author lines removed (11 October 2026).** At the owner's request the line `Co-Authored-By: Claude ...` was
+  removed from every commit message on `main` and `feat/v4-evidence` (91 of 93 commits), so GitHub no longer lists
+  Claude among the contributors. Only the messages changed: every commit keeps its files, author and dates (checked
+  commit by commit), but each one has a new ID, and the commit IDs quoted in this log were updated to the new ones.

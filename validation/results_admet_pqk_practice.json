@@ -1,0 +1,98 @@
+{
+ "made": "2026-10-08T01:59:00+00:00",
+ "note": "Practice only, after the Gate Q8 test (its test splits are practice now; Q8's verdict is unchanged). Projected quantum kernel (Huang et al., Nat Commun 2021; chronocell.quantum.admet.projected_features): each qubit's reduced state <X>, <Y>, <Z> of Q8's feature-map state, then an RBF kernel on those 3 x 8 numbers; bandwidth (0.05-1), repetitions (1, 2), RBF gamma (0.1-3) and regularisation chosen by 5-fold cross-validation on train_val; scored on the scaffold test split next to Q8's frozen quantum kernel and RBF models. The run was stopped after 6 of 21 endpoints: the projected kernel was below the plain quantum kernel on 4 of 6, so no new ADMET test was pre-registered. Values: AUC (cls) or Spearman rho (reg).",
+ "endpoints_run": 6,
+ "projected_better_than_plain": 2,
+ "rows": [
+  {
+   "endpoint": "hia_hou",
+   "task": "cls",
+   "quantum_kernel": 0.974,
+   "projected_kernel": 0.939,
+   "rbf8": 0.962,
+   "rbf17": 0.969,
+   "projected_cv": 0.958,
+   "projected_settings": {
+    "bandwidth": 0.05,
+    "reps": 2,
+    "gamma": 3.0,
+    "reg": 1.0
+   }
+  },
+  {
+   "endpoint": "bioavailability_ma",
+   "task": "cls",
+   "quantum_kernel": 0.704,
+   "projected_kernel": 0.595,
+   "rbf8": 0.74,
+   "rbf17": 0.734,
+   "projected_cv": 0.719,
+   "projected_settings": {
+    "bandwidth": 0.1,
+    "reps": 2,
+    "gamma": 1.0,
+    "reg": 1.0
+   }
+  },
+  {
+   "endpoint": "pgp_broccatelli",
+   "task": "cls",
+   "quantum_kernel": 0.851,
+   "projected_kernel": 0.88,
+   "rbf8": 0.832,
+   "rbf17": 0.836,
+   "projected_cv": 0.935,
+   "projected_settings": {
+    "bandwidth": 0.05,
+    "reps": 1,
+    "gamma": 3.0,
+    "reg": 10.0
+   }
+  },
+  {
+   "endpoint": "caco2_wang",
+   "task": "reg",
+   "quantum_kernel": 0.75,
+   "projected_kernel": 0.712,
+   "rbf8": 0.755,
+   "rbf17": 0.78,
+   "projected_cv": 0.758,
+   "projected_settings": {
+    "bandwidth": 0.05,
+    "reps": 2,
+    "gamma": 3.0,
+    "reg": 0.01
+   }
+  },
+  {
+   "endpoint": "vdss_lombardo",
+   "task": "reg",
+   "quantum_kernel": 0.627,
+   "projected_kernel": 0.602,
+   "rbf8": 0.609,
+   "rbf17": 0.632,
+   "projected_cv": 0.697,
+   "projected_settings": {
+    "bandwidth": 0.1,
+    "reps": 2,
+    "gamma": 3.0,
+    "reg": 0.1
+   }
+  },
+  {
+   "endpoint": "bbb_martins",
+   "task": "cls",
+   "quantum_kernel": 0.832,
+   "projected_kernel": 0.847,
+   "rbf8": 0.838,
+   "rbf17": 0.852,
+   "projected_cv": 0.868,
+   "projected_settings": {
+    "bandwidth": 0.1,
+    "reps": 2,
+    "gamma": 1.0,
+    "reg": 10.0
+   }
+  }
+ ]
+}

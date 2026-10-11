@@ -1,0 +1,327 @@
+{
+ "mode": "test (run once; calibration frozen)",
+ "rule": {
+  "min_ccc": 0.8,
+  "size_ratio": [
+   0.8,
+   1.25
+  ],
+  "pattern_tolerance": 1e-09,
+  "split": 0,
+  "main": [
+   "bintu_imr90_28_30",
+   "bintu_imr90_18_20",
+   "su_chr21",
+   "su_chr21_rep",
+   "su_genome"
+  ],
+  "secondary": [
+   "bintu_imr90_28_30 intact",
+   "bintu_imr90_28_30 dilution",
+   "bintu_imr90_18_20 intact",
+   "bintu_imr90_18_20 dilution",
+   "bintu_a549_28_30 in situ",
+   "su_genome_amanitin"
+  ]
+ },
+ "calibration": {
+  "form": "global",
+  "columns": [],
+  "beta": [
+   0.8952923172859366
+  ],
+  "features": {
+   "L": "log10 separation (bp)",
+   "L2": "(log10 separation)^2",
+   "step": "log10 locus spacing (bp)",
+   "depth": "log10 n_eff (median adjacent count / p_adjacent)",
+   "intact": "1 for intact Hi-C",
+   "dilution": "1 for dilution Hi-C"
+  },
+  "target": "log(imaged median / model median); calibrated = model * exp(X beta)",
+  "trained_on": [
+   "bintu_hct116_28_30__hic__encode_hct116_insitu__t0.0625__s0",
+   "bintu_hct116_28_30__hic__encode_hct116_insitu__t0.25__s0",
+   "bintu_hct116_28_30__hic__encode_hct116_insitu__t1__s0",
+   "bintu_hct116_28_30__hic__encode_hct116_intact__t0.0625__s0",
+   "bintu_hct116_28_30__hic__encode_hct116_intact__t0.25__s0",
+   "bintu_hct116_28_30__hic__encode_hct116_intact__t1__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_insitu__t0.0625__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_insitu__t0.25__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_insitu__t1__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_intact__t0.0625__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_intact__t0.25__s0",
+   "bintu_hct116_34_37__hic__encode_hct116_intact__t1__s0",
+   "bintu_k562_28_30__hic__encode_k562_intact__t0.0625__s0",
+   "bintu_k562_28_30__hic__encode_k562_intact__t0.25__s0",
+   "bintu_k562_28_30__hic__encode_k562_intact__t1__s0",
+   "bintu_k562_28_30__hic__rao2014__t0.0625__s0",
+   "bintu_k562_28_30__hic__rao2014__t0.25__s0",
+   "bintu_k562_28_30__hic__rao2014__t1__s0",
+   "su_chr2__hic__rao2014__t0.0625__s0",
+   "su_chr2__hic__rao2014__t0.25__s0",
+   "su_chr2__hic__rao2014__t1__s0",
+   "su_chr2_parm_rep__hic__rao2014__t1__s0",
+   "su_genome_tx-chr10__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr10__hic__rao2014__t1__s0",
+   "su_genome_tx-chr11__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr11__hic__rao2014__t1__s0",
+   "su_genome_tx-chr12__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr12__hic__rao2014__t1__s0",
+   "su_genome_tx-chr13__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr13__hic__rao2014__t1__s0",
+   "su_genome_tx-chr14__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr14__hic__rao2014__t1__s0",
+   "su_genome_tx-chr15__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr15__hic__rao2014__t1__s0",
+   "su_genome_tx-chr16__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr16__hic__rao2014__t1__s0",
+   "su_genome_tx-chr17__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr17__hic__rao2014__t1__s0",
+   "su_genome_tx-chr18__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr18__hic__rao2014__t1__s0",
+   "su_genome_tx-chr19__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr19__hic__rao2014__t1__s0",
+   "su_genome_tx-chr1__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr1__hic__rao2014__t1__s0",
+   "su_genome_tx-chr20__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr20__hic__rao2014__t1__s0",
+   "su_genome_tx-chr21__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr21__hic__rao2014__t1__s0",
+   "su_genome_tx-chr22__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr22__hic__rao2014__t1__s0",
+   "su_genome_tx-chr3__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr3__hic__rao2014__t1__s0",
+   "su_genome_tx-chr4__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr4__hic__rao2014__t1__s0",
+   "su_genome_tx-chr5__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr5__hic__rao2014__t1__s0",
+   "su_genome_tx-chr6__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr6__hic__rao2014__t1__s0",
+   "su_genome_tx-chr7__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr7__hic__rao2014__t1__s0",
+   "su_genome_tx-chr8__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr8__hic__rao2014__t1__s0",
+   "su_genome_tx-chr9__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chr9__hic__rao2014__t1__s0",
+   "su_genome_tx-chrX__hic__rao2014__t0.25__s0",
+   "su_genome_tx-chrX__hic__rao2014__t1__s0"
+  ],
+  "groups": [
+   "bintu_hct116_28_30",
+   "bintu_hct116_34_37",
+   "bintu_k562_28_30",
+   "su_chr2",
+   "su_genome_tx"
+  ],
+  "selection": "highest mean leave-one-dataset-out CCC; a more complex form needs +0.01 over the simpler best",
+  "fitted_utc": "2026-10-05T00:50:30+00:00",
+  "note": "Practice data only (validation/phase_a_units.py). Its held-out test is Gate 1c (validation/RESULTS.md)."
+ },
+ "sets": {
+  "main": {
+   "bintu_imr90_28_30": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.37218325308606054,
+     "trend_removed_rho": 0.9074111389704852,
+     "raw_spearman": 0.9862177676822392,
+     "size_ratio": 0.4883434307967807,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.7179797093716248,
+     "trend_removed_rho": 0.9074111389704852,
+     "raw_spearman": 0.9862177676822392,
+     "size_ratio": 1.1954897669898616,
+     "pairs": 2080
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "bintu_imr90_18_20": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.03979743027798951,
+     "trend_removed_rho": -0.04862545084794003,
+     "raw_spearman": 0.8812763789971514,
+     "size_ratio": 0.34908605065148635,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.6239113649832799,
+     "trend_removed_rho": -0.04862545084794003,
+     "raw_spearman": 0.8812763789971514,
+     "size_ratio": 0.8545805575224862,
+     "pairs": 2080
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "su_chr21": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.328009822967441,
+     "trend_removed_rho": 0.8436800967388474,
+     "raw_spearman": 0.9310833122809011,
+     "size_ratio": 0.5719525726563192,
+     "pairs": 211575
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.45789437637865893,
+     "trend_removed_rho": 0.8436800967388474,
+     "raw_spearman": 0.9310833122809011,
+     "size_ratio": 1.4001692347914398,
+     "pairs": 211575
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "su_chr21_rep": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.3110321819347465,
+     "trend_removed_rho": 0.7980560732766102,
+     "raw_spearman": 0.9079231442215038,
+     "size_ratio": 0.5740592131526849,
+     "pairs": 211575
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.42838378016791123,
+     "trend_removed_rho": 0.7980560732766102,
+     "raw_spearman": 0.9079231442215038,
+     "size_ratio": 1.4053263987815903,
+     "pairs": 211575
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "su_genome": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.1663573011904344,
+     "trend_removed_rho": 0.522059334030262,
+     "raw_spearman": 0.8628150244730033,
+     "size_ratio": 0.4558951085952916,
+     "pairs": 22464
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.6328844851364201,
+     "trend_removed_rho": 0.522059334030262,
+     "raw_spearman": 0.8628150244730033,
+     "size_ratio": 1.1160546098821316,
+     "pairs": 22464
+    },
+    "within_rule": false,
+    "units": 22
+   }
+  },
+  "secondary": {
+   "bintu_imr90_28_30 \u00b7 encode_imr90_intact": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.6293676916105809,
+     "trend_removed_rho": 0.911624039903713,
+     "raw_spearman": 0.9889361996080993,
+     "size_ratio": 0.6106127077200354,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.44628256164038127,
+     "trend_removed_rho": 0.911624039903713,
+     "raw_spearman": 0.9889361996080993,
+     "size_ratio": 1.494811228405872,
+     "pairs": 2080
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "bintu_imr90_28_30 \u00b7 encode_imr90_dilution": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.12647569702393358,
+     "trend_removed_rho": 0.6708781167575015,
+     "raw_spearman": 0.9366379331897725,
+     "size_ratio": 0.33753107694788853,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.80884731804467,
+     "trend_removed_rho": 0.6708781167575015,
+     "raw_spearman": 0.9366379331897725,
+     "size_ratio": 0.8262933892115507,
+     "pairs": 2080
+    },
+    "within_rule": true,
+    "units": 1
+   },
+   "bintu_imr90_18_20 \u00b7 encode_imr90_intact": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.06936059631424348,
+     "trend_removed_rho": -0.00015021819442770907,
+     "raw_spearman": 0.921254178815313,
+     "size_ratio": 0.42285608380921463,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.8254025427031599,
+     "trend_removed_rho": -0.00015021819442770907,
+     "raw_spearman": 0.921254178815313,
+     "size_ratio": 1.035173382548665,
+     "pairs": 2080
+    },
+    "within_rule": true,
+    "units": 1
+   },
+   "bintu_imr90_18_20 \u00b7 encode_imr90_dilution": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.022962224550790195,
+     "trend_removed_rho": 0.027517856962835336,
+     "raw_spearman": 0.6891448857104654,
+     "size_ratio": 0.2840772813473941,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.22687124972096565,
+     "trend_removed_rho": 0.027517856962835336,
+     "raw_spearman": 0.6891448857104654,
+     "size_ratio": 0.6954357557979223,
+     "pairs": 2080
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "bintu_a549_28_30 \u00b7 encode_a549_insitu": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.06741410212918551,
+     "trend_removed_rho": 0.452302759060945,
+     "raw_spearman": 0.8744153190997261,
+     "size_ratio": 0.2850703051353327,
+     "pairs": 2080
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.4682886793107747,
+     "trend_removed_rho": 0.452302759060945,
+     "raw_spearman": 0.8744153190997261,
+     "size_ratio": 0.6978667289655578,
+     "pairs": 2080
+    },
+    "within_rule": false,
+    "units": 1
+   },
+   "su_genome_amanitin": {
+    "uncalibrated": {
+     "lin_ccc_nm": 0.16996666480077613,
+     "trend_removed_rho": 0.5334030857311943,
+     "raw_spearman": 0.8296855575358996,
+     "size_ratio": 0.4651066154379869,
+     "pairs": 22464
+    },
+    "calibrated": {
+     "lin_ccc_nm": 0.593864498510232,
+     "trend_removed_rho": 0.5334030857311943,
+     "raw_spearman": 0.8296855575358996,
+     "size_ratio": 1.138604851115093,
+     "pairs": 22464
+    },
+    "within_rule": false,
+    "units": 22
+   }
+  }
+ },
+ "verdict": "fail",
+ "run_utc": "2026-10-05T01:06:23+00:00"
+}

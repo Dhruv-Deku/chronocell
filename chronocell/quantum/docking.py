@@ -1,0 +1,771 @@
+"""
+Rigid re-docking as a maximum-weight clique (the formulation of Kuhl et al. 1984 and of the quantum docking
+study of Banchi et al., Sci Adv 2020), solved by QAOA on the simulator and exactly.
+
+1. Pocket hot-spots, from the protein only: grid points (1 A) within `box` A of the site centre that sit 2.6-4.6 A
+   from protein heavy atoms and are buried; each typed by what a ligand atom there would do:
+   A (accept an H-bond: 1.6-2.6 A from a protein polar hydrogen), D (donate one: 2.5-3.3 A from a protein O, or an N
+   carrying no H), H (hydrophobic: no protein N/O within 3.6 A, >= 4 protein carbons within 4.5 A). The best point
+   per neighbourhood is kept (non-maximum suppression), a few per type.
+2. Ligand features, from its 2D graph and one 3D conformer: acceptors (O; N without H that is aromatic or triple
+   bonded), donors (N or O with H), hydrophobic carbons (no N/O neighbour), thinned by farthest-point sampling.
+3. Binding-interaction graph: a vertex per type-compatible (feature, hot-spot) pair, weighted by the hot-spot's
+   burial; an edge when two vertices use different features and different hot-spots whose distances agree within
+   tau. A clique is a set of matches that one rigid placement can satisfy at once.
+4. QUBO for the maximum-weight clique: minimise -sum w_v x_v + P sum_{non-edges} x_u x_v (P > max weight).
+5. Pose: the ligand's features are superposed on their matched hot-spots (Kabsch); several good cliques are turned
+   into poses and the pose with the best simple score (matches minus clashes) is kept.
+
+The site centre comes from the crystal ligand (site-specific docking, as a docking box is placed in practice), and
+the ligand is the crystal conformer (rigid re-docking), so this measures placement, not conformer search.
+Success: heavy-atom RMSD to the crystal pose <= 2 A (no symmetry correction).
+"""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass, field
+
+import numpy as np
+
+from .qubo import QUBO
+
+POLAR = ("N", "O")
+
+
+# ======================================================================================
+# Reading
+# ======================================================================================
+@dataclass
+class Ligand:
+    name: str
+    el: list
+    xyz: np.ndarray
+    bonds: list                 # (i, j, order)
+    h: np.ndarray = None        # implicit + explicit H per heavy atom
+
+    @property
+    def heavy(self) -> np.ndarray:
+        return np.array([e != "H" for e in self.el])
+
+
+def read_sdf(text: str, name: str = "ligand") -> Ligand:
+    lines = text.splitlines()
+    na, nb = int(lines[3][:3]), int(lines[3][3:6])
+    el, xyz = [], []
+    for ln in lines[4:4 + na]:
+        xyz.append([float(ln[0:10]), float(ln[10:20]), float(ln[20:30])])
+        el.append(ln[31:34].strip())
+    bonds = []
+    for ln in lines[4 + na:4 + na + nb]:
+        bonds.append((int(ln[0:3]) - 1, int(ln[3:6]) - 1, int(ln[6:9])))
+    lig = Ligand(name, el, np.array(xyz), bonds)
+    lig.h = _implicit_h(lig)
+    return lig
+
+
+VAL = {"C": 4, "N": 3, "O": 2, "S": 2, "P": 3, "B": 3}
+
+
+def _implicit_h(lig: Ligand) -> np.ndarray:
+    n = len(lig.el)
+    used = np.zeros(n)
+    explicit = np.zeros(n, int)
+    for i, j, o in lig.bonds:
+        oo = 1.5 if o == 4 else o
+        used[i] += oo
+        used[j] += oo
+        if lig.el[i] == "H":
+            explicit[j] += 1
+        if lig.el[j] == "H":
+            explicit[i] += 1
+    h = np.zeros(n, int)
+    for k, e in enumerate(lig.el):
+        if e in VAL:
+            v = VAL[e]
+            if e in ("S", "P") and used[k] > v:
+                v = 6 if e == "S" else 5
+            h[k] = max(0, int(round(v - used[k])))
+        h[k] = max(h[k], 0)
+    # explicit hydrogens already counted in `used` when present
+    return h
+
+
+@dataclass
+class Protein:
+    el: np.ndarray
+    xyz: np.ndarray
+    name: np.ndarray
+    res: np.ndarray
+
+
+def read_pdb(text: str) -> Protein:
+    el, xyz, nm, rs = [], [], [], []
+    for ln in text.splitlines():
+        if ln.startswith(("ATOM", "HETATM")):
+            try:
+                x, y, z = float(ln[30:38]), float(ln[38:46]), float(ln[46:54])
+            except ValueError:
+                continue
+            e = ln[76:78].strip() or ln[12:16].strip()[0]
+            if ln[17:20] in ("HOH", "WAT"):
+                continue
+            el.append(e.capitalize())
+            xyz.append((x, y, z))
+            nm.append(ln[12:16].strip())
+            rs.append(ln[17:20].strip())
+    return Protein(np.array(el), np.array(xyz), np.array(nm), np.array(rs))
+
+
+# ======================================================================================
+# Features and hot-spots
+# ======================================================================================
+@dataclass
+class Points:
+    xyz: np.ndarray
+    kind: list                 # "A" | "D" | "H"
+    weight: np.ndarray
+    atom: list = field(default_factory=list)   # ligand atom index (ligand features)
+
+
+def _fps(xyz: np.ndarray, k: int) -> list[int]:
+    if len(xyz) <= k:
+        return list(range(len(xyz)))
+    chosen = [int(np.argmax(np.linalg.norm(xyz - xyz.mean(0), axis=1)))]
+    d = np.linalg.norm(xyz - xyz[chosen[0]], axis=1)
+    while len(chosen) < k:
+        nxt = int(np.argmax(d))
+        chosen.append(nxt)
+        d = np.minimum(d, np.linalg.norm(xyz - xyz[nxt], axis=1))
+    return chosen
+
+
+def ligand_features(lig: Ligand, max_polar: int = 5, max_hydrophobic: int = 3) -> Points:
+    nb = {i: [] for i in range(len(lig.el))}
+    for i, j, o in lig.bonds:
+        nb[i].append((j, o))
+        nb[j].append((i, o))
+    acc, don, hyd = [], [], []
+    for k, e in enumerate(lig.el):
+        if e == "O":
+            acc.append(k)
+            if lig.h[k] > 0:
+                don.append(k)
+        elif e == "N":
+            if lig.h[k] > 0:
+                don.append(k)
+            elif any(o in (3, 4) for _, o in nb[k]) or (len(nb[k]) == 2 and any(o == 2 for _, o in nb[k])):
+                acc.append(k)
+        elif e == "C" and not any(lig.el[j] in POLAR for j, _ in nb[k]):
+            hyd.append(k)
+    pts, kinds, idx = [], [], []
+    polar = [(k, "A") for k in acc] + [(k, "D") for k in don]
+    if polar:
+        sel = _fps(np.array([lig.xyz[k] for k, _ in polar]), max_polar)
+        for s in sel:
+            pts.append(lig.xyz[polar[s][0]])
+            kinds.append(polar[s][1])
+            idx.append(polar[s][0])
+    if hyd:
+        sel = _fps(lig.xyz[hyd], max_hydrophobic)
+        for s in sel:
+            pts.append(lig.xyz[hyd[s]])
+            kinds.append("H")
+            idx.append(hyd[s])
+    w = np.array([1.0 if k != "H" else 0.6 for k in kinds])
+    return Points(np.array(pts), kinds, w, idx)
+
+
+def hotspots(prot: Protein, centre: np.ndarray, box: float = 8.0, spacing: float = 1.0, per_type: int = 4) -> Points:
+    from scipy.spatial import cKDTree
+    heavy = prot.el != "H"
+    hx = prot.xyz[heavy]
+    he = prot.el[heavy]
+    tree = cKDTree(hx)
+    g = np.arange(-box, box + 1e-9, spacing)
+    grid = np.stack(np.meshgrid(g, g, g, indexing="ij"), -1).reshape(-1, 3) + centre
+    d, _ = tree.query(grid)
+    grid = grid[(d >= 2.6) & (d <= 4.6)]
+    if not len(grid):
+        return Points(np.zeros((0, 3)), [], np.zeros(0))
+    bur = np.array([len(x) for x in tree.query_ball_point(grid, 8.0)], float)
+    keep = bur >= np.percentile(bur, 40)
+    grid, bur = grid[keep], bur[keep]
+    # polar hydrogens: H within 1.15 A of an N or O
+    hmask = prot.el == "H"
+    polar_heavy = np.isin(prot.el, POLAR)
+    ptree = cKDTree(prot.xyz[polar_heavy])
+    hxyz = prot.xyz[hmask]
+    dpol, _ = ptree.query(hxyz) if len(hxyz) else (np.zeros(0), None)
+    polarH = hxyz[dpol < 1.15] if len(hxyz) else np.zeros((0, 3))
+    # acceptor atoms: O, or N with no H within 1.15 A
+    acc_atoms = []
+    htree = cKDTree(hxyz) if len(hxyz) else None
+    for k in np.flatnonzero(polar_heavy):
+        if prot.el[k] == "O":
+            acc_atoms.append(prot.xyz[k])
+        elif htree is not None and not htree.query_ball_point(prot.xyz[k], 1.15):
+            acc_atoms.append(prot.xyz[k])
+    acc_atoms = np.array(acc_atoms) if acc_atoms else np.zeros((0, 3))
+    kinds = np.array([""] * len(grid), dtype=object)
+    if len(polarH):
+        dh, _ = cKDTree(polarH).query(grid)
+        kinds[(dh >= 1.6) & (dh <= 2.6)] = "A"
+    if len(acc_atoms):
+        da, _ = cKDTree(acc_atoms).query(grid)
+        kinds[(kinds == "") & (da >= 2.5) & (da <= 3.3)] = "D"
+    polar_tree = cKDTree(hx[np.isin(he, POLAR)]) if np.isin(he, POLAR).any() else None
+    carb_tree = cKDTree(hx[he == "C"])
+    dp = polar_tree.query(grid)[0] if polar_tree is not None else np.full(len(grid), 99.0)
+    nc = np.array([len(x) for x in carb_tree.query_ball_point(grid, 4.5)])
+    kinds[(kinds == "") & (dp > 3.6) & (nc >= 4)] = "H"
+    score = (bur - bur.min()) / (np.ptp(bur) or 1.0)
+    pts, kk, ww = [], [], []
+    for t, cap in (("A", per_type), ("D", per_type), ("H", per_type + 2)):
+        idx = np.flatnonzero(kinds == t)
+        order = idx[np.argsort(-score[idx])]
+        chosen = []
+        for i in order:
+            if all(np.linalg.norm(grid[i] - grid[j]) >= 2.0 for j in chosen):
+                chosen.append(i)
+            if len(chosen) >= cap:
+                break
+        for i in chosen:
+            pts.append(grid[i])
+            kk.append(t)
+            ww.append(0.5 + score[i])
+    return Points(np.array(pts) if pts else np.zeros((0, 3)), kk, np.array(ww))
+
+
+# ======================================================================================
+# Graph, QUBO, pose
+# ======================================================================================
+COMPATIBLE = {"A": "A", "D": "D", "H": "H"}
+
+
+@dataclass
+class Graph:
+    vertices: list             # (feature index, hotspot index)
+    weight: np.ndarray
+    adj: np.ndarray            # bool
+
+
+def interaction_graph(lf: Points, hs: Points, tau: float = 1.5, max_vertices: int = 20) -> Graph:
+    verts, w = [], []
+    for i, ki in enumerate(lf.kind):
+        for s, ks in enumerate(hs.kind):
+            if COMPATIBLE[ki] == ks:
+                verts.append((i, s))
+                w.append(lf.weight[i] * hs.weight[s])
+    w = np.array(w)
+    if len(verts) > max_vertices:                  # keep the strongest, at most 4 hot-spots per feature
+        order = np.argsort(-w)
+        per = {}
+        keep = []
+        for v in order:
+            f = verts[v][0]
+            if per.get(f, 0) < 4:
+                keep.append(v)
+                per[f] = per.get(f, 0) + 1
+            if len(keep) >= max_vertices:
+                break
+        keep = sorted(keep)
+        verts = [verts[v] for v in keep]
+        w = w[keep]
+    n = len(verts)
+    adj = np.zeros((n, n), bool)
+    for a in range(n):
+        for b in range(a + 1, n):
+            (i, s), (j, t) = verts[a], verts[b]
+            if i == j or s == t:
+                continue
+            dl = np.linalg.norm(lf.xyz[i] - lf.xyz[j])
+            dp = np.linalg.norm(hs.xyz[s] - hs.xyz[t])
+            if abs(dl - dp) <= tau:
+                adj[a, b] = adj[b, a] = True
+    return Graph(verts, w, adj)
+
+
+def clique_qubo(g: Graph, penalty: float | None = None) -> QUBO:
+    n = len(g.vertices)
+    P = penalty if penalty is not None else 2.0 * float(g.weight.max(initial=1.0))
+    quad = np.zeros((n, n))
+    for a in range(n):
+        for b in range(a + 1, n):
+            if not g.adj[a, b]:
+                quad[a, b] = P
+    return QUBO(-g.weight, quad, 0.0, [f"f{i}-s{s}" for i, s in g.vertices], "Max-weight clique")
+
+
+def is_clique(g: Graph, bits: np.ndarray) -> bool:
+    on = np.flatnonzero(np.asarray(bits) > 0)
+    return all(g.adj[a, b] for k, a in enumerate(on) for b in on[k + 1:])
+
+
+def kabsch(P: np.ndarray, Q: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Rotation R and translation t minimising |R P + t - Q|."""
+    pc, qc = P.mean(0), Q.mean(0)
+    H = (P - pc).T @ (Q - qc)
+    U, _, Vt = np.linalg.svd(H)
+    d = np.sign(np.linalg.det(Vt.T @ U.T))
+    D = np.diag([1, 1, d])
+    R = Vt.T @ D @ U.T
+    return R, qc - R @ pc
+
+
+def pose_from_clique(lig_xyz: np.ndarray, lf: Points, hs: Points, g: Graph, bits: np.ndarray) -> np.ndarray | None:
+    on = np.flatnonzero(np.asarray(bits) > 0)
+    if len(on) < 3:
+        return None
+    P = np.array([lf.xyz[g.vertices[v][0]] for v in on])
+    Q = np.array([hs.xyz[g.vertices[v][1]] for v in on])
+    if np.linalg.matrix_rank(P - P.mean(0), tol=0.5) < 2:
+        return None
+    R, t = kabsch(P, Q)
+    return lig_xyz @ R.T + t
+
+
+def pose_score(pose: np.ndarray, prot: Protein, tree=None) -> float:
+    """Simple score: protein heavy atoms 3.3-5 A from ligand atoms (contacts) minus 10 x clashes (< 2.6 A)."""
+    from scipy.spatial import cKDTree
+    if tree is None:
+        tree = cKDTree(prot.xyz[prot.el != "H"])
+    d, _ = tree.query(pose)
+    clashes = int(np.sum(d < 2.6))
+    contacts = sum(len(x) for x in tree.query_ball_point(pose, 5.0)) - sum(len(x) for x in tree.query_ball_point(pose, 3.3))
+    return float(contacts - 10 * clashes)
+
+
+def rmsd(a: np.ndarray, b: np.ndarray) -> float:
+    return float(np.sqrt(np.mean(np.sum((a - b) ** 2, axis=1))))
+
+
+def random_rotation(rng: np.random.Generator) -> np.ndarray:
+    q = rng.normal(size=4)
+    q /= np.linalg.norm(q)
+    a, b, c, d = q
+    return np.array([[a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c)],
+                     [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b)],
+                     [2 * (b * d - a * c), 2 * (c * d + a * b), a * a - b * b - c * c + d * d]])
+
+
+def random_search(lig_xyz: np.ndarray, centre: np.ndarray, prot: Protein, n: int, rng: np.random.Generator,
+                  shift: float = 2.0) -> np.ndarray:
+    """Classical baseline with the same score: n random rigid placements around the site centre, best kept."""
+    from scipy.spatial import cKDTree
+    tree = cKDTree(prot.xyz[prot.el != "H"])
+    c0 = lig_xyz.mean(0)
+    best, best_s = None, -np.inf
+    for _ in range(n):
+        R = random_rotation(rng)
+        pose = (lig_xyz - c0) @ R.T + centre + rng.normal(0, shift, 3)
+        s = pose_score(pose, prot, tree)
+        if s > best_s:
+            best, best_s = pose, s
+    return best
+
+
+def hotspots_directional(prot: Protein, centre: np.ndarray, box: float = 9.0, per_type: int = 6) -> Points:
+    """Pharmacophore site points placed along protein H-bond vectors: a ligand acceptor 1.9 A beyond each polar
+    hydrogen (on the X-H axis), a ligand donor 2.8 A beyond each acceptor O (opposite its heavy neighbours);
+    hydrophobic sites from buried, carbon-lined grid points (as `hotspots`). Sites must lie within `box` of the
+    centre, not clash with protein heavy atoms (>= 2.4 A) and be buried."""
+    from scipy.spatial import cKDTree
+    heavy = prot.el != "H"
+    hx, he = prot.xyz[heavy], prot.el[heavy]
+    tree = cKDTree(hx)
+    near = np.flatnonzero(np.linalg.norm(prot.xyz - centre, axis=1) <= box + 3.0)
+    sites, kinds = [], []
+    for k in near:
+        e = prot.el[k]
+        if e == "H":
+            d, j = tree.query(prot.xyz[k])
+            if d < 1.15 and he[j] in POLAR:
+                u = prot.xyz[k] - hx[j]
+                sites.append(prot.xyz[k] + 1.9 * u / np.linalg.norm(u))
+                kinds.append("A")
+        elif e == "O":
+            nb = [j for j in tree.query_ball_point(prot.xyz[k], 1.65) if np.linalg.norm(hx[j] - prot.xyz[k]) > 0.1]
+            if not nb:
+                continue
+            u = sum((prot.xyz[k] - hx[j]) / np.linalg.norm(prot.xyz[k] - hx[j]) for j in nb)
+            if np.linalg.norm(u) < 1e-6:
+                continue
+            sites.append(prot.xyz[k] + 2.8 * u / np.linalg.norm(u))
+            kinds.append("D")
+    sites = np.array(sites) if sites else np.zeros((0, 3))
+    kinds = np.array(kinds, dtype=object)
+    if len(sites):
+        ok = (np.linalg.norm(sites - centre, axis=1) <= box) & (tree.query(sites)[0] >= 2.4)
+        sites, kinds = sites[ok], kinds[ok]
+    grid_h = hotspots(prot, centre, box=box, per_type=per_type)
+    hmask = np.array([k == "H" for k in grid_h.kind], bool)
+    pts = list(sites) + list(grid_h.xyz[hmask]) if len(grid_h.kind) else list(sites)
+    kk = list(kinds) + ["H"] * int(hmask.sum())
+    if not pts:
+        return Points(np.zeros((0, 3)), [], np.zeros(0))
+    pts = np.array(pts)
+    bur = np.array([len(x) for x in tree.query_ball_point(pts, 8.0)], float)
+    score = (bur - bur.min()) / (np.ptp(bur) or 1.0)
+    out_p, out_k, out_w = [], [], []
+    for t in ("A", "D", "H"):
+        idx = [i for i in range(len(pts)) if kk[i] == t]
+        idx.sort(key=lambda i: -score[i])
+        chosen = []
+        for i in idx:
+            if all(np.linalg.norm(pts[i] - pts[j]) >= 1.5 for j in chosen):
+                chosen.append(i)
+            if len(chosen) >= per_type:
+                break
+        for i in chosen:
+            out_p.append(pts[i])
+            out_k.append(t)
+            out_w.append(0.5 + score[i])
+    return Points(np.array(out_p), out_k, np.array(out_w))
+
+
+# ======================================================================================
+# Round 2 (October 2026): an empirical scoring function and rigid-body refinement of each pose
+# ======================================================================================
+VINA_R = {"C": 1.9, "N": 1.8, "O": 1.7, "S": 2.0, "P": 2.1, "F": 1.5, "Cl": 1.8, "Br": 2.0, "I": 2.2}
+METALS = ("Zn", "Mg", "Mn", "Fe", "Ca", "Co", "Ni", "Cu", "Na", "K")
+VINA_W = {"gauss1": -0.0356, "gauss2": -0.00516, "repulsion": 0.840, "hydrophobic": -0.0351, "hbond": -0.587}
+
+
+@dataclass
+class Typed:
+    xyz: np.ndarray
+    R: np.ndarray               # van der Waals radius
+    hyd: np.ndarray             # hydrophobic (carbon with no N/O neighbour, halogens)
+    don: np.ndarray             # H-bond donor (N/O carrying H; metals act as donors, as in Vina)
+    acc: np.ndarray             # H-bond acceptor (O; N without H and fewer than three heavy neighbours)
+
+
+DONORS = {"ARG": ("NE", "NH1", "NH2"), "ASN": ("ND2",), "GLN": ("NE2",), "HIS": ("ND1", "NE2"), "LYS": ("NZ",),
+          "SER": ("OG",), "THR": ("OG1",), "TYR": ("OH",), "TRP": ("NE1",), "CYS": ("SG",)}
+
+
+def strip_hydrogens(prot: Protein) -> Protein:
+    keep = prot.el != "H"
+    return Protein(prot.el[keep], prot.xyz[keep], prot.name[keep], prot.res[keep])
+
+
+def add_virtual_hydrogens(prot: Protein) -> Protein:
+    """For structures deposited without hydrogens: one virtual polar H (1.0 A) on every donor heavy atom (backbone N
+    except proline; side-chain donors by residue template), pointing away from its bonded heavy neighbours (their
+    unit vectors summed). Enough for the H-bond typing and the directional hot-spots; not a protonation model."""
+    if np.any(prot.el == "H"):
+        return prot
+    from scipy.spatial import cKDTree
+    tree = cKDTree(prot.xyz)
+    hs = []
+    for k in range(len(prot.el)):
+        nm, rn = prot.name[k], prot.res[k]
+        if not ((nm == "N" and rn != "PRO") or nm in DONORS.get(rn, ())):
+            continue
+        nb = [j for j in tree.query_ball_point(prot.xyz[k], 1.9) if j != k]
+        if not nb:
+            continue
+        u = sum((prot.xyz[k] - prot.xyz[j]) / np.linalg.norm(prot.xyz[k] - prot.xyz[j]) for j in nb)
+        if np.linalg.norm(u) < 1e-6:
+            continue
+        hs.append(prot.xyz[k] + 1.0 * u / np.linalg.norm(u))
+    if not hs:
+        return prot
+    m = len(hs)
+    return Protein(np.concatenate([prot.el, np.array(["H"] * m)]), np.vstack([prot.xyz, np.array(hs)]),
+                   np.concatenate([prot.name, np.array(["HV"] * m)]), np.concatenate([prot.res, np.array(["VIR"] * m)]))
+
+
+def ligand_types(lig: Ligand) -> Typed:
+    """X-Score / AutoDock Vina atom typing of the ligand's heavy atoms from its bond graph."""
+    n = len(lig.el)
+    nb = [[] for _ in range(n)]
+    for i, j, _ in lig.bonds:
+        nb[i].append(j)
+        nb[j].append(i)
+    heavy = np.flatnonzero(lig.heavy)
+    R, hyd, don, acc = [], [], [], []
+    for k in heavy:
+        e = lig.el[k]
+        hn = int(lig.h[k]) + sum(lig.el[j] == "H" for j in nb[k])
+        hetero = any(lig.el[j] in POLAR for j in nb[k])
+        heavy_nb = sum(lig.el[j] != "H" for j in nb[k])
+        R.append(VINA_R.get(e, 1.2 if e in METALS else 1.9))
+        hyd.append((e == "C" and not hetero) or e in ("F", "Cl", "Br", "I"))
+        don.append(e in POLAR and hn > 0)
+        acc.append(e == "O" or (e == "N" and hn == 0 and heavy_nb < 3))
+    return Typed(lig.xyz[heavy], np.array(R, float), np.array(hyd, bool), np.array(don, bool), np.array(acc, bool))
+
+
+def protein_types(prot: Protein, centre: np.ndarray, radius: float = 18.0) -> Typed:
+    """The same typing for protein heavy atoms within `radius` of the site centre (bonds from distances); pass the
+    ligand's extent + the 8 A cutoff + room to move."""
+    from scipy.spatial import cKDTree
+    heavy = prot.el != "H"
+    keep = np.flatnonzero(heavy & (np.linalg.norm(prot.xyz - centre, axis=1) <= radius))
+    hx = prot.xyz[keep]
+    he = prot.el[keep]
+    allh = cKDTree(prot.xyz[heavy])
+    hel = prot.el[heavy]
+    hyd_t = cKDTree(prot.xyz[~heavy]) if (~heavy).any() else None
+    R, hyd, don, acc = [], [], [], []
+    for x, e in zip(hx, he):
+        nbs = [j for j in allh.query_ball_point(x, 1.75) if np.linalg.norm(prot.xyz[heavy][j] - x) > 0.1]
+        hetero = any(hel[j] in POLAR for j in nbs)
+        hn = len(hyd_t.query_ball_point(x, 1.15)) if hyd_t is not None else 0
+        R.append(VINA_R.get(e, 1.2 if e in METALS else 1.9))
+        hyd.append((e == "C" and not hetero) or e in ("F", "Cl", "Br", "I"))
+        don.append((e in POLAR and hn > 0) or e in METALS)
+        acc.append(e == "O" or (e == "N" and hn == 0 and len(nbs) < 3))
+    return Typed(hx.reshape(-1, 3), np.array(R, float), np.array(hyd, bool), np.array(don, bool), np.array(acc, bool))
+
+
+def vina_score(L: np.ndarray, lt: Typed, pt: Typed, cutoff: float = 8.0) -> float:
+    """Intermolecular AutoDock Vina terms (Trott & Olson, J Comput Chem 2010), unweighted by rotatable bonds:
+    gauss1, gauss2, repulsion, hydrophobic and H-bond terms of the surface distance d = r - R_i - R_j (kcal/mol-like;
+    lower is better). The ligand is rigid, so intramolecular terms are constant and omitted."""
+    r = np.sqrt(((L[:, None, :] - pt.xyz[None, :, :]) ** 2).sum(-1))
+    m = r < cutoff
+    d = r - lt.R[:, None] - pt.R[None, :]
+    g1 = np.exp(-(d / 0.5) ** 2)
+    g2 = np.exp(-((d - 3.0) / 2.0) ** 2)
+    rep = np.where(d < 0, d * d, 0.0)
+    hp = (lt.hyd[:, None] & pt.hyd[None, :]) * np.clip(1.5 - d, 0.0, 1.0)
+    hbp = (lt.don[:, None] & pt.acc[None, :]) | (lt.acc[:, None] & pt.don[None, :])
+    hb = hbp * np.clip(-d / 0.7, 0.0, 1.0)
+    e = VINA_W["gauss1"] * g1 + VINA_W["gauss2"] * g2 + VINA_W["repulsion"] * rep + VINA_W["hydrophobic"] * hp \
+        + VINA_W["hbond"] * hb
+    return float((e * m).sum())
+
+
+def _rotvec(w: np.ndarray) -> np.ndarray:
+    th = float(np.linalg.norm(w))
+    if th < 1e-12:
+        return np.eye(3)
+    k = w / th
+    K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + math.sin(th) * K + (1 - math.cos(th)) * K @ K
+
+
+def refine(L: np.ndarray, lt: Typed, pt: Typed, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Rigid-body local optimisation of the Vina-like score from a starting pose (6 parameters: translation and a
+    rotation vector about the ligand centroid; Powell's method, at most `maxfev` evaluations)."""
+    from scipy.optimize import minimize
+    c = L.mean(0)
+    X = L - c
+
+    def place(p):
+        return X @ _rotvec(p[3:]).T + c + p[:3]
+
+    r = minimize(lambda p: vina_score(place(p), lt, pt), np.zeros(6), method="Powell",
+                 options={"maxfev": maxfev, "xtol": 1e-2, "ftol": 1e-4})
+    return place(r.x), float(r.fun)
+
+
+def random_search_vina(L: np.ndarray, centre: np.ndarray, lt: Typed, pt: Typed, n: int, refine_top: int,
+                       rng: np.random.Generator, shift: float = 2.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Classical baseline with the same score and the same refinement budget: n random rigid placements around the
+    site centre, the best `refine_top` refined, the best refined pose kept."""
+    c0 = L.mean(0)
+    cand = []
+    for _ in range(n):
+        pose = (L - c0) @ random_rotation(rng).T + centre + rng.normal(0, shift, 3)
+        cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
+def seeded_search(seeds: list[np.ndarray], lt: Typed, pt: Typed, n: int, refine_top: int, rng: np.random.Generator,
+                  max_angle: float = 0.6, shift: float = 1.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Local search around seed poses (from cliques) with random search's budget: n rigid perturbations shared among
+    the seeds (rotation about the pose centroid up to `max_angle` rad, shift ~ N(0, shift) A), the seeds included;
+    all scored, the best `refine_top` refined, the best refined pose kept."""
+    cand = [(vina_score(s, lt, pt), s) for s in seeds]
+    per = max(1, (n - len(seeds)) // max(1, len(seeds)))
+    for s in seeds:
+        c = s.mean(0)
+        for _ in range(per):
+            ax = rng.normal(size=3)
+            ax /= np.linalg.norm(ax)
+            pose = (s - c) @ _rotvec(ax * rng.uniform(0, max_angle)).T + c + rng.normal(0, shift, 3)
+            cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
+def hybrid_search(seeds: list[np.ndarray], L: np.ndarray, centre: np.ndarray, lt: Typed, pt: Typed, n: int,
+                  refine_top: int, rng: np.random.Generator, seeded_fraction: float = 0.5, max_angle: float = 0.6,
+                  shift: float = 1.0, random_shift: float = 2.0, maxfev: int = 300) -> tuple[np.ndarray, float]:
+    """Round 2 (Gate Q7c): random search's budget split between random placements around the site centre and
+    perturbations of seed poses (from cliques); all candidates scored together, the best `refine_top` refined."""
+    n_seed = int(round(seeded_fraction * n)) if seeds else 0
+    cand = [(vina_score(s, lt, pt), s) for s in seeds]
+    per = max(1, (n_seed - len(seeds)) // max(1, len(seeds))) if seeds else 0
+    for s in seeds:
+        c = s.mean(0)
+        for _ in range(per):
+            ax = rng.normal(size=3)
+            ax /= np.linalg.norm(ax)
+            pose = (s - c) @ _rotvec(ax * rng.uniform(0, max_angle)).T + c + rng.normal(0, shift, 3)
+            cand.append((vina_score(pose, lt, pt), pose))
+    c0 = L.mean(0)
+    for _ in range(n - len(cand)):
+        pose = (L - c0) @ random_rotation(rng).T + centre + rng.normal(0, random_shift, 3)
+        cand.append((vina_score(pose, lt, pt), pose))
+    cand.sort(key=lambda z: z[0])
+    if refine_top <= 0 or maxfev <= 0:
+        return cand[0][1], cand[0][0]
+    return min((refine(p, lt, pt, maxfev) for _, p in cand[:refine_top]), key=lambda z: z[1])
+
+
+def core_subgraph(g: Graph, k: int = 20) -> tuple[Graph, list[int]]:
+    """The k vertices most connected to the rest (weighted degree): where large cliques live. Used to fit the
+    interaction graph into a qubit budget."""
+    if len(g.vertices) <= k:
+        return g, list(range(len(g.vertices)))
+    deg = (g.adj * g.weight[None, :]).sum(1) + g.weight
+    keep = sorted(np.argsort(-deg)[:k].tolist())
+    return Graph([g.vertices[i] for i in keep], g.weight[keep], g.adj[np.ix_(keep, keep)]), keep
+
+
+# ======================================================================================
+# App side: PoseBusters examples on demand, one docking run with everything the panel shows
+# ======================================================================================
+PB_URL = "https://zenodo.org/api/records/13851241/files/{}/content"
+PB_FILES = {"ligands": ("posebusters_ligands_256.zip", "fdeac0fa6ff4aeb46ce662f3ff8753dd"),
+            "proteins": ("posebusters_spruce_structures_256.zip", "faef0d4a67d05dbfddbeba61fee5df6e")}
+DEFAULT = {"tau": 1.0, "max_polar": 8, "max_hydrophobic": 4, "per_type": 8, "qubits": 20, "cliques": 30,
+           "random_poses": 1000}
+
+
+def posebusters(kind: str, progress=None):
+    import zipfile
+    from pathlib import Path
+    from ..predict import download_verified
+    name, md5 = PB_FILES[kind]
+    p = Path(__file__).resolve().parent.parent.parent / ".chronocell_cache" / "posebusters" / name
+    if not p.exists():
+        download_verified(PB_URL.format(name), p, md5, progress)
+    return zipfile.ZipFile(p)
+
+
+def list_complexes(zl) -> list[str]:
+    return sorted(n.split("/")[-1].replace("_ligand.sdf", "") for n in zl.namelist()
+                  if n.startswith("posebusters_ligands_256/") and n.endswith("_ligand.sdf"))
+
+
+@dataclass
+class DockRun:
+    cid: str
+    lig: Ligand
+    prot: Protein
+    features: Points
+    sites: Points
+    graph: Graph
+    qubo: QUBO
+    exact_bits: np.ndarray
+    qaoa: object
+    pose_qaoa: np.ndarray | None
+    pose_classical: np.ndarray | None
+    pose_random: np.ndarray
+    rmsd_qaoa: float
+    rmsd_classical: float
+    rmsd_random: float
+    usable: bool = True
+
+
+@dataclass
+class Polish:
+    pose_qaoa: np.ndarray | None
+    pose_random: np.ndarray
+    rmsd_qaoa: float
+    rmsd_random: float
+    score_qaoa: float
+    score_random: float
+    score_crystal: float
+
+
+def polish(run: DockRun, refine_top: int = 10, maxfev: int = 300, seed: int = 0, cliques: int = 30) -> Polish:
+    """Round 2 (Gate Q7b): the QAOA route's cliques become poses, scored with the Vina-like function; the best
+    `refine_top` are refined (rigid body) and the best kept. Random search gets the same score and refinement."""
+    from . import qubo as QB
+    heavy = run.lig.heavy
+    L = run.lig.xyz[heavy]
+    centre = L.mean(0)
+    lt = ligand_types(run.lig)
+    pt = protein_types(run.prot, centre, float(np.linalg.norm(L - centre, axis=1).max()) + 11.0)
+    seen, qc = set(), []
+    for idx in list(np.argsort(-run.qaoa.probs)[:20000]) + list(run.qaoa.samples):
+        bits = QB.to_bits(int(idx), run.qubo.n)
+        on = tuple(np.flatnonzero(bits).tolist())
+        if len(on) >= 3 and on not in seen and is_clique(run.graph, bits):
+            seen.add(on)
+            qc.append((float(run.graph.weight[list(on)].sum()), list(on)))
+    poses = []
+    for _, c in sorted(qc, reverse=True)[:cliques]:
+        bits = np.zeros(len(run.graph.vertices))
+        bits[c] = 1
+        p = pose_from_clique(run.lig.xyz, run.features, run.sites, run.graph, bits)
+        if p is not None:
+            poses.append((vina_score(p[heavy], lt, pt), p[heavy]))
+    poses.sort(key=lambda z: z[0])
+    best = min((refine(p, lt, pt, maxfev) for _, p in poses[:refine_top]), key=lambda z: z[1]) if poses else (None, np.nan)
+    rb = random_search_vina(L, centre, lt, pt, DEFAULT["random_poses"], refine_top, np.random.default_rng(seed), maxfev=maxfev)
+    return Polish(best[0], rb[0], rmsd(best[0], L) if best[0] is not None else float("nan"), rmsd(rb[0], L),
+                  float(best[1]), float(rb[1]), vina_score(L, lt, pt))
+
+
+def dock(zl, zp, cid: str, cfg: dict | None = None, p: int = 3, objective: str = "expectation", seed: int = 0) -> DockRun:
+    from scipy.spatial import cKDTree
+    from . import sim, qubo as QB
+    cfg = {**DEFAULT, **(cfg or {})}
+    lig = read_sdf(zl.read(f"posebusters_ligands_256/{cid}_ligand.sdf").decode(), cid)
+    prot = read_pdb(zp.read(f"posebusters_spruce_structures_256/{cid}_spruced.pdb").decode(errors="replace"))
+    tree = cKDTree(prot.xyz[prot.el != "H"])
+    heavy = lig.heavy
+    L = lig.xyz[heavy]
+    usable = tree.query(L)[0].min() < 4.0
+    centre = L.mean(0)
+    lf = ligand_features(lig, cfg["max_polar"], cfg["max_hydrophobic"])
+    hs = hotspots_directional(prot, centre, per_type=cfg["per_type"])
+    full = interaction_graph(lf, hs, tau=cfg["tau"], max_vertices=80)
+    g, _ = core_subgraph(full, cfg["qubits"])
+    q = clique_qubo(g)
+    e = q.energies()
+    ex = QB.exact(q, e)
+    r = sim.qaoa(e, p=p, shots=4096, objective=objective, maxiter=80, seed=seed)
+
+    def best(cliques):
+        poses = []
+        for _, c in cliques:
+            bits = np.zeros(len(g.vertices))
+            bits[c] = 1
+            pz = pose_from_clique(lig.xyz, lf, hs, g, bits)
+            if pz is not None:
+                poses.append((pose_score(pz[heavy], prot, tree), pz))
+        return max(poses, key=lambda z: z[0])[1] if poses else None
+
+    seen, qc = set(), []
+    for idx in list(np.argsort(-r.probs)[:20000]) + list(r.samples):
+        bits = QB.to_bits(int(idx), q.n)
+        on = tuple(np.flatnonzero(bits).tolist())
+        if len(on) >= 3 and on not in seen and is_clique(g, bits):
+            seen.add(on)
+            qc.append((float(g.weight[list(on)].sum()), list(on)))
+    qc = sorted(qc, reverse=True)[:cfg["cliques"]]
+    import networkx as nx
+    G = nx.Graph()
+    G.add_nodes_from(range(q.n))
+    for a, b in zip(*np.nonzero(np.triu(g.adj, 1))):
+        G.add_edge(int(a), int(b))
+    cc = sorted(((float(g.weight[c].sum()), sorted(c)) for c in nx.find_cliques(G) if len(c) >= 3), reverse=True)[:cfg["cliques"]]
+    pq, pc = best(qc), best(cc)
+    prand = random_search(L, centre, prot, cfg["random_poses"], np.random.default_rng(seed))
+    rq = rmsd(pq[heavy], L) if pq is not None else float("nan")
+    rc = rmsd(pc[heavy], L) if pc is not None else float("nan")
+    return DockRun(cid, lig, prot, lf, hs, g, q, ex.bits, r, pq, pc, prand, rq, rc, rmsd(prand, L), bool(usable))

@@ -55,7 +55,8 @@ def software_versions(extra: dict | None = None) -> dict:
 
 
 def validation_sources() -> list[dict]:
-    """Datasets behind the method's benchmark (written from validation/datasets.py by the reproduce script)."""
+    """Datasets, tools and annotations behind the method and its benchmark (data/validation_sources.json, maintained
+    by hand alongside validation/datasets.py)."""
     try:
         return json.loads(SOURCES_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):

@@ -1,0 +1,279 @@
+{
+ "mode": "test (run once; Gate 4 parameters unchanged)",
+ "rule": {
+  "pairs": [
+   "in situ",
+   "intact"
+  ],
+  "main_pair": "in situ",
+  "min_regions": 3,
+  "regions": [
+   [
+    "chr2",
+    216000000
+   ],
+   [
+    "chr5",
+    140000000
+   ],
+   [
+    "chr7",
+    130000000
+   ],
+   [
+    "chr10",
+    100000000
+   ],
+   [
+    "chr12",
+    52000000
+   ],
+   [
+    "chr17",
+    48000000
+   ]
+  ],
+  "res": 10000,
+  "window": 2000000,
+  "min_reads": 10,
+  "min_sep_bins": 2,
+  "boot": 200,
+  "r_c_nm": 150.0
+ },
+ "rows": [
+  {
+   "pairs": 17394,
+   "model": 0.4856241591613946,
+   "trend_only": 0.09182701806937893,
+   "difference": 0.3937971410920157,
+   "difference_ci95": [
+    0.3249427082275549,
+    0.46550245794353484
+   ],
+   "region": "chr2:216-218 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9684049124789949,
+   "reads_untreated": 1798926.0,
+   "reads_auxin": 1164036.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "main"
+  },
+  {
+   "pairs": 14180,
+   "model": 0.2120947508274317,
+   "trend_only": 0.17483692842259355,
+   "difference": 0.03725782240483816,
+   "difference_ci95": [
+    -0.04492859229900312,
+    0.13194500217011096
+   ],
+   "region": "chr5:140-142 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9381019603508083,
+   "reads_untreated": 1626095.0,
+   "reads_auxin": 1061236.0,
+   "device": "cuda",
+   "beats_trend": false,
+   "tier": "main"
+  },
+  {
+   "pairs": 13779,
+   "model": 0.49603664243209283,
+   "trend_only": 0.09580527517072629,
+   "difference": 0.40023136726136654,
+   "difference_ci95": [
+    0.3452569235099437,
+    0.4444257371799598
+   ],
+   "region": "chr7:130-132 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9657129897608837,
+   "reads_untreated": 1581868.0,
+   "reads_auxin": 1016939.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "main"
+  },
+  {
+   "pairs": 18378,
+   "model": 0.4158258655808841,
+   "trend_only": 0.2551572080635223,
+   "difference": 0.16066865751736176,
+   "difference_ci95": [
+    0.0817907177522501,
+    0.24270951238006852
+   ],
+   "region": "chr10:100-102 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.972093784999569,
+   "reads_untreated": 2697783.0,
+   "reads_auxin": 1711452.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "main"
+  },
+  {
+   "pairs": 14374,
+   "model": 0.46154277073000377,
+   "trend_only": 0.04779108632722204,
+   "difference": 0.41375168440278176,
+   "difference_ci95": [
+    0.31674462844538226,
+    0.5105797675009497
+   ],
+   "region": "chr12:52-54 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9617493389330485,
+   "reads_untreated": 1976253.0,
+   "reads_auxin": 1189803.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "main"
+  },
+  {
+   "pairs": 18424,
+   "model": 0.41588307039719347,
+   "trend_only": 0.30083878444718865,
+   "difference": 0.11504428595000482,
+   "difference_ci95": [
+    0.0471746758624311,
+    0.17670602484611989
+   ],
+   "region": "chr17:48-50 Mb",
+   "pair": "in situ",
+   "contact_fit": 0.9734833353964698,
+   "reads_untreated": 2827484.0,
+   "reads_auxin": 1693144.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "main"
+  },
+  {
+   "pairs": 9175,
+   "model": 0.6006212817092432,
+   "trend_only": 0.06326108534289492,
+   "difference": 0.5373601963663484,
+   "difference_ci95": [
+    0.4655855913438803,
+    0.6026418667149165
+   ],
+   "region": "chr2:216-218 Mb",
+   "pair": "intact",
+   "contact_fit": 0.9171389290288383,
+   "reads_untreated": 1000916.0,
+   "reads_auxin": 1122380.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  },
+  {
+   "pairs": 6583,
+   "model": 0.4937415714675386,
+   "trend_only": -0.04313892246974008,
+   "difference": 0.5368804939372787,
+   "difference_ci95": [
+    0.4551127188635546,
+    0.6269264325593182
+   ],
+   "region": "chr5:140-142 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8790089442292465,
+   "reads_untreated": 879856.0,
+   "reads_auxin": 946705.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  },
+  {
+   "pairs": 6962,
+   "model": 0.7080426371537643,
+   "trend_only": 0.10630677098239162,
+   "difference": 0.6017358661713726,
+   "difference_ci95": [
+    0.5523052574627693,
+    0.6615351291441806
+   ],
+   "region": "chr7:130-132 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8988984326547724,
+   "reads_untreated": 893815.0,
+   "reads_auxin": 949213.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  },
+  {
+   "pairs": 9305,
+   "model": 0.5044193857103153,
+   "trend_only": -0.1191012123553132,
+   "difference": 0.6235205980656285,
+   "difference_ci95": [
+    0.5555446821635223,
+    0.6919433324562935
+   ],
+   "region": "chr10:100-102 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8936413766294997,
+   "reads_untreated": 1230682.0,
+   "reads_auxin": 1371535.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  },
+  {
+   "pairs": 6199,
+   "model": 0.5479877902796375,
+   "trend_only": -0.1381555455749072,
+   "difference": 0.6861433358545447,
+   "difference_ci95": [
+    0.6248922677183755,
+    0.7444242943569185
+   ],
+   "region": "chr12:52-54 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8863048700998787,
+   "reads_untreated": 766456.0,
+   "reads_auxin": 799204.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  },
+  {
+   "pairs": 8842,
+   "model": 0.502752265839093,
+   "trend_only": -0.15757666062930756,
+   "difference": 0.6603289264684006,
+   "difference_ci95": [
+    0.579644293370546,
+    0.7440300775365097
+   ],
+   "region": "chr17:48-50 Mb",
+   "pair": "intact",
+   "contact_fit": 0.8935914134020403,
+   "reads_untreated": 1136630.0,
+   "reads_auxin": 1194490.0,
+   "device": "cuda",
+   "beats_trend": true,
+   "tier": "secondary"
+  }
+ ],
+ "regions_beating_trend": 5,
+ "verdict": "pass",
+ "params": {
+  "lam": 0.4484099519439994,
+  "c": [
+   -2.34617528957838,
+   0.9520534846027794,
+   -0.08629262910996613
+  ],
+  "log_sep_range": [
+   4.477121254719663,
+   6.283301228703549
+  ],
+  "fitted_on": "bintu_hct116_28_30 -> bintu_hct116_28_30_auxin",
+  "fitted_utc": "2026-10-04T06:30:07+00:00",
+  "note": "Fitted by validation/perturbation.py --practice on Bintu et al. 2018 HCT116 chr21:28-30 Mb, untreated vs 6 h auxin (practice pair), pooled over 3 splits. Not a first-principles constant."
+ },
+ "run_utc": "2026-10-05T10:28:41+00:00"
+}

@@ -160,12 +160,71 @@ def read_bedpe(data: bytes | str, norm: Callable[[str], str] | None = None) -> V
     return vf
 
 
-def read_any(data: bytes, name: str, norm: Callable[[str], str] | None = None) -> VariantFile:
+def read_any(data: bytes | str, name: str, norm: Callable[[str], str] | None = None) -> VariantFile:
+    """VCF if the name or the content says so (header line, or an SVTYPE= INFO field), else BEDPE."""
     low = name.lower()
     text = _text(data)
-    if low.endswith((".vcf", ".vcf.gz")) or text.lstrip().startswith("##fileformat=VCF"):
+    if (low.endswith((".vcf", ".vcf.gz")) or text.lstrip().startswith("##fileformat=VCF") or "#CHROM" in text
+            or "SVTYPE=" in text):
         return read_vcf(text, norm)
     return read_bedpe(text, norm)
+
+
+OPERATION = {"DEL": "deletion", "DUP": "duplication", "INV": "inversion", "BND": "translocation"}
+
+
+def label(v: Variant) -> str:
+    if v.kind == "BND":
+        return f"BND {v.chrom}:{v.start + 1:,} - {v.mate_chrom}:{(v.mate_pos or 0) + 1:,}" + (f" ({v.vid})" if v.vid else "")
+    return f"{v.kind} {v.chrom}:{v.start + 1:,}-{v.end:,} ({v.length / 1e3:,.0f} kb)" + (f" ({v.vid})" if v.vid else "")
+
+
+def to_scenario(v: Variant, chrom_name: str, resolution: int, bin0: int, n: int,
+                partners: tuple[str, ...] | list[str] = ()) -> tuple[str, dict] | str:
+    """One variant as an operation on the loaded window, in local bead coordinates: (operation, params),
+    or the reason it cannot be applied there. A breakend joins this chromosome from pter to the
+    breakpoint with the partner from its breakpoint to qter (orientation is not modelled)."""
+    if v.kind in ("DEL", "DUP", "INV"):
+        if v.chrom != chrom_name:
+            return f"on {v.chrom}, not {chrom_name}"
+        a = v.start // resolution - bin0
+        b = -(-v.end // resolution) - bin0
+        if b <= 0 or a >= n:
+            return "outside the loaded window"
+        a, b = max(0, a), min(n, b)
+        if v.kind == "INV" and b - a < 2:
+            return "inversion shorter than two beads at this resolution"
+        if v.kind == "DEL" and (a == 0 and b == n):
+            return "deletes the whole loaded window"
+        params: dict = {"a": int(a), "b": int(b)}
+        if v.kind == "DUP":
+            params["copies"] = 1
+        return OPERATION[v.kind], params
+    if v.chrom == chrom_name and v.mate_chrom != chrom_name:
+        here, partner, ppos = v.start, v.mate_chrom, v.mate_pos
+    elif v.mate_chrom == chrom_name and v.chrom != chrom_name:
+        here, partner, ppos = v.mate_pos, v.chrom, v.start
+    elif v.chrom == chrom_name:
+        return "both breakends on this chromosome: give it as DEL, DUP or INV"
+    else:
+        return f"joins {v.chrom} and {v.mate_chrom}, not {chrom_name}"
+    if partners and partner not in partners:
+        return f"partner {partner} is not a main chromosome of this assembly"
+    bp = int(here) // resolution - bin0
+    if not 2 <= bp <= n - 1:
+        return "breakpoint outside the loaded window"
+    return "translocation", {"breakpoint": int(bp), "partner": partner, "partner_start_bp": int(ppos or 0)}
+
+
+def deletion_segments(variants: list[Variant], chrom_name: str, resolution: int, bin0: int, n: int) -> list[tuple[int, int]]:
+    """Every deletion on this chromosome inside the window, as local half-open bead intervals."""
+    out = []
+    for v in variants:
+        if v.kind == "DEL":
+            sc = to_scenario(v, chrom_name, resolution, bin0, n)
+            if isinstance(sc, tuple):
+                out.append((sc[1]["a"], sc[1]["b"]))
+    return sorted(out)
 
 
 def _default_norm(name: str) -> str:

@@ -1,0 +1,110 @@
+{
+ "mode": "test (run once; settings frozen)",
+ "rule": {
+  "choice": {
+   "fdr": 0.2,
+   "balance": "kr"
+  },
+  "tolerance_bp": 25000,
+  "min_sep": 30000,
+  "max_sep": 2000000,
+  "res": 10000,
+  "window": 10000000,
+  "test": {
+   "k562": [
+    [
+     "chr4",
+     100000000
+    ],
+    [
+     "chr7",
+     100000000
+    ],
+    [
+     "chr11",
+     60000000
+    ]
+   ],
+   "imr90": [
+    [
+     "chr4",
+     100000000
+    ],
+    [
+     "chr7",
+     100000000
+    ],
+    [
+     "chr11",
+     60000000
+    ]
+   ]
+  },
+  "tools": {
+   "chromosight": "1.6.3",
+   "mustache": "1.3.3"
+  }
+ },
+ "sets": {
+  "k562": {
+   "notes": [],
+   "chronocell": {
+    "calls": 315,
+    "reference": 156,
+    "matched": 94,
+    "precision": 0.2984126984126984,
+    "recall": 0.6025641025641025,
+    "f1": 0.3991507430997877
+   },
+   "chromosight": {
+    "calls": 316,
+    "reference": 156,
+    "matched": 92,
+    "precision": 0.2911392405063291,
+    "recall": 0.5897435897435898,
+    "f1": 0.3898305084745763
+   },
+   "mustache": {
+    "calls": 231,
+    "reference": 156,
+    "matched": 94,
+    "precision": 0.4069264069264069,
+    "recall": 0.6025641025641025,
+    "f1": 0.4857881136950905
+   }
+  },
+  "imr90": {
+   "notes": [],
+   "chronocell": {
+    "calls": 134,
+    "reference": 154,
+    "matched": 106,
+    "precision": 0.7910447761194029,
+    "recall": 0.6883116883116883,
+    "f1": 0.7361111111111112
+   },
+   "chromosight": {
+    "calls": 298,
+    "reference": 154,
+    "matched": 95,
+    "precision": 0.3187919463087248,
+    "recall": 0.6168831168831169,
+    "f1": 0.4203539823008849
+   },
+   "mustache": {
+    "calls": 255,
+    "reference": 154,
+    "matched": 97,
+    "precision": 0.3803921568627451,
+    "recall": 0.6298701298701299,
+    "f1": 0.4743276283618582
+   }
+  }
+ },
+ "at_least_tools": {
+  "k562": false,
+  "imr90": true
+ },
+ "verdict": "fail",
+ "run_utc": "2026-10-05T11:06:36+00:00"
+}

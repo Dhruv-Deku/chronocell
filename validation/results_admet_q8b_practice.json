@@ -1,0 +1,687 @@
+{
+ "made": "2026-10-10T06:13:36+00:00",
+ "cap": 2500,
+ "grid": {
+  "qk_bandwidth": [
+   0.005,
+   0.01,
+   0.02,
+   0.05,
+   0.1,
+   0.2,
+   0.3,
+   0.5,
+   0.7,
+   1.0,
+   1.5,
+   2.0,
+   3.0
+  ],
+  "reps": [
+   1,
+   2
+  ],
+  "rbf_gamma": [
+   0.001,
+   0.003,
+   0.01,
+   0.03,
+   0.1,
+   0.3,
+   1.0,
+   3.0,
+   10.0
+  ],
+  "regs": {
+   "cls": [
+    0.001,
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0,
+    10000.0
+   ],
+   "reg": [
+    0.0001,
+    0.001,
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0
+   ]
+  }
+ },
+ "endpoints": {
+  "cyp1a2_veith": {
+   "endpoint": "cyp1a2_veith",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.4508,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.03,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.01,
+     "reg": 10.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8591665806048339,
+    "rbf8": 0.8592737102176079,
+    "rbf17": 0.8710677460216791
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "cyp2c19_veith": {
+   "endpoint": "cyp2c19_veith",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.4616,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.1,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8124661029157554,
+    "rbf8": 0.8135408271606753,
+    "rbf17": 0.8259618856680436
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "pampa_ncats": {
+   "endpoint": "pampa_ncats",
+   "task": "cls",
+   "n": 1628,
+   "positives": 0.8525798525798526,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.01,
+     "reps": 1,
+     "reg": 100.0
+    },
+    "rbf8": {
+     "gamma": 0.03,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.03,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7373576409630418,
+    "rbf8": 0.7394106465729944,
+    "rbf17": 0.7363698120925641
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "freesolv": {
+   "endpoint": "freesolv",
+   "task": "reg",
+   "n": 514,
+   "positives": null,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 0.03,
+     "reg": 0.01
+    },
+    "rbf17": {
+     "gamma": 0.03,
+     "reg": 0.01
+    }
+   },
+   "cv": {
+    "quantum": 0.9392351488062738,
+    "rbf8": 0.9341268372019315,
+    "rbf17": 0.9543328457989142
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "skin_reaction": {
+   "endpoint": "skin_reaction",
+   "task": "cls",
+   "n": 323,
+   "positives": 0.7027863777089783,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.2,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.3,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 10.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7766448004068142,
+    "rbf8": 0.7782944317315027,
+    "rbf17": 0.781200610221205
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "carcinogens_lagunin": {
+   "endpoint": "carcinogens_lagunin",
+   "task": "cls",
+   "n": 224,
+   "positives": 0.19642857142857142,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.03,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.03,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8746913580246913,
+    "rbf8": 0.8685185185185185,
+    "rbf17": 0.875462962962963
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "clintox": {
+   "endpoint": "clintox",
+   "task": "cls",
+   "n": 1182,
+   "positives": 0.08206429780033841,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.02,
+     "reps": 1,
+     "reg": 1000.0
+    },
+    "rbf8": {
+     "gamma": 0.01,
+     "reg": 100.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8217717681300025,
+    "rbf8": 0.8201685665777345,
+    "rbf17": 0.8372532136793597
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-AR": {
+   "endpoint": "tox21_NR-AR",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0308,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 0.1,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.03,
+     "reg": 0.1
+    }
+   },
+   "cv": {
+    "quantum": 0.7348521733265173,
+    "rbf8": 0.7261709621993127,
+    "rbf17": 0.7468562807077334
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-AR-LBD": {
+   "endpoint": "tox21_NR-AR-LBD",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0228,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 0.1,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 0.1
+    }
+   },
+   "cv": {
+    "quantum": 0.7861900141412109,
+    "rbf8": 0.78791583617529,
+    "rbf17": 0.7948255625245718
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-AhR": {
+   "endpoint": "tox21_NR-AhR",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.1056,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.3,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 0.3,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8500389751480949,
+    "rbf8": 0.8458906391545963,
+    "rbf17": 0.8531538023927341
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-Aromatase": {
+   "endpoint": "tox21_NR-Aromatase",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0476,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 2,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.1,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 0.1
+    }
+   },
+   "cv": {
+    "quantum": 0.7858635907193066,
+    "rbf8": 0.7892306273069797,
+    "rbf17": 0.7990640958324811
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-ER": {
+   "endpoint": "tox21_NR-ER",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.1152,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.03,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 0.1
+    }
+   },
+   "cv": {
+    "quantum": 0.7264891392278291,
+    "rbf8": 0.728611050405775,
+    "rbf17": 0.7313066855579159
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-ER-LBD": {
+   "endpoint": "tox21_NR-ER-LBD",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0416,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 2,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 1.0,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 3.0,
+     "reg": 0.1
+    }
+   },
+   "cv": {
+    "quantum": 0.7430149430857937,
+    "rbf8": 0.7664661683566953,
+    "rbf17": 0.7769108447658812
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_NR-PPAR-gamma": {
+   "endpoint": "tox21_NR-PPAR-gamma",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.03,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 1.0,
+     "reg": 10.0
+    },
+    "rbf17": {
+     "gamma": 1.0,
+     "reg": 10.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7521512027491409,
+    "rbf8": 0.7546116838487972,
+    "rbf17": 0.7727835051546391
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_SR-ARE": {
+   "endpoint": "tox21_SR-ARE",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.1476,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.3,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7316547956619692,
+    "rbf8": 0.7367313191018052,
+    "rbf17": 0.7630514471480997
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_SR-ATAD5": {
+   "endpoint": "tox21_SR-ATAD5",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.036,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.5,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 1.0,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 1.0,
+     "reg": 0.01
+    }
+   },
+   "cv": {
+    "quantum": 0.7781811894882434,
+    "rbf8": 0.7907330567081605,
+    "rbf17": 0.8220262793914246
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_SR-HSE": {
+   "endpoint": "tox21_SR-HSE",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0576,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 0.1
+    },
+    "rbf8": {
+     "gamma": 0.3,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.001,
+     "reg": 100.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7140387679313517,
+    "rbf8": 0.7217031455991287,
+    "rbf17": 0.7642059551906547
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": true
+   }
+  },
+  "tox21_SR-MMP": {
+   "endpoint": "tox21_SR-MMP",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.1532,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.1,
+     "reps": 1,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.1,
+     "reg": 1.0
+    },
+    "rbf17": {
+     "gamma": 0.1,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.8295613089746311,
+    "rbf8": 0.8248180917125302,
+    "rbf17": 0.8645646562187557
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  },
+  "tox21_SR-p53": {
+   "endpoint": "tox21_SR-p53",
+   "task": "cls",
+   "n": 2500,
+   "positives": 0.0628,
+   "choice": {
+    "qk": {
+     "encoding": "global",
+     "bandwidth": 0.05,
+     "reps": 2,
+     "reg": 1.0
+    },
+    "rbf8": {
+     "gamma": 0.3,
+     "reg": 0.1
+    },
+    "rbf17": {
+     "gamma": 0.03,
+     "reg": 1.0
+    }
+   },
+   "cv": {
+    "quantum": 0.7789817129237717,
+    "rbf8": 0.7832272714363019,
+    "rbf17": 0.7987831776916845
+   },
+   "edge": {
+    "qk_bandwidth": false,
+    "qk_reg": false,
+    "rbf8_gamma": false,
+    "rbf17_gamma": false
+   }
+  }
+ }
+}

@@ -158,3 +158,21 @@ def test_app_defaults_match_the_frozen_validation_settings():
     import frozen
     assert P.WHOLE_CHROMOSOME_DEFAULTS == frozen.WHOLE_CHROMOSOME
     assert P.config_for(5000).rank_cap == frozen.WHOLE_CHROMOSOME["rank_cap"]
+
+
+def test_recalibrated_intervals_match_the_validation_protocol():
+    import json
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "validation"))
+    import protocol as PR
+    cal = json.loads(P.CALIBRATION_PATH.read_text(encoding="utf-8"))
+    pits = PR.isotonic_recalibration(np.asarray(cal["pit_histogram"]))
+    for level in (0.5, 0.8, 0.9):
+        mine = P.recalibrated_interval(level)
+        ref = tuple(float(P.maxwell_quantile(q)) for q in pits(level))
+        assert np.allclose(mine, ref)
+        raw = P.central_interval(level)
+        assert mine[1] > raw[1]                    # the practice data have a heavier upper tail than Maxwell
+    s = P.summarise_sigma(np.array([100.0]), 150.0, 0.9, recalibrated=True)
+    assert s["upper"][0] == pytest.approx(100.0 * P.recalibrated_interval(0.9)[1])

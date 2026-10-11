@@ -1,0 +1,139 @@
+{
+ "settings": {
+  "reference": "rao2014_gm12878",
+  "variant": "rao2014_k562",
+  "chrom": "chr9",
+  "assembly": "hg19",
+  "start": 16000000,
+  "end": 36000000,
+  "binsize": 25000,
+  "deleted": [
+   [
+    20750000,
+    26590000
+   ],
+   [
+    28560000,
+    31620000
+   ]
+  ],
+  "deleted_source": "Zhou et al., Genome Res 29:472-484 (2019), K562: two chr9 regions lost entirely",
+  "p_adjacent": 0.3,
+  "hic_zeros": "unobserved",
+  "min_new_separation_bins": 2,
+  "max_new_separation_bins": 80,
+  "block_bins": 8,
+  "bootstrap": 1000,
+  "seed": 0,
+  "population": {
+   "rank_cap": 256,
+   "local_term": true,
+   "iterations": 1500,
+   "learning_rate": 0.01,
+   "weighting": "binomial",
+   "dtype": "float32",
+   "init": "auto"
+  }
+ },
+ "data": {
+  "reference_url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_GM12878_insitu_primary+replicate_combined_30.hic",
+  "variant_url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525_K562_combined_30.hic",
+  "assembly": "hg19",
+  "licence": "NCBI GEO GSE63525 (public; GEO places no restrictions on use, citation required). Read remotely by region with HTTP range requests; only extracted region counts are cached locally (git-ignored).",
+  "citation": "Rao SSP et al. (2014) Cell 159:1665-1680; deletions: Zhou B et al. (2019) Genome Res 29:472-484"
+ },
+ "window": "chr9:16,000,000-36,000,000 (800 bins of 25 kb)",
+ "deleted_runs_bins": [
+  [
+   190,
+   424
+  ],
+  [
+   502,
+   625
+  ]
+ ],
+ "kept_runs": [
+  [
+   0,
+   189
+  ],
+  [
+   424,
+   501
+  ],
+  [
+   625,
+   799
+  ]
+ ],
+ "check_deleted_bins": {
+  "k562_deleted_over_kept_coverage": 0.000449034575662326,
+  "gm12878_deleted_over_kept_coverage": 0.6292250795562054,
+  "bins_without_gm12878_reads": 0,
+  "deleted_bins": 357,
+  "kept_bins": 443
+ },
+ "reference_fit": {
+  "contact_fit_spearman": 0.8679388603250265,
+  "best_misfit": 0.0082164079034021,
+  "fit_seconds": 11.934221029281616
+ },
+ "spanning_pairs": 6475,
+ "spearman": {
+  "model": 0.08260497805097483,
+  "distance_shift": 0.14899335281176013,
+  "no_change": 0.42401994453099656,
+  "model_minus_distance_shift": -0.0663883747607853,
+  "model_trend_removed": -0.06838880660775774
+ },
+ "ci95_block_bootstrap": {
+  "model": [
+   -0.06845588365665704,
+   0.2284818422857353
+  ],
+  "distance_shift": [
+   -0.017519131220988797,
+   0.3106600927711932
+  ],
+  "no_change": [
+   0.32889588331766834,
+   0.5118957112552102
+  ],
+  "model_minus_distance_shift": [
+   -0.18686129507626562,
+   0.052052766641307986
+  ],
+  "model_trend_removed": [
+   -0.23307381517223974,
+   0.07800511549480281
+  ]
+ },
+ "secondary_all_spanning_pairs": {
+  "pairs": 61718,
+  "model": 0.37687994144033243,
+  "distance_shift": 0.3748758840896497,
+  "no_change": 0.2959465363110158
+ },
+ "by_junction": {
+  "run0-run1": {
+   "pairs": 3236,
+   "model": -0.0022046153862793822,
+   "distance_shift": -0.019340119623508636,
+   "no_change": -8.712238778529415e-05
+  },
+  "run1-run2": {
+   "pairs": 3236,
+   "model": 0.6575124770113522,
+   "distance_shift": 0.4032133912649341,
+   "no_change": 0.5404409456257919
+  }
+ },
+ "criteria": {
+  "i_beats_distance_shift": false,
+  "ii_pattern_beyond_separation": false
+ },
+ "verdict": "not validated (mechanism simulator)",
+ "seconds": 194.4,
+ "run_utc": "2026-10-04T10:46:13+00:00"
+}

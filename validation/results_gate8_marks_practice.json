@@ -1,0 +1,508 @@
+{
+ "made": "2026-10-07T17:19:02+00:00",
+ "comparisons": 70,
+ "loci_marked": {
+  "h3k27me3": 2,
+  "h3k9me3": 4,
+  "h3k4me3": 6,
+  "h3k36me3": 9,
+  "h3k4me1": 5,
+  "h3k9ac": 5,
+  "h3k27ac": 7
+ },
+ "below_0.05": 11,
+ "expected_below_0.05_by_chance": 3.5,
+ "smallest_p": 0.004975124378109453,
+ "rows": [
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27me3",
+   "rho": -0.041549062766162305,
+   "perm_p": 0.7263681592039801
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9me3",
+   "rho": -0.16773050257055538,
+   "perm_p": 0.06965174129353234
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me3",
+   "rho": -0.12826767878414783,
+   "perm_p": 0.1791044776119403
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k36me3",
+   "rho": 0.06473609259418897,
+   "perm_p": 0.48756218905472637
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me1",
+   "rho": -0.07300992817942206,
+   "perm_p": 0.44776119402985076
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9ac",
+   "rho": -0.11312956022274967,
+   "perm_p": 0.20398009950248755
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27ac",
+   "rho": -0.09079315708889502,
+   "perm_p": 0.3283582089552239
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27me3",
+   "rho": -0.1186517721503214,
+   "perm_p": 0.22388059701492538
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9me3",
+   "rho": -0.1418153525938521,
+   "perm_p": 0.13432835820895522
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me3",
+   "rho": -0.06817416237684167,
+   "perm_p": 0.417910447761194
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k36me3",
+   "rho": 0.0433204937368857,
+   "perm_p": 0.6716417910447762
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me1",
+   "rho": 0.001607331075186073,
+   "perm_p": 0.9900497512437811
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9ac",
+   "rho": -0.055835123287419776,
+   "perm_p": 0.5124378109452736
+  },
+  {
+   "drug": "GSK126 (EZH2 inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27ac",
+   "rho": -0.08030548658678385,
+   "perm_p": 0.39800995024875624
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k27me3",
+   "rho": -0.13463291767042684,
+   "perm_p": 0.19402985074626866
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k9me3",
+   "rho": -0.16498310087417864,
+   "perm_p": 0.09950248756218906
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k4me3",
+   "rho": -0.16153407826438834,
+   "perm_p": 0.12935323383084577
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k36me3",
+   "rho": -0.1738935658020062,
+   "perm_p": 0.06467661691542288
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k4me1",
+   "rho": -0.32973060997360365,
+   "perm_p": 0.004975124378109453
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k9ac",
+   "rho": -0.1008898211152031,
+   "perm_p": 0.32338308457711445
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xa",
+   "mark": "h3k27ac",
+   "rho": -0.17751435732975945,
+   "perm_p": 0.07960199004975124
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k27me3",
+   "rho": -0.10273859309899239,
+   "perm_p": 0.30845771144278605
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k9me3",
+   "rho": 0.17405047969014778,
+   "perm_p": 0.07462686567164178
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k4me3",
+   "rho": -0.07260559049948624,
+   "perm_p": 0.48258706467661694
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k36me3",
+   "rho": -0.22056981573080273,
+   "perm_p": 0.04477611940298507
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k4me1",
+   "rho": -0.17556341734392708,
+   "perm_p": 0.14427860696517414
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k9ac",
+   "rho": -0.085612934473838,
+   "perm_p": 0.47761194029850745
+  },
+  {
+   "drug": "TSA + NaBu (HDAC inhibitors)",
+   "allele": "Xi",
+   "mark": "h3k27ac",
+   "rho": -0.13782474722076263,
+   "perm_p": 0.18407960199004975
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27me3",
+   "rho": -0.07495099044582208,
+   "perm_p": 0.5074626865671642
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9me3",
+   "rho": -0.09208981472921351,
+   "perm_p": 0.3681592039800995
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me3",
+   "rho": -0.19994261496104995,
+   "perm_p": 0.03482587064676617
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k36me3",
+   "rho": -0.1307650329419746,
+   "perm_p": 0.24875621890547264
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me1",
+   "rho": -0.12565975363552534,
+   "perm_p": 0.26865671641791045
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9ac",
+   "rho": -0.16965069246620695,
+   "perm_p": 0.05472636815920398
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27ac",
+   "rho": -0.1937336673915955,
+   "perm_p": 0.07462686567164178
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27me3",
+   "rho": 0.07916933209329634,
+   "perm_p": 0.39303482587064675
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9me3",
+   "rho": 0.10389008356567365,
+   "perm_p": 0.208955223880597
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me3",
+   "rho": 0.00232752166181224,
+   "perm_p": 0.9850746268656716
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k36me3",
+   "rho": -0.16326535136910808,
+   "perm_p": 0.05970149253731343
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me1",
+   "rho": 0.11396106207184567,
+   "perm_p": 0.21890547263681592
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9ac",
+   "rho": 0.018023181259288652,
+   "perm_p": 0.8009950248756219
+  },
+  {
+   "drug": "5-aza-dC (DNMT inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27ac",
+   "rho": 0.07986910080939892,
+   "perm_p": 0.3781094527363184
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k27me3",
+   "rho": 0.18191695054993112,
+   "perm_p": 0.17412935323383086
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k9me3",
+   "rho": -0.021477991667625623,
+   "perm_p": 0.8905472636815921
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k4me3",
+   "rho": 0.37474743915116365,
+   "perm_p": 0.01990049751243781
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k36me3",
+   "rho": 0.3370754812884695,
+   "perm_p": 0.024875621890547265
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k4me1",
+   "rho": 0.15510220038168815,
+   "perm_p": 0.26865671641791045
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k9ac",
+   "rho": 0.23768954703101908,
+   "perm_p": 0.07462686567164178
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xa",
+   "mark": "h3k27ac",
+   "rho": 0.19077252180729729,
+   "perm_p": 0.20398009950248755
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k27me3",
+   "rho": 0.08677199866569817,
+   "perm_p": 0.4925373134328358
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k9me3",
+   "rho": -0.18933653843717327,
+   "perm_p": 0.14925373134328357
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k4me3",
+   "rho": 0.30833334480784114,
+   "perm_p": 0.03482587064676617
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k36me3",
+   "rho": 0.2763259901751113,
+   "perm_p": 0.01990049751243781
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k4me1",
+   "rho": 0.24443350801739125,
+   "perm_p": 0.07960199004975124
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k9ac",
+   "rho": 0.22487102523656582,
+   "perm_p": 0.14427860696517414
+  },
+  {
+   "drug": "DMOG (demethylase blocker)",
+   "allele": "Xi",
+   "mark": "h3k27ac",
+   "rho": 0.26041422026225014,
+   "perm_p": 0.04477611940298507
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27me3",
+   "rho": -0.08219632653197381,
+   "perm_p": 0.3283582089552239
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9me3",
+   "rho": -0.029734139347312852,
+   "perm_p": 0.7114427860696517
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me3",
+   "rho": -0.08596973088945786,
+   "perm_p": 0.22388059701492538
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k36me3",
+   "rho": -0.17958914420777813,
+   "perm_p": 0.009950248756218905
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k4me1",
+   "rho": -0.19417481507588238,
+   "perm_p": 0.009950248756218905
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k9ac",
+   "rho": -0.03706029518243983,
+   "perm_p": 0.6268656716417911
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xa",
+   "mark": "h3k27ac",
+   "rho": -0.07619701158945628,
+   "perm_p": 0.29850746268656714
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27me3",
+   "rho": 0.08029971209026382,
+   "perm_p": 0.12437810945273632
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9me3",
+   "rho": 0.11173961977789441,
+   "perm_p": 0.024875621890547265
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me3",
+   "rho": 0.07594501207473099,
+   "perm_p": 0.1890547263681592
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k36me3",
+   "rho": -0.004516156775155262,
+   "perm_p": 0.9253731343283582
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k4me1",
+   "rho": 0.060604367034855416,
+   "perm_p": 0.21890547263681592
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k9ac",
+   "rho": 0.04397672171693068,
+   "perm_p": 0.4527363184079602
+  },
+  {
+   "drug": "alpha-amanitin (transcription inhibitor)",
+   "allele": "Xi",
+   "mark": "h3k27ac",
+   "rho": 0.03255660183678538,
+   "perm_p": 0.5920398009950248
+  }
+ ]
+}

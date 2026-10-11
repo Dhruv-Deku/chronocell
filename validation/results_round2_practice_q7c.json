@@ -1,0 +1,51 @@
+{
+ "made": "2026-10-08T01:02:59+00:00",
+ "complexes": 341,
+ "qaoa": {
+  "p": 5,
+  "objective": "cvar"
+ },
+ "grid": {
+  "hybrid0.25": {
+   "settings": {
+    "score": "vina",
+    "refine_top": 10,
+    "maxfev": 300,
+    "hydrogens": "given",
+    "hybrid": 0.25
+   },
+   "complexes": 341,
+   "usable": 324,
+   "success_qaoa": 0.5246913580246914,
+   "success_classical": 0.5185185185185185,
+   "success_random": 0.5555555555555556,
+   "success_qaoa_unrefined": 0.09876543209876543,
+   "qaoa_hit_rate": 0.9722222222222222,
+   "graphs": 324,
+   "crystal_scores_lower_than_qaoa_pose": 0.3814102564102564,
+   "pb": {
+    "complexes": 256,
+    "usable": 239,
+    "success_qaoa": 0.5062761506276151,
+    "success_classical": 0.502092050209205,
+    "success_random": 0.5230125523012552,
+    "success_qaoa_unrefined": 0.100418410041841,
+    "qaoa_hit_rate": 0.9790794979079498,
+    "graphs": 239,
+    "crystal_scores_lower_than_qaoa_pose": 0.3930131004366812
+   },
+   "astex": {
+    "complexes": 85,
+    "usable": 85,
+    "success_qaoa": 0.5764705882352941,
+    "success_classical": 0.5647058823529412,
+    "success_random": 0.6470588235294118,
+    "success_qaoa_unrefined": 0.09411764705882353,
+    "qaoa_hit_rate": 0.9529411764705882,
+    "graphs": 85,
+    "crystal_scores_lower_than_qaoa_pose": 0.3493975903614458
+   }
+  }
+ },
+ "stopped": "Stopped after the first setting (25 % of random search's budget given to clique seeds): the QAOA route docked 52.5 % against 55.6 % for random search alone on all 324 usable practice complexes, so no Q7c test was pre-registered (practice predicts a fail on the comparison with random search)."
+}

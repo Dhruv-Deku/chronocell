@@ -1,0 +1,98 @@
+{
+ "made": "2026-10-07T18:59:10+00:00",
+ "complexes": 256,
+ "qaoa": {
+  "p": 5,
+  "objective": "cvar"
+ },
+ "grid": {
+  "refine0": {
+   "settings": {
+    "score": "vina",
+    "refine_top": 0,
+    "maxfev": 300,
+    "hydrogens": "given"
+   },
+   "complexes": 256,
+   "usable": 239,
+   "success_qaoa": 0.100418410041841,
+   "success_classical": 0.10460251046025104,
+   "success_random": 0.11297071129707113,
+   "success_qaoa_unrefined": 0.100418410041841,
+   "qaoa_hit_rate": 0.9790794979079498,
+   "graphs": 239,
+   "crystal_scores_lower_than_qaoa_pose": 0.9694323144104804
+  },
+  "refine10": {
+   "settings": {
+    "score": "vina",
+    "refine_top": 10,
+    "maxfev": 300,
+    "hydrogens": "given"
+   },
+   "complexes": 256,
+   "usable": 239,
+   "success_qaoa": 0.3472803347280335,
+   "success_classical": 0.3389121338912134,
+   "success_random": 0.5230125523012552,
+   "success_qaoa_unrefined": 0.100418410041841,
+   "qaoa_hit_rate": 0.9790794979079498,
+   "graphs": 239,
+   "crystal_scores_lower_than_qaoa_pose": 0.5414847161572053
+  },
+  "seeded10": {
+   "settings": {
+    "score": "vina",
+    "refine_top": 10,
+    "maxfev": 300,
+    "hydrogens": "given",
+    "seeded": 10
+   },
+   "complexes": 256,
+   "usable": 239,
+   "success_qaoa": 0.3263598326359833,
+   "success_classical": 0.28451882845188287,
+   "success_random": 0.5230125523012552,
+   "success_qaoa_unrefined": 0.100418410041841,
+   "qaoa_hit_rate": 0.9790794979079498,
+   "graphs": 239,
+   "crystal_scores_lower_than_qaoa_pose": 0.5545851528384279
+  }
+ },
+ "choice": {
+  "score": "vina",
+  "refine_top": 10,
+  "maxfev": 300,
+  "hydrogens": "given"
+ },
+ "grid_note": "refine_top 30 started and stopped: random search with the same refinement had already overtaken the clique routes at 10; replaced by the seeded local search (same budget as random search)",
+ "virtual_hydrogens": {
+  "settings": {
+   "score": "vina",
+   "refine_top": 10,
+   "maxfev": 300,
+   "hydrogens": "virtual"
+  },
+  "subset": "Q7 practice complexes",
+  "complexes": 43,
+  "usable": 39,
+  "success_qaoa": 0.3076923076923077,
+  "success_classical": 0.3076923076923077,
+  "success_random": 0.5128205128205128,
+  "success_qaoa_unrefined": 0.1282051282051282,
+  "qaoa_hit_rate": 0.9743589743589743,
+  "graphs": 39,
+  "crystal_scores_lower_than_qaoa_pose": 0.5384615384615384
+ },
+ "same_subset_given_hydrogens": {
+  "complexes": 43,
+  "usable": 39,
+  "success_qaoa": 0.3076923076923077,
+  "success_classical": 0.28205128205128205,
+  "success_random": 0.48717948717948717,
+  "success_qaoa_unrefined": 0.15384615384615385,
+  "qaoa_hit_rate": 0.9743589743589743,
+  "graphs": 39,
+  "crystal_scores_lower_than_qaoa_pose": 0.5641025641025641
+ }
+}

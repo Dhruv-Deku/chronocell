@@ -202,6 +202,37 @@ def pastis_pm2(inp: Input) -> Prediction:
     return Prediction(_dist(x), seconds=time.time() - t, notes=[f"PASTIS PM2, fitted alpha = {alpha:.3f}"])
 
 
+def learned_correction(inp: Input) -> Prediction:
+    """Phase A4 (Gate 3b): the population model (v3.3 up to 400 loci, the frozen whole-chromosome v4 above,
+    as in validation/phase_a.py) followed by the correction frozen in chronocell/data/learned_correction.json."""
+    from chronocell import learned_correction as LC
+    from frozen import WHOLE_CHROMOSOME
+    t = time.time()
+    if inp.n <= P.V33_MAX_BEADS:
+        res = E.fit_ensemble(inp.freq, inp.seen, r_c_nm=inp.r_c_nm, cfg=E.EnsembleConfig(seed=inp.seed))
+    else:
+        res = P.fit_population(inp.freq, inp.seen, r_c_nm=inp.r_c_nm,
+                               cfg=P.PopulationConfig(seed=inp.seed, **WHOLE_CHROMOSOME))
+    base = np.asarray(res.median_distance_nm, dtype=np.float64)
+    iu = np.triu_indices(inp.n, 1)
+    sig = np.zeros((inp.n, inp.n))
+    sig[iu] = P.pair_sigma_nm(res, iu[0], iu[1])
+    sig = sig + sig.T
+    params = LC.load()
+    if not params or "kind" not in params:
+        return Prediction(base, sigma_nm=sig, seconds=time.time() - t, contact_fit=res.contact_fit,
+                          notes=["no correction frozen (practice chose none)"])
+    seen = np.asarray(inp.seen, dtype=float)
+    n_eff = float(np.nanmedian(seen[iu])) if seen.ndim == 2 else float(seen)
+    step = float(np.median(np.diag(inp.sep, 1)))
+    feats = LC.features(base, inp.freq, inp.counts, inp.sep, inp.r_c_nm, inp.kind == "hic", n_eff, step)
+    corr = LC.correct(base, feats, params)
+    factor = np.where(base > 0, corr / np.where(base > 0, base, 1.0), 1.0)
+    return Prediction(corr, sigma_nm=sig * factor, seconds=time.time() - t, contact_fit=res.contact_fit,
+                      notes=[f"learned correction ({params['kind']}), frozen on practice data"])
+
+
 METHODS = {"genomic_distance_only": genomic_distance_only, "no_3d": no_3d, "v3_2_single": v3_2_single,
-           "v3_3_windowed": v3_3_windowed, "v4_whole": v4_whole, "pastis_mds": pastis_mds, "pastis_pm2": pastis_pm2}
+           "v3_3_windowed": v3_3_windowed, "v4_whole": v4_whole, "pastis_mds": pastis_mds, "pastis_pm2": pastis_pm2,
+           "learned_correction": learned_correction}
 OURS = ("v3_3_windowed", "v4_whole")

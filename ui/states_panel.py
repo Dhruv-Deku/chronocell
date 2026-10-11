@@ -87,7 +87,8 @@ def file_bytes(sf: S.StateFile) -> bytes:
 
 def as_source(sf: S.StateFile) -> tuple[str, str, bytes]:
     """(label, name, bytes) in the form ui.common.load_dataset expects."""
-    return f"{sf.state} · {sf.name}", os.path.basename(sf.name), file_bytes(sf)
+    synthetic = "synthetic" in sf.name.lower() or sf.name.startswith("demo/")
+    return f"{'SYNTHETIC · ' if synthetic else ''}{sf.state} · {sf.name}", os.path.basename(sf.name), file_bytes(sf)
 
 
 # ======================================================================================

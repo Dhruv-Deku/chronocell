@@ -38,7 +38,7 @@ from __future__ import annotations
 
 import math
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Callable
 
 import numpy as np
@@ -102,6 +102,21 @@ class EnsembleResult:
         return self.trajectories_nm[-1]
 
 
+def with_cpu_fallback(fit, cfg):
+    """Run fit(cfg). If cfg.device is "auto", the fit ran on CUDA and the GPU ran out of memory, free the GPU
+    cache and run fit again on the CPU; the result's config records the fallback. An explicit device is
+    never overridden."""
+    try:
+        return fit(cfg)
+    except torch.cuda.OutOfMemoryError:
+        if cfg.device != "auto":
+            raise
+        torch.cuda.empty_cache()
+        res = fit(replace(cfg, device="cpu"))
+        res.config["device_fallback"] = "CUDA out of memory; refitted on the CPU"
+        return res
+
+
 def _device(name: str) -> torch.device:
     if name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -133,6 +148,10 @@ def fit_ensemble(freq: np.ndarray, n_observed: np.ndarray | float | None = None,
     r_c_nm      the contact radius the frequencies refer to (150 nm for Bintu et al. tracing).
     """
     cfg = cfg or EnsembleConfig()
+    return with_cpu_fallback(lambda c: _fit_ensemble(freq, n_observed, r_c_nm, c, progress), cfg)
+
+
+def _fit_ensemble(freq, n_observed, r_c_nm, cfg: EnsembleConfig, progress) -> EnsembleResult:
     t0 = time.time()
     f_in = np.asarray(freq, dtype=np.float64)
     n = len(f_in)

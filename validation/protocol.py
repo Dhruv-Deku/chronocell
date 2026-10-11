@@ -41,6 +41,21 @@ class HalfStats:
     adjacent_median: float    # median distance between consecutive loci (nm)
 
 
+def nanmedian0(a: np.ndarray) -> np.ndarray:
+    """np.nanmedian(a, axis=0), exactly, by one sort (NaNs sort last): numpy falls back to a Python
+    loop over columns when NaNs are present, which made the bootstrap minutes long."""
+    a = np.asarray(a)
+    flat = a.reshape(a.shape[0], -1)
+    srt = np.sort(flat, axis=0)
+    k = np.isfinite(flat).sum(axis=0)
+    cols = np.arange(flat.shape[1])
+    lo = np.maximum((k - 1) // 2, 0)
+    hi = np.maximum(k // 2, 0)
+    med = (srt[lo, cols] + srt[hi, cols]) / 2
+    med = np.where(k > 0, med, np.nan).astype(a.dtype if np.issubdtype(a.dtype, np.floating) else np.float64)
+    return med.reshape(a.shape[1:])
+
+
 def half_stats(xyz: np.ndarray, r_c_nm: float | None, rows: int = 24, max_bytes: float = 4e8) -> HalfStats:
     """Contact frequency, observation counts and median distance for every locus pair, in row blocks.
     r_c_nm None -> the contact radius is the median adjacent-locus distance of these copies."""
@@ -61,11 +76,7 @@ def half_stats(xyz: np.ndarray, r_c_nm: float | None, rows: int = 24, max_bytes:
         seen[a:b] = k
         close = (d < r).sum(0)
         freq[a:b] = np.where(k > 0, close / np.maximum(k, 1), np.nan)
-        with np.errstate(all="ignore"):
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                med[a:b] = np.nanmedian(d, axis=0)
+        med[a:b] = nanmedian0(d)
     np.fill_diagonal(med, 0.0)
     return HalfStats(freq, seen, med, adj_med)
 
@@ -239,9 +250,7 @@ def bootstrap_truth_ci(xyz_b: np.ndarray, pred: np.ndarray, sep: np.ndarray, mas
     import warnings
     for _ in range(reps):
         pick = rng.integers(0, len(x), len(x))
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            t = np.nanmedian(d[pick], axis=0)
+        t = nanmedian0(d[pick])
         vals.append(_flat_scores(p, t, sub_sep)[key])
     lo, hi = np.nanpercentile(vals, [2.5, 97.5])
     return float(lo), float(hi)
